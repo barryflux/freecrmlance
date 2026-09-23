@@ -1,13 +1,17 @@
+using Freecrmlance.Domain.Platform;
+using Freecrmlance.Infrastructure.Persistence;
 using Freecrmlance.Web.Models.Account;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Freecrmlance.Web.Controllers;
 
 public sealed class AccountController(
     UserManager<IdentityUser> userManager,
-    SignInManager<IdentityUser> signInManager) : Controller
+    SignInManager<IdentityUser> signInManager,
+    FreecrmlanceDbContext dbContext) : Controller
 {
     [AllowAnonymous]
     [HttpGet]
@@ -20,6 +24,8 @@ public sealed class AccountController(
     {
         if (!ModelState.IsValid) return View(model);
 
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+
         var user = new IdentityUser { UserName = model.Email, Email = model.Email };
         var result = await userManager.CreateAsync(user, model.Password);
 
@@ -29,6 +35,12 @@ public sealed class AccountController(
                 ModelState.AddModelError(string.Empty, error.Description);
             return View(model);
         }
+
+        var workspace = new Workspace("My workspace");
+        dbContext.Workspaces.Add(workspace);
+        dbContext.WorkspaceMembers.Add(new WorkspaceMember(workspace.Id, user.Id, WorkspaceRole.Owner));
+        await dbContext.SaveChangesAsync();
+        await transaction.CommitAsync();
 
         await signInManager.SignInAsync(user, isPersistent: false);
         return RedirectToAction("Index", "Home");
