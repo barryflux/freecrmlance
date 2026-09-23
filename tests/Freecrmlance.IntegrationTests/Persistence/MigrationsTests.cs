@@ -10,7 +10,8 @@ public sealed class MigrationsTests
     [Test]
     public async Task Migrations_can_be_applied_to_an_empty_PostgreSQL_database()
     {
-        var postgres = new PostgreSqlBuilder("postgres:17-alpine")
+        var postgres = new PostgreSqlBuilder()
+            .WithImage("postgres:17-alpine")
             .Build();
 
         await postgres.StartAsync();
