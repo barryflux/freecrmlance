@@ -32,7 +32,7 @@ public sealed class IdentityTests
         await db.Database.MigrateAsync();
 
         var migrations = await db.Database.GetAppliedMigrationsAsync();
-        Assert.That(migrations, Does.Contain("20260923162500_AddIdentity"));
+        Assert.That(migrations, Does.Contain("20260923173609_AddIdentity"));
 
         var users = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
         var user = new IdentityUser { UserName = "test@example.com", Email = "test@example.com" };
