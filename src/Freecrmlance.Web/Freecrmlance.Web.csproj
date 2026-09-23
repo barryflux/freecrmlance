@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <ProjectReference Include="../Freecrmlance.Application/Freecrmlance.Application.csproj" />
+    <ProjectReference Include="../Freecrmlance.Infrastructure/Freecrmlance.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>
