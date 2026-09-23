@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup><ProjectReference Include="../Freecrmlance.Domain/Freecrmlance.Domain.csproj" /></ItemGroup>
+</Project>

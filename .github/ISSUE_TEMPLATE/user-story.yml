@@ -1,0 +1,61 @@
+name: User Story
+description: Create an implementation-ready User Story
+title: "[US] "
+body:
+  - type: dropdown
+    id: module
+    attributes:
+      label: Module
+      options: [Platform, CRM, Documents, Billing, Compliance, Audit]
+    validations: { required: true }
+  - type: textarea
+    id: story
+    attributes:
+      label: Story
+      placeholder: |
+        As a freelance,
+        I want to ...
+        So that ...
+    validations: { required: true }
+  - type: textarea
+    id: context
+    attributes: { label: Context }
+    validations: { required: true }
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      placeholder: |
+        Given ...
+        When ...
+        Then ...
+    validations: { required: true }
+  - type: textarea
+    id: business-rules
+    attributes: { label: Business Rules }
+  - type: textarea
+    id: authorization
+    attributes: { label: Authorization & Workspace Isolation }
+  - type: textarea
+    id: persistence
+    attributes: { label: Persistence Impact }
+  - type: textarea
+    id: observability
+    attributes: { label: Observability }
+  - type: textarea
+    id: out-of-scope
+    attributes: { label: Out of Scope }
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: Technical Notes
+      description: Optional constraints. Do not redesign architecture here.
+  - type: checkboxes
+    id: ready
+    attributes:
+      label: Ready for Development
+      options:
+        - { label: "Acceptance criteria are testable.", required: true }
+        - { label: "The owning module is identified.", required: true }
+        - { label: "Scope is sufficiently clear.", required: true }
+        - { label: "Security / Workspace implications have been considered.", required: true }
