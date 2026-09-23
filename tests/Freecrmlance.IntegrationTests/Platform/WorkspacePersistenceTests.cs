@@ -52,6 +52,9 @@ public sealed class WorkspacePersistenceTests
         var workspace = new Workspace("Freelance");
         db.Workspaces.Add(workspace);
         db.WorkspaceMembers.Add(new WorkspaceMember(workspace.Id, "identity-user-id", WorkspaceRole.Owner));
+        await db.SaveChangesAsync();
+
+        db.ChangeTracker.Clear();
         db.WorkspaceMembers.Add(new WorkspaceMember(workspace.Id, "identity-user-id", WorkspaceRole.Owner));
 
         Assert.ThrowsAsync<DbUpdateException>(async () => await db.SaveChangesAsync());
