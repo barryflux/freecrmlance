@@ -8,5 +8,8 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.9" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
   </ItemGroup>
-  <ItemGroup><ProjectReference Include="../../src/Freecrmlance.Infrastructure/Freecrmlance.Infrastructure.csproj" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Freecrmlance.Application/Freecrmlance.Application.csproj" />
+    <ProjectReference Include="../../src/Freecrmlance.Infrastructure/Freecrmlance.Infrastructure.csproj" />
+  </ItemGroup>
 </Project>
