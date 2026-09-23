@@ -17,9 +17,14 @@ public static class DependencyInjection
 
         services.AddDbContext<FreecrmlanceDbContext>(options => options.UseNpgsql(connectionString));
 
-        services.AddIdentity<IdentityUser, IdentityRole>()
+        services.AddIdentityCore<IdentityUser>()
+            .AddRoles<IdentityRole>()
+            .AddSignInManager()
             .AddEntityFrameworkStores<FreecrmlanceDbContext>()
             .AddDefaultTokenProviders();
+
+        services.AddAuthentication(IdentityConstants.ApplicationScheme)
+            .AddIdentityCookies();
 
         return services;
     }
