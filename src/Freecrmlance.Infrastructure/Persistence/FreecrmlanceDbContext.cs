@@ -1,3 +1,4 @@
+using Freecrmlance.Domain.Crm;
 using Freecrmlance.Domain.Platform;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ namespace Freecrmlance.Infrastructure.Persistence;
 public sealed class FreecrmlanceDbContext(DbContextOptions<FreecrmlanceDbContext> options)
     : IdentityDbContext(options)
 {
+    public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<Workspace> Workspaces => Set<Workspace>();
     public DbSet<WorkspaceMember> WorkspaceMembers => Set<WorkspaceMember>();
 
