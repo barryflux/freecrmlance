@@ -1,4 +1,6 @@
+using Freecrmlance.Application.Platform;
 using Freecrmlance.Infrastructure.Persistence;
+using Freecrmlance.Infrastructure.Platform;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -17,6 +19,8 @@ public static class DependencyInjection
 
         services.AddDbContext<FreecrmlanceDbContext>(options =>
             options.UseNpgsql(connectionString));
+
+        services.AddScoped<IWorkspaceContext, WorkspaceContext>();
 
         services.AddIdentity<IdentityUser, IdentityRole>()
             .AddEntityFrameworkStores<FreecrmlanceDbContext>()
