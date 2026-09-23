@@ -1,4 +1,5 @@
 using Freecrmlance.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,11 +13,13 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("PostgreSQL")
-            ?? throw new InvalidOperationException(
-                "Connection string 'PostgreSQL' is not configured.");
+            ?? throw new InvalidOperationException("Connection string 'PostgreSQL' is not configured.");
 
-        services.AddDbContext<FreecrmlanceDbContext>(options =>
-            options.UseNpgsql(connectionString));
+        services.AddDbContext<FreecrmlanceDbContext>(options => options.UseNpgsql(connectionString));
+
+        services.AddIdentity<IdentityUser, IdentityRole>()
+            .AddEntityFrameworkStores<FreecrmlanceDbContext>()
+            .AddDefaultTokenProviders();
 
         return services;
     }
