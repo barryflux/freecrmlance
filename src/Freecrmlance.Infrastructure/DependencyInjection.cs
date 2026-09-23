@@ -15,16 +15,12 @@ public static class DependencyInjection
         var connectionString = configuration.GetConnectionString("PostgreSQL")
             ?? throw new InvalidOperationException("Connection string 'PostgreSQL' is not configured.");
 
-        services.AddDbContext<FreecrmlanceDbContext>(options => options.UseNpgsql(connectionString));
+        services.AddDbContext<FreecrmlanceDbContext>(options =>
+            options.UseNpgsql(connectionString));
 
-        services.AddIdentityCore<IdentityUser>()
-            .AddRoles<IdentityRole>()
-            .AddSignInManager()
+        services.AddIdentity<IdentityUser, IdentityRole>()
             .AddEntityFrameworkStores<FreecrmlanceDbContext>()
             .AddDefaultTokenProviders();
-
-        services.AddAuthentication(IdentityConstants.ApplicationScheme)
-            .AddIdentityCookies();
 
         return services;
     }
