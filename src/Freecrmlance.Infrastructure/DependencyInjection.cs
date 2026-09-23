@@ -1,4 +1,6 @@
+using Freecrmlance.Application.Crm;
 using Freecrmlance.Application.Platform;
+using Freecrmlance.Infrastructure.Crm;
 using Freecrmlance.Infrastructure.Persistence;
 using Freecrmlance.Infrastructure.Platform;
 using Microsoft.AspNetCore.Identity;
@@ -21,6 +23,7 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString));
 
         services.AddScoped<IWorkspaceContext, WorkspaceContext>();
+        services.AddScoped<ICustomerService, CustomerService>();
 
         services.AddIdentity<IdentityUser, IdentityRole>()
             .AddEntityFrameworkStores<FreecrmlanceDbContext>()

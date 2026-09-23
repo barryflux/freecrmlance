@@ -1,0 +1,24 @@
+@model IReadOnlyList<Freecrmlance.Application.Crm.CustomerDto>
+@{
+    ViewData["Title"] = "Customers";
+}
+
+<h1>Customers</h1>
+<p><a asp-action="Create">Add customer</a></p>
+
+@if (Model.Count == 0)
+{
+    <p>No customers yet.</p>
+}
+else
+{
+    <table>
+        <thead><tr><th>Name</th><th>Email</th><th>Phone</th></tr></thead>
+        <tbody>
+        @foreach (var customer in Model)
+        {
+            <tr><td>@customer.Name</td><td>@customer.Email</td><td>@customer.Phone</td></tr>
+        }
+        </tbody>
+    </table>
+}
