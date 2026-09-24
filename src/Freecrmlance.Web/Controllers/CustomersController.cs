@@ -58,7 +58,16 @@ public sealed class CustomersController(ICustomerService customerService, IConta
     public async Task<IActionResult> Create(CreateCustomerViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return View(model);
-        await customerService.CreateAsync(new CreateCustomerCommand(model.Name, model.Email, model.Phone), cancellationToken);
-        return RedirectToAction(nameof(Index));
+        var customerId = await customerService.CreateAsync(new CreateCustomerCommand(model.Name, model.Email, model.Phone), cancellationToken);
+
+        foreach (var contact in model.Contacts)
+        {
+            await contactService.CreateAsync(
+                customerId,
+                new CreateContactCommand(contact.Name, contact.Email, contact.Phone, contact.Role),
+                cancellationToken);
+        }
+
+        return RedirectToAction(nameof(Details), new { id = customerId });
     }
 }
