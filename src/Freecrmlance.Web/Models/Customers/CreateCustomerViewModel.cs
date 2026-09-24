@@ -12,4 +12,6 @@ public sealed class CreateCustomerViewModel
 
     [StringLength(50)]
     public string? Phone { get; set; }
+
+    public List<CreateContactViewModel> Contacts { get; set; } = [new()];
 }
