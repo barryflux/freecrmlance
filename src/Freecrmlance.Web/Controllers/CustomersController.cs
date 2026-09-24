@@ -33,6 +33,36 @@ public sealed class CustomersController(ICustomerService customerService, IConta
         return contactId is null ? NotFound() : RedirectToAction(nameof(Details), new { id });
     }
 
+    [HttpGet("Customers/{customerId:guid}/Contacts/{contactId:guid}/Edit")]
+    public async Task<IActionResult> EditContact(Guid customerId, Guid contactId, CancellationToken cancellationToken)
+    {
+        var contact = await contactService.GetAsync(customerId, contactId, cancellationToken);
+        if (contact is null) return NotFound();
+
+        return View(new EditContactViewModel
+        {
+            Name = contact.Name,
+            Email = contact.Email,
+            Phone = contact.Phone,
+            Role = contact.Role
+        });
+    }
+
+    [HttpPost("Customers/{customerId:guid}/Contacts/{contactId:guid}/Edit")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditContact(Guid customerId, Guid contactId, EditContactViewModel model, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return View(model);
+
+        var updated = await contactService.UpdateAsync(
+            customerId,
+            contactId,
+            new UpdateContactCommand(model.Name, model.Email, model.Phone, model.Role),
+            cancellationToken);
+
+        return updated ? RedirectToAction(nameof(Details), new { id = customerId }) : NotFound();
+    }
+
     [HttpGet("Customers/{id:guid}/Edit")]
     public async Task<IActionResult> Edit(Guid id, CancellationToken cancellationToken)
     {
