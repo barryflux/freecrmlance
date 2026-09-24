@@ -8,14 +8,10 @@ public sealed class Customer
     {
         if (workspaceId == Guid.Empty)
             throw new ArgumentException("Workspace id is required.", nameof(workspaceId));
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Customer name is required.", nameof(name));
 
         Id = Guid.NewGuid();
         WorkspaceId = workspaceId;
-        Name = name.Trim();
-        Email = string.IsNullOrWhiteSpace(email) ? null : email.Trim();
-        Phone = string.IsNullOrWhiteSpace(phone) ? null : phone.Trim();
+        Update(name, email, phone);
     }
 
     public Guid Id { get; private set; }
@@ -23,4 +19,14 @@ public sealed class Customer
     public string Name { get; private set; } = string.Empty;
     public string? Email { get; private set; }
     public string? Phone { get; private set; }
+
+    public void Update(string name, string? email, string? phone)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Customer name is required.", nameof(name));
+
+        Name = name.Trim();
+        Email = string.IsNullOrWhiteSpace(email) ? null : email.Trim();
+        Phone = string.IsNullOrWhiteSpace(phone) ? null : phone.Trim();
+    }
 }
