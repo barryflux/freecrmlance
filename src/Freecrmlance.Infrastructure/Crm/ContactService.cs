@@ -55,4 +55,16 @@ public sealed class ContactService(FreecrmlanceDbContext dbContext, IWorkspaceCo
         await dbContext.SaveChangesAsync(cancellationToken);
         return true;
     }
+    public async Task<bool> DeleteAsync(Guid customerId, Guid contactId, CancellationToken cancellationToken = default)
+    {
+        var workspaceId = await workspaceContext.RequireCurrentWorkspaceIdAsync(cancellationToken);
+        var contact = await dbContext.Contacts.SingleOrDefaultAsync(
+            contact => contact.Id == contactId && contact.CustomerId == customerId && contact.WorkspaceId == workspaceId,
+            cancellationToken);
+        if (contact is null) return false;
+
+        dbContext.Contacts.Remove(contact);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
 }
