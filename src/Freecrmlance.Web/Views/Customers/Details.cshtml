@@ -2,33 +2,65 @@
 @{
     ViewData["Title"] = Model.Customer.Name;
 }
+
 <h1>@Model.Customer.Name</h1>
-<dl>
-    <dt>Email</dt><dd>@(Model.Customer.Email ?? "—")</dd>
-    <dt>Phone</dt><dd>@(Model.Customer.Phone ?? "—")</dd>
-</dl>
-<p>
-    <a asp-action="Edit" asp-route-id="@Model.Customer.Id">Edit</a> |
-    <a asp-action="Index">Back to customers</a>
-</p>
-<h2>Contacts</h2>
-<p><a asp-action="CreateContact" asp-route-id="@Model.Customer.Id">Add contact</a></p>
-@if (Model.Contacts.Count == 0)
-{
-    <p>No contacts yet.</p>
-}
-else
-{
-    <table>
-        <thead><tr><th>Name</th><th>Role</th><th>Email</th><th>Phone</th></tr></thead>
-        <tbody>
-        @foreach (var contact in Model.Contacts)
-        {
-            <tr>
-                <td>@contact.Name</td><td>@(contact.Role ?? "—")</td>
-                <td>@(contact.Email ?? "—")</td><td>@(contact.Phone ?? "—")</td>
-            </tr>
-        }
-        </tbody>
-    </table>
-}
+
+<section>
+    <h2>Customer information</h2>
+    <dl>
+        <dt>Email</dt>
+        <dd>@(Model.Customer.Email ?? "—")</dd>
+        <dt>Phone</dt>
+        <dd>@(Model.Customer.Phone ?? "—")</dd>
+    </dl>
+    <p><a asp-action="Edit" asp-route-id="@Model.Customer.Id">Edit customer</a></p>
+</section>
+
+<section>
+    <h2>Contacts <span>(@Model.Contacts.Count)</span></h2>
+    <p><a asp-action="CreateContact" asp-route-id="@Model.Customer.Id">+ Add contact</a></p>
+
+    @if (Model.Contacts.Count == 0)
+    {
+        <p>No contacts yet.</p>
+    }
+    else
+    {
+        <div class="contacts-list">
+            @foreach (var contact in Model.Contacts)
+            {
+                <article class="contact-card">
+                    <h3>@contact.Name</h3>
+                    <dl>
+                        <dt>Role</dt>
+                        <dd>@(contact.Role ?? "—")</dd>
+                        <dt>Email</dt>
+                        <dd>
+                            @if (contact.Email is not null)
+                            {
+                                <a href="mailto:@contact.Email">@contact.Email</a>
+                            }
+                            else
+                            {
+                                <span>—</span>
+                            }
+                        </dd>
+                        <dt>Phone</dt>
+                        <dd>
+                            @if (contact.Phone is not null)
+                            {
+                                <a href="tel:@contact.Phone">@contact.Phone</a>
+                            }
+                            else
+                            {
+                                <span>—</span>
+                            }
+                        </dd>
+                    </dl>
+                </article>
+            }
+        </div>
+    }
+</section>
+
+<p><a asp-action="Index">Back to customers</a></p>
