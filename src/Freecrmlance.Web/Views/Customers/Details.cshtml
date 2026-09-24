@@ -12,4 +12,7 @@
     <dd>@(Model.Phone ?? "—")</dd>
 </dl>
 
-<p><a asp-action="Index">Back to customers</a></p>
+<p>
+    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
+    <a asp-action="Index">Back to customers</a>
+</p>
