@@ -1,0 +1,11 @@
+@model Freecrmlance.Web.Models.Customers.CreateContactViewModel
+@{ ViewData["Title"] = "Add contact"; }
+<h1>Add contact</h1>
+<form method="post">
+    <div asp-validation-summary="ModelOnly"></div>
+    <div><label asp-for="Name"></label><input asp-for="Name" /><span asp-validation-for="Name"></span></div>
+    <div><label asp-for="Role"></label><input asp-for="Role" /><span asp-validation-for="Role"></span></div>
+    <div><label asp-for="Email"></label><input asp-for="Email" /><span asp-validation-for="Email"></span></div>
+    <div><label asp-for="Phone"></label><input asp-for="Phone" /><span asp-validation-for="Phone"></span></div>
+    <button type="submit">Add contact</button>
+</form>

@@ -1,18 +1,34 @@
-@model Freecrmlance.Application.Crm.CustomerDto
+@model Freecrmlance.Web.Models.Customers.CustomerDetailsViewModel
 @{
-    ViewData["Title"] = Model.Name;
+    ViewData["Title"] = Model.Customer.Name;
 }
-
-<h1>@Model.Name</h1>
-
+<h1>@Model.Customer.Name</h1>
 <dl>
-    <dt>Email</dt>
-    <dd>@(Model.Email ?? "—")</dd>
-    <dt>Phone</dt>
-    <dd>@(Model.Phone ?? "—")</dd>
+    <dt>Email</dt><dd>@(Model.Customer.Email ?? "—")</dd>
+    <dt>Phone</dt><dd>@(Model.Customer.Phone ?? "—")</dd>
 </dl>
-
 <p>
-    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
+    <a asp-action="Edit" asp-route-id="@Model.Customer.Id">Edit</a> |
     <a asp-action="Index">Back to customers</a>
 </p>
+<h2>Contacts</h2>
+<p><a asp-action="CreateContact" asp-route-id="@Model.Customer.Id">Add contact</a></p>
+@if (Model.Contacts.Count == 0)
+{
+    <p>No contacts yet.</p>
+}
+else
+{
+    <table>
+        <thead><tr><th>Name</th><th>Role</th><th>Email</th><th>Phone</th></tr></thead>
+        <tbody>
+        @foreach (var contact in Model.Contacts)
+        {
+            <tr>
+                <td>@contact.Name</td><td>@(contact.Role ?? "—")</td>
+                <td>@(contact.Email ?? "—")</td><td>@(contact.Phone ?? "—")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
