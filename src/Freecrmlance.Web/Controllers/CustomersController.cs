@@ -12,6 +12,13 @@ public sealed class CustomersController(ICustomerService customerService) : Cont
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
         => View(await customerService.ListAsync(cancellationToken));
 
+    [HttpGet("Customers/{id:guid}")]
+    public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
+    {
+        var customer = await customerService.GetAsync(id, cancellationToken);
+        return customer is null ? NotFound() : View(customer);
+    }
+
     [HttpGet]
     public IActionResult Create() => View(new CreateCustomerViewModel());
 

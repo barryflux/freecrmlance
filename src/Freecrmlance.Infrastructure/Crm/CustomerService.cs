@@ -22,6 +22,17 @@ public sealed class CustomerService(
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<CustomerDto?> GetAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var workspaceId = await workspaceContext.RequireCurrentWorkspaceIdAsync(cancellationToken);
+
+        return await dbContext.Customers
+            .AsNoTracking()
+            .Where(customer => customer.Id == id && customer.WorkspaceId == workspaceId)
+            .Select(customer => new CustomerDto(customer.Id, customer.Name, customer.Email, customer.Phone))
+            .SingleOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<Guid> CreateAsync(CreateCustomerCommand command, CancellationToken cancellationToken = default)
     {
         var workspaceId = await workspaceContext.RequireCurrentWorkspaceIdAsync(cancellationToken);

@@ -17,7 +17,11 @@ else
         <tbody>
         @foreach (var customer in Model)
         {
-            <tr><td>@customer.Name</td><td>@customer.Email</td><td>@customer.Phone</td></tr>
+            <tr>
+                <td><a asp-action="Details" asp-route-id="@customer.Id">@customer.Name</a></td>
+                <td>@customer.Email</td>
+                <td>@customer.Phone</td>
+            </tr>
         }
         </tbody>
     </table>
