@@ -63,6 +63,21 @@ public sealed class CustomersController(ICustomerService customerService, IConta
         return updated ? RedirectToAction(nameof(Details), new { id = customerId }) : NotFound();
     }
 
+    [HttpGet("Customers/{customerId:guid}/Contacts/{contactId:guid}/Delete")]
+    public async Task<IActionResult> DeleteContact(Guid customerId, Guid contactId, CancellationToken cancellationToken)
+    {
+        var contact = await contactService.GetAsync(customerId, contactId, cancellationToken);
+        return contact is null ? NotFound() : View(contact);
+    }
+
+    [HttpPost("Customers/{customerId:guid}/Contacts/{contactId:guid}/Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteContactConfirmed(Guid customerId, Guid contactId, CancellationToken cancellationToken)
+    {
+        var deleted = await contactService.DeleteAsync(customerId, contactId, cancellationToken);
+        return deleted ? RedirectToAction(nameof(Details), new { id = customerId }) : NotFound();
+    }
+
     [HttpGet("Customers/{id:guid}/Edit")]
     public async Task<IActionResult> Edit(Guid id, CancellationToken cancellationToken)
     {
