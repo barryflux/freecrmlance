@@ -57,6 +57,11 @@
                             }
                         </dd>
                     </dl>
+                    <p>
+                        <a asp-action="EditContact"
+                           asp-route-customerId="@Model.Customer.Id"
+                           asp-route-contactId="@contact.Id">Edit contact</a>
+                    </p>
                 </article>
             }
         </div>
