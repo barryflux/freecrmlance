@@ -6,21 +6,104 @@
 <h1>Add customer</h1>
 <form asp-action="Create" method="post">
     <div asp-validation-summary="ModelOnly"></div>
-    <div>
-        <label asp-for="Name"></label>
-        <input asp-for="Name" />
-        <span asp-validation-for="Name"></span>
-    </div>
-    <div>
-        <label asp-for="Email"></label>
-        <input asp-for="Email" />
-        <span asp-validation-for="Email"></span>
-    </div>
-    <div>
-        <label asp-for="Phone"></label>
-        <input asp-for="Phone" />
-        <span asp-validation-for="Phone"></span>
-    </div>
-    <button type="submit">Create</button>
+
+    <fieldset>
+        <legend>Customer information</legend>
+        <div>
+            <label asp-for="Name"></label>
+            <input asp-for="Name" />
+            <span asp-validation-for="Name"></span>
+        </div>
+        <div>
+            <label asp-for="Email"></label>
+            <input asp-for="Email" />
+            <span asp-validation-for="Email"></span>
+        </div>
+        <div>
+            <label asp-for="Phone"></label>
+            <input asp-for="Phone" />
+            <span asp-validation-for="Phone"></span>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend>Contacts</legend>
+        <div id="contacts">
+            @for (var i = 0; i < Model.Contacts.Count; i++)
+            {
+                <div class="contact-fields">
+                    <h3>Contact @(i + 1)</h3>
+                    @if (i > 0)
+                    {
+                        <button type="button" class="remove-contact">Remove contact</button>
+                    }
+                    <div>
+                        <label asp-for="Contacts[i].Name"></label>
+                        <input asp-for="Contacts[i].Name" />
+                        <span asp-validation-for="Contacts[i].Name"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Contacts[i].Email"></label>
+                        <input asp-for="Contacts[i].Email" />
+                        <span asp-validation-for="Contacts[i].Email"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Contacts[i].Phone"></label>
+                        <input asp-for="Contacts[i].Phone" />
+                        <span asp-validation-for="Contacts[i].Phone"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Contacts[i].Role"></label>
+                        <input asp-for="Contacts[i].Role" />
+                        <span asp-validation-for="Contacts[i].Role"></span>
+                    </div>
+                </div>
+            }
+        </div>
+        <button type="button" id="add-contact">+ Add contact</button>
+    </fieldset>
+
+    <button type="submit">Create customer</button>
 </form>
 <p><a asp-action="Index">Back to customers</a></p>
+
+<script>
+    (() => {
+        const contacts = document.getElementById("contacts");
+        const addButton = document.getElementById("add-contact");
+
+        const renumberContacts = () => {
+            contacts.querySelectorAll(".contact-fields").forEach((contact, index) => {
+                contact.querySelector("h3").textContent = `Contact ${index + 1}`;
+                contact.querySelectorAll("input").forEach(input => {
+                    const field = input.name.split(".").pop();
+                    input.name = `Contacts[${index}].${field}`;
+                    input.id = `Contacts_${index}__${field}`;
+                    const label = contact.querySelector(`label[for$="__${field}"]`);
+                    if (label) label.htmlFor = input.id;
+                });
+            });
+        };
+
+        contacts.addEventListener("click", event => {
+            if (!event.target.classList.contains("remove-contact")) return;
+            event.target.closest(".contact-fields").remove();
+            renumberContacts();
+        });
+
+        addButton.addEventListener("click", () => {
+            const index = contacts.querySelectorAll(".contact-fields").length;
+            const wrapper = document.createElement("div");
+            wrapper.className = "contact-fields";
+            wrapper.innerHTML = `
+                <h3>Contact ${index + 1}</h3>
+                <button type="button" class="remove-contact">Remove contact</button>
+                <div><label for="Contacts_${index}__Name">Name</label><input id="Contacts_${index}__Name" name="Contacts[${index}].Name" /></div>
+                <div><label for="Contacts_${index}__Email">Email</label><input id="Contacts_${index}__Email" name="Contacts[${index}].Email" type="email" /></div>
+                <div><label for="Contacts_${index}__Phone">Phone</label><input id="Contacts_${index}__Phone" name="Contacts[${index}].Phone" /></div>
+                <div><label for="Contacts_${index}__Role">Role</label><input id="Contacts_${index}__Role" name="Contacts[${index}].Role" /></div>
+            `;
+            contacts.appendChild(wrapper);
+        });
+    })();
+</script>
