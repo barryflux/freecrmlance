@@ -84,6 +84,46 @@ public sealed class ContactServiceTests
         });
     }
 
+    [Test]
+    public async Task Contact_delete_is_scoped_by_workspace_customer_and_contact()
+    {
+        await using var postgres = new PostgreSqlBuilder().WithImage("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        var options = new DbContextOptionsBuilder<FreecrmlanceDbContext>().UseNpgsql(postgres.GetConnectionString()).Options;
+        await using var db = new FreecrmlanceDbContext(options);
+        await db.Database.MigrateAsync();
+
+        var workspaceA = Guid.NewGuid();
+        var workspaceB = Guid.NewGuid();
+        var customerA = new Customer(workspaceA, "Acme");
+        var secondCustomerA = new Customer(workspaceA, "Globex");
+        var customerB = new Customer(workspaceB, "Wayne");
+        db.Customers.AddRange(customerA, secondCustomerA, customerB);
+        await db.SaveChangesAsync();
+
+        var contactA = new Contact(workspaceA, customerA.Id, "Alice");
+        var contactB = new Contact(workspaceB, customerB.Id, "Bruce");
+        db.Contacts.AddRange(contactA, contactB);
+        await db.SaveChangesAsync();
+
+        var service = new ContactService(db, new StubWorkspaceContext(workspaceA));
+
+        var wrongCustomer = await service.DeleteAsync(secondCustomerA.Id, contactA.Id);
+        var crossWorkspace = await service.DeleteAsync(customerB.Id, contactB.Id);
+        var own = await service.DeleteAsync(customerA.Id, contactA.Id);
+        var deleted = await service.GetAsync(customerA.Id, contactA.Id);
+        var otherStillExists = await db.Contacts.AsNoTracking().AnyAsync(contact => contact.Id == contactB.Id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(wrongCustomer, Is.False);
+            Assert.That(crossWorkspace, Is.False);
+            Assert.That(own, Is.True);
+            Assert.That(deleted, Is.Null);
+            Assert.That(otherStillExists, Is.True);
+        });
+    }
+
     private sealed class StubWorkspaceContext(Guid workspaceId) : IWorkspaceContext
     {
         public Task<Guid?> GetCurrentWorkspaceIdAsync(CancellationToken cancellationToken = default) => Task.FromResult<Guid?>(workspaceId);
