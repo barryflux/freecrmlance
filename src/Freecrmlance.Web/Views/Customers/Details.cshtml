@@ -61,6 +61,10 @@
                         <a asp-action="EditContact"
                            asp-route-customerId="@Model.Customer.Id"
                            asp-route-contactId="@contact.Id">Edit contact</a>
+                        |
+                        <a asp-action="DeleteContact"
+                           asp-route-customerId="@Model.Customer.Id"
+                           asp-route-contactId="@contact.Id">Delete contact</a>
                     </p>
                 </article>
             }
