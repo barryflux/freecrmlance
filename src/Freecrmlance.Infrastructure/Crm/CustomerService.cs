@@ -34,6 +34,18 @@ public sealed class CustomerService(
         var workspaceId = await workspaceContext.RequireCurrentWorkspaceIdAsync(cancellationToken);
         var customer = new Customer(workspaceId, command.Name, command.Email, command.Phone);
         dbContext.Customers.Add(customer);
+
+        foreach (var contact in command.Contacts ?? [])
+        {
+            dbContext.Contacts.Add(new Contact(
+                workspaceId,
+                customer.Id,
+                contact.Name,
+                contact.Email,
+                contact.Phone,
+                contact.Role));
+        }
+
         await dbContext.SaveChangesAsync(cancellationToken);
         return customer.Id;
     }
