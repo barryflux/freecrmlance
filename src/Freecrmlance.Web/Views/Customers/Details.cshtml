@@ -1,0 +1,15 @@
+@model Freecrmlance.Application.Crm.CustomerDto
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<h1>@Model.Name</h1>
+
+<dl>
+    <dt>Email</dt>
+    <dd>@(Model.Email ?? "—")</dd>
+    <dt>Phone</dt>
+    <dd>@(Model.Phone ?? "—")</dd>
+</dl>
+
+<p><a asp-action="Index">Back to customers</a></p>
