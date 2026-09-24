@@ -1,0 +1,47 @@
+:root {
+    --freecrmlance-content-width: 1120px;
+}
+
+body {
+    min-height: 100vh;
+}
+
+main.container,
+header .container,
+footer.container {
+    max-width: var(--freecrmlance-content-width);
+}
+
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.form-card {
+    max-width: 720px;
+}
+
+.auth-card {
+    max-width: 460px;
+    margin-inline: auto;
+}
+
+.contact-card {
+    height: 100%;
+}
+
+.empty-state {
+    border: 1px dashed var(--bs-border-color);
+    border-radius: var(--bs-border-radius-lg);
+    padding: 3rem 1.5rem;
+    text-align: center;
+    background: var(--bs-body-bg);
+}
+
+.field-validation-error {
+    color: var(--bs-danger);
+    font-size: .875em;
+}
+
+.input-validation-error {
+    border-color: var(--bs-danger);
+}

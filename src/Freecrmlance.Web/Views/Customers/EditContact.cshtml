@@ -1,31 +1,15 @@
 @model Freecrmlance.Web.Models.Customers.EditContactViewModel
-@{
-    ViewData["Title"] = "Edit contact";
-}
-
-<h1>Edit contact</h1>
-<form method="post">
-    <div asp-validation-summary="ModelOnly"></div>
-    <div>
-        <label asp-for="Name"></label>
-        <input asp-for="Name" />
-        <span asp-validation-for="Name"></span>
-    </div>
-    <div>
-        <label asp-for="Email"></label>
-        <input asp-for="Email" />
-        <span asp-validation-for="Email"></span>
-    </div>
-    <div>
-        <label asp-for="Phone"></label>
-        <input asp-for="Phone" />
-        <span asp-validation-for="Phone"></span>
-    </div>
-    <div>
-        <label asp-for="Role"></label>
-        <input asp-for="Role" />
-        <span asp-validation-for="Role"></span>
-    </div>
-    <button type="submit">Save contact</button>
-</form>
-<p><a asp-action="Details" asp-route-id="@ViewContext.RouteData.Values["customerId"]">Back to customer</a></p>
+@{ ViewData["Title"] = "Edit contact"; }
+<div class="form-card">
+    <div class="page-header"><h1 class="h2">Edit contact</h1></div>
+    <div class="card shadow-sm border-0"><div class="card-body p-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <div class="mb-3"><label asp-for="Name" class="form-label"></label><input asp-for="Name" class="form-control" /><span asp-validation-for="Name"></span></div>
+            <div class="mb-3"><label asp-for="Role" class="form-label"></label><input asp-for="Role" class="form-control" /><span asp-validation-for="Role"></span></div>
+            <div class="mb-3"><label asp-for="Email" class="form-label"></label><input asp-for="Email" class="form-control" /><span asp-validation-for="Email"></span></div>
+            <div class="mb-4"><label asp-for="Phone" class="form-label"></label><input asp-for="Phone" class="form-control" /><span asp-validation-for="Phone"></span></div>
+            <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Save contact</button><a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@ViewContext.RouteData.Values["customerId"]">Cancel</a></div>
+        </form>
+    </div></div>
+</div>

@@ -1,10 +1,14 @@
 @model Freecrmlance.Web.Models.Account.LoginViewModel
 @{ ViewData["Title"] = "Login"; }
-
-<h1>Login</h1>
-<form asp-action="Login" method="post">
-    <div asp-validation-summary="ModelOnly"></div>
-    <div><label asp-for="Email"></label><input asp-for="Email" /><span asp-validation-for="Email"></span></div>
-    <div><label asp-for="Password"></label><input asp-for="Password" /><span asp-validation-for="Password"></span></div>
-    <button type="submit">Login</button>
-</form>
+<div class="auth-card">
+    <div class="text-center mb-4"><h1 class="h2">Welcome back</h1><p class="text-body-secondary">Sign in to Freecrmlance.</p></div>
+    <div class="card shadow-sm border-0"><div class="card-body p-4">
+        <form asp-action="Login" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <div class="mb-3"><label asp-for="Email" class="form-label"></label><input asp-for="Email" class="form-control" /><span asp-validation-for="Email"></span></div>
+            <div class="mb-4"><label asp-for="Password" class="form-label"></label><input asp-for="Password" class="form-control" /><span asp-validation-for="Password"></span></div>
+            <button class="btn btn-primary w-100" type="submit">Login</button>
+        </form>
+        <p class="text-center text-body-secondary mt-3 mb-0">No account? <a asp-action="Register">Create one</a></p>
+    </div></div>
+</div>

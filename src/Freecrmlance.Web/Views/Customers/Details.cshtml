@@ -1,75 +1,133 @@
 @model Freecrmlance.Web.Models.Customers.CustomerDetailsViewModel
-@{
-    ViewData["Title"] = Model.Customer.Name;
+@{ ViewData["Title"] = Model.Customer.Name; }
+
+<div class="page-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-start gap-3">
+    <div><a class="text-decoration-none small" asp-action="Index">← Customers</a><h1 class="h2 mt-2 mb-0">@Model.Customer.Name</h1></div>
+    <a class="btn btn-outline-secondary" asp-action="Edit" asp-route-id="@Model.Customer.Id">Edit customer</a>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-4">
+        <h2 class="h5 mb-3">Customer information</h2>
+        <div class="row g-3">
+            <div class="col-md-6"><div class="text-body-secondary small">Email</div><div>@(Model.Customer.Email ?? "—")</div></div>
+            <div class="col-md-6"><div class="text-body-secondary small">Phone</div><div>@(Model.Customer.Phone ?? "—")</div></div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h4 mb-0">Contacts <span class="badge text-bg-secondary">@Model.Contacts.Count</span></h2>
+    <a class="btn btn-primary btn-sm" asp-action="CreateContact" asp-route-id="@Model.Customer.Id">Add contact</a>
+</div>
+
+@if (Model.Contacts.Count == 0)
+{
+    <div class="empty-state"><h3 class="h5">No contacts yet</h3><p class="text-body-secondary mb-3">Add the first person associated with this customer.</p><a class="btn btn-primary" asp-action="CreateContact" asp-route-id="@Model.Customer.Id">Add contact</a></div>
 }
-
-<h1>@Model.Customer.Name</h1>
-
-<section>
-    <h2>Customer information</h2>
-    <dl>
-        <dt>Email</dt>
-        <dd>@(Model.Customer.Email ?? "—")</dd>
-        <dt>Phone</dt>
-        <dd>@(Model.Customer.Phone ?? "—")</dd>
-    </dl>
-    <p><a asp-action="Edit" asp-route-id="@Model.Customer.Id">Edit customer</a></p>
-</section>
-
-<section>
-    <h2>Contacts <span>(@Model.Contacts.Count)</span></h2>
-    <p><a asp-action="CreateContact" asp-route-id="@Model.Customer.Id">+ Add contact</a></p>
-
-    @if (Model.Contacts.Count == 0)
+else
+{
+    <div class="row g-3">
+    @foreach (var contact in Model.Contacts)
     {
-        <p>No contacts yet.</p>
-    }
-    else
-    {
-        <div class="contacts-list">
-            @foreach (var contact in Model.Contacts)
-            {
-                <article class="contact-card">
-                    <h3>@contact.Name</h3>
-                    <dl>
-                        <dt>Role</dt>
-                        <dd>@(contact.Role ?? "—")</dd>
-                        <dt>Email</dt>
-                        <dd>
-                            @if (contact.Email is not null)
-                            {
-                                <a href="mailto:@contact.Email">@contact.Email</a>
-                            }
-                            else
-                            {
-                                <span>—</span>
-                            }
-                        </dd>
-                        <dt>Phone</dt>
-                        <dd>
-                            @if (contact.Phone is not null)
-                            {
-                                <a href="tel:@contact.Phone">@contact.Phone</a>
-                            }
-                            else
-                            {
-                                <span>—</span>
-                            }
-                        </dd>
-                    </dl>
-                    <p>
-                        <a asp-action="EditContact"
-                           asp-route-customerId="@Model.Customer.Id"
-                           asp-route-contactId="@contact.Id">Edit contact</a>
-                        |
-                        <a asp-action="DeleteContact"
-                           asp-route-customerId="@Model.Customer.Id"
-                           asp-route-contactId="@contact.Id">Delete contact</a>
-                    </p>
-                </article>
-            }
+        <div class="col-md-6 col-xl-4">
+            <article class="card contact-card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between gap-2 mb-3"><div><h3 class="h5 mb-1">@contact.Name</h3><span class="text-body-secondary small">@(contact.Role ?? "No role")</span></div></div>
+                    <div class="small mb-1"><span class="text-body-secondary">Email:</span> @if (contact.Email is not null) { <a href="mailto:@contact.Email">@contact.Email</a> } else { <span>—</span> }</div>
+                    <div class="small"><span class="text-body-secondary">Phone:</span> @if (contact.Phone is not null) { <a href="tel:@contact.Phone">@contact.Phone</a> } else { <span>—</span> }</div>
+                </div>
+                <div class="card-footer bg-transparent d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-secondary"
+                            type="button"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editContactModal"
+                            data-contact-id="@contact.Id"
+                            data-contact-name="@contact.Name"
+                            data-contact-role="@contact.Role"
+                            data-contact-email="@contact.Email"
+                            data-contact-phone="@contact.Phone">Edit</button>
+                    <button class="btn btn-sm btn-outline-danger"
+                            type="button"
+                            data-bs-toggle="modal"
+                            data-bs-target="#deleteContactModal"
+                            data-contact-id="@contact.Id"
+                            data-contact-name="@contact.Name">Delete</button>
+                </div>
+            </article>
         </div>
     }
-</section>
+    </div>
+}
 
-<p><a asp-action="Index">Back to customers</a></p>
+
+<div class="modal fade" id="editContactModal" tabindex="-1" aria-labelledby="editContactModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="editContactForm" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="editContactModalLabel">Edit contact</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label" for="modalContactName">Name</label><input class="form-control" id="modalContactName" name="Name" required maxlength="200" /></div>
+                    <div class="mb-3"><label class="form-label" for="modalContactRole">Role</label><input class="form-control" id="modalContactRole" name="Role" maxlength="100" /></div>
+                    <div class="mb-3"><label class="form-label" for="modalContactEmail">Email</label><input class="form-control" id="modalContactEmail" name="Email" type="email" maxlength="320" /></div>
+                    <div><label class="form-label" for="modalContactPhone">Phone</label><input class="form-control" id="modalContactPhone" name="Phone" maxlength="50" /></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save contact</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteContactModal" tabindex="-1" aria-labelledby="deleteContactModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="deleteContactForm" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="deleteContactModalLabel">Delete contact</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">Are you sure you want to delete <strong id="deleteContactName"></strong>?</p>
+                    <p class="text-danger small mb-0">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete contact</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    (() => {
+        const customerId = "@Model.Customer.Id";
+
+        document.getElementById("editContactModal").addEventListener("show.bs.modal", event => {
+            const button = event.relatedTarget;
+            const contactId = button.dataset.contactId;
+            document.getElementById("editContactForm").action = `/Customers/${customerId}/Contacts/${contactId}/Edit`;
+            document.getElementById("modalContactName").value = button.dataset.contactName ?? "";
+            document.getElementById("modalContactRole").value = button.dataset.contactRole ?? "";
+            document.getElementById("modalContactEmail").value = button.dataset.contactEmail ?? "";
+            document.getElementById("modalContactPhone").value = button.dataset.contactPhone ?? "";
+        });
+
+        document.getElementById("deleteContactModal").addEventListener("show.bs.modal", event => {
+            const button = event.relatedTarget;
+            const contactId = button.dataset.contactId;
+            document.getElementById("deleteContactForm").action = `/Customers/${customerId}/Contacts/${contactId}/Delete`;
+            document.getElementById("deleteContactName").textContent = button.dataset.contactName ?? "this contact";
+        });
+    })();
+</script>
+}
