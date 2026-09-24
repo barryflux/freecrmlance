@@ -33,6 +33,10 @@
             {
                 <div class="contact-fields">
                     <h3>Contact @(i + 1)</h3>
+                    @if (i > 0)
+                    {
+                        <button type="button" class="remove-contact">Remove contact</button>
+                    }
                     <div>
                         <label asp-for="Contacts[i].Name"></label>
                         <input asp-for="Contacts[i].Name" />
@@ -68,12 +72,32 @@
         const contacts = document.getElementById("contacts");
         const addButton = document.getElementById("add-contact");
 
+        const renumberContacts = () => {
+            contacts.querySelectorAll(".contact-fields").forEach((contact, index) => {
+                contact.querySelector("h3").textContent = `Contact ${index + 1}`;
+                contact.querySelectorAll("input").forEach(input => {
+                    const field = input.name.split(".").pop();
+                    input.name = `Contacts[${index}].${field}`;
+                    input.id = `Contacts_${index}__${field}`;
+                    const label = contact.querySelector(`label[for$="__${field}"]`);
+                    if (label) label.htmlFor = input.id;
+                });
+            });
+        };
+
+        contacts.addEventListener("click", event => {
+            if (!event.target.classList.contains("remove-contact")) return;
+            event.target.closest(".contact-fields").remove();
+            renumberContacts();
+        });
+
         addButton.addEventListener("click", () => {
             const index = contacts.querySelectorAll(".contact-fields").length;
             const wrapper = document.createElement("div");
             wrapper.className = "contact-fields";
             wrapper.innerHTML = `
                 <h3>Contact ${index + 1}</h3>
+                <button type="button" class="remove-contact">Remove contact</button>
                 <div><label for="Contacts_${index}__Name">Name</label><input id="Contacts_${index}__Name" name="Contacts[${index}].Name" /></div>
                 <div><label for="Contacts_${index}__Email">Email</label><input id="Contacts_${index}__Email" name="Contacts[${index}].Email" type="email" /></div>
                 <div><label for="Contacts_${index}__Phone">Phone</label><input id="Contacts_${index}__Phone" name="Contacts[${index}].Phone" /></div>
