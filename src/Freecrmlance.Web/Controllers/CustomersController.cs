@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Freecrmlance.Web.Controllers;
 
 [Authorize]
-public sealed class CustomersController(ICustomerService customerService, IContactService contactService) : Controller
+public sealed class CustomersController(ICustomerService customerService, IContactService contactService, IDocumentService documentService) : Controller
 {
     [HttpGet]
     public async Task<IActionResult> Index(CancellationToken cancellationToken) => View(await customerService.ListAsync(cancellationToken));
@@ -17,7 +17,39 @@ public sealed class CustomersController(ICustomerService customerService, IConta
         var customer = await customerService.GetAsync(id, cancellationToken);
         if (customer is null) return NotFound();
         var contacts = await contactService.ListAsync(id, cancellationToken);
-        return contacts is null ? NotFound() : View(new CustomerDetailsViewModel(customer, contacts));
+        if (contacts is null) return NotFound();
+        var documents = await documentService.ListAsync(id, cancellationToken);
+        return documents is null ? NotFound() : View(new CustomerDetailsViewModel(customer, contacts, documents));
+    }
+
+
+    [HttpPost("Customers/{id:guid}/Documents")]
+    [ValidateAntiForgeryToken]
+    [RequestSizeLimit(10 * 1024 * 1024)]
+    public async Task<IActionResult> UploadDocument(Guid id, IFormFile file, CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+            return RedirectToAction(nameof(Details), new { id });
+
+        await using var content = file.OpenReadStream();
+        var documentId = await documentService.UploadAsync(
+            id,
+            file.FileName,
+            file.ContentType,
+            file.Length,
+            content,
+            cancellationToken);
+
+        return documentId is null ? NotFound() : RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpGet("Customers/{customerId:guid}/Documents/{documentId:guid}")]
+    public async Task<IActionResult> DownloadDocument(Guid customerId, Guid documentId, CancellationToken cancellationToken)
+    {
+        var document = await documentService.DownloadAsync(customerId, documentId, cancellationToken);
+        return document is null
+            ? NotFound()
+            : File(document.Content, document.ContentType, document.FileName);
     }
 
     [HttpGet("Customers/{id:guid}/Contacts/Create")]
