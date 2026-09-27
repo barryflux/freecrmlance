@@ -13,6 +13,23 @@ public sealed class DocumentShareService(
     IWorkspaceContext workspaceContext,
     IFileStorage fileStorage) : IDocumentShareService
 {
+    public async Task<IReadOnlyList<DocumentShareSummaryDto>?> ListAsync(Guid customerId, CancellationToken cancellationToken = default)
+    {
+        var workspaceId = await workspaceContext.RequireCurrentWorkspaceIdAsync(cancellationToken);
+        var customerExists = await dbContext.Customers.AsNoTracking().AnyAsync(
+            customer => customer.Id == customerId && customer.WorkspaceId == workspaceId,
+            cancellationToken);
+        if (!customerExists) return null;
+
+        return await dbContext.DocumentShares.AsNoTracking()
+            .Where(share => share.CustomerId == customerId
+                && share.WorkspaceId == workspaceId
+                && share.RevokedAtUtc == null)
+            .OrderByDescending(share => share.CreatedAtUtc)
+            .Select(share => new DocumentShareSummaryDto(share.Id, share.DocumentId, share.CreatedAtUtc))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<DocumentShareDto?> CreateAsync(Guid customerId, Guid documentId, CancellationToken cancellationToken = default)
     {
         var workspaceId = await workspaceContext.RequireCurrentWorkspaceIdAsync(cancellationToken);
