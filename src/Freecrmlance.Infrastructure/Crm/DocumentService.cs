@@ -65,4 +65,20 @@ public sealed class DocumentService(
         var content = await fileStorage.OpenReadAsync(document.StorageKey, cancellationToken);
         return new DocumentDownloadDto(document.FileName, document.ContentType, content);
     }
+    public async Task<bool> DeleteAsync(Guid customerId, Guid documentId, CancellationToken cancellationToken = default)
+    {
+        var workspaceId = await workspaceContext.RequireCurrentWorkspaceIdAsync(cancellationToken);
+        var document = await dbContext.Documents.SingleOrDefaultAsync(
+            document => document.Id == documentId
+                && document.CustomerId == customerId
+                && document.WorkspaceId == workspaceId,
+            cancellationToken);
+
+        if (document is null) return false;
+
+        await fileStorage.DeleteAsync(document.StorageKey, cancellationToken);
+        dbContext.Documents.Remove(document);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
 }
