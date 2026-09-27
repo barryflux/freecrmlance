@@ -22,6 +22,7 @@ public static class DependencyInjection
         services.AddScoped<ICustomerService, CustomerService>();
         services.AddScoped<IContactService, ContactService>();
         services.AddScoped<IDocumentService, DocumentService>();
+        services.AddScoped<IDocumentShareService, DocumentShareService>();
         services.AddSingleton<IFileStorage, LocalFileStorage>();
 
         services.AddIdentity<IdentityUser, IdentityRole>()

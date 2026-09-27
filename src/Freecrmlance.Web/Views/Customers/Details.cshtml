@@ -91,6 +91,21 @@ else
                 <span class="text-body-secondary small">@document.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm") UTC · @((document.Size / 1024d).ToString("0.#")) KB</span>
             </span>
             <span class="d-flex gap-2">
+                @{
+                    var activeShare = Model.DocumentShares.FirstOrDefault(share => share.DocumentId == document.Id);
+                }
+                @if (activeShare is null)
+                {
+                    <form asp-action="CreateDocumentShare" asp-route-customerId="@Model.Customer.Id" asp-route-documentId="@document.Id" method="post">
+                        <button class="btn btn-sm btn-outline-primary" type="submit">Share</button>
+                    </form>
+                }
+                else
+                {
+                    <form asp-action="RevokeDocumentShare" asp-route-customerId="@Model.Customer.Id" asp-route-documentId="@document.Id" asp-route-shareId="@activeShare.Id" method="post">
+                        <button class="btn btn-sm btn-outline-warning" type="submit">Revoke share</button>
+                    </form>
+                }
                 <a class="btn btn-sm btn-outline-secondary"
                    asp-action="DownloadDocument"
                    asp-route-customerId="@Model.Customer.Id"
@@ -107,6 +122,16 @@ else
     </div>
 }
 
+@if (TempData["DocumentShareUrl"] is string documentShareUrl)
+{
+    <div class="alert alert-success d-flex flex-column flex-md-row align-items-md-center gap-2 mb-4" role="alert">
+        <div class="flex-grow-1">
+            <strong>Share link created.</strong>
+            <div class="small text-break" id="documentShareUrl">@documentShareUrl</div>
+        </div>
+        <button class="btn btn-sm btn-success text-nowrap" type="button" id="copyDocumentShareUrl">Copy link</button>
+    </div>
+}
 
 <div class="modal fade" id="deleteDocumentModal" tabindex="-1" aria-labelledby="deleteDocumentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -180,6 +205,13 @@ else
 <script>
     (() => {
         const customerId = "@Model.Customer.Id";
+        const copyShareButton = document.getElementById("copyDocumentShareUrl");
+        copyShareButton?.addEventListener("click", async () => {
+            const shareUrl = document.getElementById("documentShareUrl")?.textContent?.trim();
+            if (!shareUrl) return;
+            await navigator.clipboard.writeText(shareUrl);
+            copyShareButton.textContent = "Copied";
+        });
 
         document.getElementById("deleteDocumentModal").addEventListener("show.bs.modal", event => {
             const button = event.relatedTarget;
