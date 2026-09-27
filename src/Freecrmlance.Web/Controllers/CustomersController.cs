@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Freecrmlance.Web.Controllers;
 
 [Authorize]
-public sealed class CustomersController(ICustomerService customerService, IContactService contactService, IDocumentService documentService) : Controller
+public sealed class CustomersController(ICustomerService customerService, IContactService contactService, IDocumentService documentService, IDocumentShareService documentShareService) : Controller
 {
     [HttpGet]
     public async Task<IActionResult> Index(CancellationToken cancellationToken) => View(await customerService.ListAsync(cancellationToken));
@@ -50,6 +50,30 @@ public sealed class CustomersController(ICustomerService customerService, IConta
         return document is null
             ? NotFound()
             : File(document.Content, document.ContentType, document.FileName);
+    }
+
+    [HttpPost("Customers/{customerId:guid}/Documents/{documentId:guid}/Shares")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateDocumentShare(Guid customerId, Guid documentId, CancellationToken cancellationToken)
+    {
+        var share = await documentShareService.CreateAsync(customerId, documentId, cancellationToken);
+        if (share is null) return NotFound();
+
+        TempData["DocumentShareUrl"] = Url.Action(
+            "Download",
+            "SharedDocuments",
+            new { token = share.Token },
+            Request.Scheme);
+
+        return RedirectToAction(nameof(Details), new { id = customerId });
+    }
+
+    [HttpPost("Customers/{customerId:guid}/Documents/{documentId:guid}/Shares/{shareId:guid}/Revoke")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RevokeDocumentShare(Guid customerId, Guid documentId, Guid shareId, CancellationToken cancellationToken)
+    {
+        var revoked = await documentShareService.RevokeAsync(customerId, documentId, shareId, cancellationToken);
+        return revoked ? RedirectToAction(nameof(Details), new { id = customerId }) : NotFound();
     }
 
     [HttpPost("Customers/{customerId:guid}/Documents/{documentId:guid}/Delete")]
