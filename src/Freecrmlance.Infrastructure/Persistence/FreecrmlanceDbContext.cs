@@ -10,6 +10,7 @@ public sealed class FreecrmlanceDbContext(DbContextOptions<FreecrmlanceDbContext
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<Contact> Contacts => Set<Contact>();
     public DbSet<Document> Documents => Set<Document>();
+    public DbSet<DocumentShare> DocumentShares => Set<DocumentShare>();
     public DbSet<Workspace> Workspaces => Set<Workspace>();
     public DbSet<WorkspaceMember> WorkspaceMembers => Set<WorkspaceMember>();
 
