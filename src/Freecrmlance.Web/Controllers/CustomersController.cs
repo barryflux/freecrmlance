@@ -19,7 +19,9 @@ public sealed class CustomersController(ICustomerService customerService, IConta
         var contacts = await contactService.ListAsync(id, cancellationToken);
         if (contacts is null) return NotFound();
         var documents = await documentService.ListAsync(id, cancellationToken);
-        return documents is null ? NotFound() : View(new CustomerDetailsViewModel(customer, contacts, documents));
+        if (documents is null) return NotFound();
+        var documentShares = await documentShareService.ListAsync(id, cancellationToken);
+        return documentShares is null ? NotFound() : View(new CustomerDetailsViewModel(customer, contacts, documents, documentShares));
     }
 
 
