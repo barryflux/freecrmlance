@@ -21,6 +21,8 @@ public static class DependencyInjection
         services.AddScoped<IWorkspaceContext, WorkspaceContext>();
         services.AddScoped<ICustomerService, CustomerService>();
         services.AddScoped<IContactService, ContactService>();
+        services.AddScoped<IDocumentService, DocumentService>();
+        services.AddSingleton<IFileStorage, LocalFileStorage>();
 
         services.AddIdentity<IdentityUser, IdentityRole>()
             .AddEntityFrameworkStores<FreecrmlanceDbContext>()
