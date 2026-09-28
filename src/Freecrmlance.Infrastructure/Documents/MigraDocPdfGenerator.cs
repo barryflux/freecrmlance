@@ -2,18 +2,23 @@ using Freecrmlance.Application.Crm;
 using MigraDoc.DocumentObjectModel;
 using MigraDoc.DocumentObjectModel.Tables;
 using MigraDoc.Rendering;
+using PdfSharp.Fonts;
 
 namespace Freecrmlance.Infrastructure.Documents;
 
 public sealed class MigraDocPdfGenerator : IPdfGenerator
 {
+    private static readonly object FontLock = new();
+
     public byte[] GenerateQuote(QuotePdfModel model)
     {
+        EnsureFontsConfigured();
+
         var document = new Document();
         document.Info.Title = $"Quote {model.Number}";
 
         var normal = document.Styles[StyleNames.Normal]!;
-        normal.Font.Name = "Arial";
+        normal.Font.Name = "Segoe WP";
         normal.Font.Size = 10;
 
         var section = document.AddSection();
@@ -77,5 +82,16 @@ public sealed class MigraDocPdfGenerator : IPdfGenerator
         using var stream = new MemoryStream();
         renderer.PdfDocument.Save(stream, false);
         return stream.ToArray();
+    }
+
+    private static void EnsureFontsConfigured()
+    {
+        if (GlobalFontSettings.FontResolver is not null) return;
+
+        lock (FontLock)
+        {
+            GlobalFontSettings.FontResolver ??= new FailsafeFontResolver();
+            PredefinedFontsAndChars.ErrorFontName = "Segoe WP";
+        }
     }
 }
