@@ -63,12 +63,29 @@ public sealed class Invoice
     public decimal Total => TotalIncludingTax;
 
     public void AddLine(string description, decimal quantity, decimal unitPrice, decimal vatRate = 0m)
-    { lines.Add(new InvoiceLine(Id, description, quantity, unitPrice, vatRate)); UpdatedAtUtc = DateTime.UtcNow; }
+    {
+        EnsureDraft();
+        lines.Add(new InvoiceLine(Id, description, quantity, unitPrice, vatRate));
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
+
+    public void Issue(string definitiveNumber, DateTime issuedAtUtc)
+    {
+        EnsureDraft();
+        if (string.IsNullOrWhiteSpace(definitiveNumber)) throw new ArgumentException("Definitive invoice number is required.", nameof(definitiveNumber));
+        ValidateForIssuance();
+
+        Number = definitiveNumber.Trim();
+        IssueDate = issuedAtUtc.Kind == DateTimeKind.Utc ? issuedAtUtc : issuedAtUtc.ToUniversalTime();
+        Status = InvoiceStatus.Issued;
+        UpdatedAtUtc = IssueDate.Value;
+    }
 
     public void SetComplianceDetails(DateTime? serviceDate, DateTime? dueDate, string? purchaseOrderReference = null,
         string? vatExemptionMention = null, string? paymentTerms = null, string? earlyPaymentDiscountTerms = null,
         string? latePaymentPenaltyTerms = null, decimal? recoveryCostIndemnity = null)
     {
+        EnsureDraft();
         if (recoveryCostIndemnity < 0) throw new ArgumentOutOfRangeException(nameof(recoveryCostIndemnity));
         ServiceDate = serviceDate; DueDate = dueDate; PurchaseOrderReference = Normalize(purchaseOrderReference);
         VatExemptionMention = Normalize(vatExemptionMention); PaymentTerms = Normalize(paymentTerms);
@@ -79,6 +96,7 @@ public sealed class Invoice
     public void SnapshotSeller(string? legalName, string? legalForm, string? siren, string? siret, string? vatNumber,
         string? addressLine1, string? addressLine2, string? postalCode, string? city, string? countryCode, string? email, string? phone)
     {
+        EnsureDraft();
         SellerLegalName=legalName; SellerLegalForm=legalForm; SellerSiren=siren; SellerSiret=siret; SellerVatNumber=vatNumber;
         SellerAddressLine1=addressLine1; SellerAddressLine2=addressLine2; SellerPostalCode=postalCode; SellerCity=city;
         SellerCountryCode=countryCode; SellerContactEmail=email; SellerContactPhone=phone;
@@ -87,9 +105,30 @@ public sealed class Invoice
     public void SnapshotCustomer(string legalName, string? siren, string? siret, string? vatNumber,
         string? addressLine1, string? addressLine2, string? postalCode, string? city, string? countryCode)
     {
+        EnsureDraft();
         if (string.IsNullOrWhiteSpace(legalName)) throw new ArgumentException("Customer legal name is required.", nameof(legalName));
         CustomerLegalName=legalName.Trim(); CustomerSiren=siren; CustomerSiret=siret; CustomerVatNumber=vatNumber;
         CustomerAddressLine1=addressLine1; CustomerAddressLine2=addressLine2; CustomerPostalCode=postalCode; CustomerCity=city; CustomerCountryCode=countryCode;
+    }
+
+    private void ValidateForIssuance()
+    {
+        if (lines.Count == 0) throw new InvalidOperationException("An invoice must contain at least one line.");
+        if (string.IsNullOrWhiteSpace(SellerLegalName) || string.IsNullOrWhiteSpace(SellerAddressLine1) ||
+            string.IsNullOrWhiteSpace(SellerPostalCode) || string.IsNullOrWhiteSpace(SellerCity) || string.IsNullOrWhiteSpace(SellerCountryCode))
+            throw new InvalidOperationException("Seller legal identity is incomplete.");
+        if (string.IsNullOrWhiteSpace(CustomerLegalName) || string.IsNullOrWhiteSpace(CustomerAddressLine1) ||
+            string.IsNullOrWhiteSpace(CustomerPostalCode) || string.IsNullOrWhiteSpace(CustomerCity) || string.IsNullOrWhiteSpace(CustomerCountryCode))
+            throw new InvalidOperationException("Customer billing identity is incomplete.");
+        if (ServiceDate is null) throw new InvalidOperationException("Service date is required.");
+        if (DueDate is null && string.IsNullOrWhiteSpace(PaymentTerms)) throw new InvalidOperationException("Payment due date or payment terms are required.");
+        if (lines.Any(line => line.VatRate == 0m) && string.IsNullOrWhiteSpace(VatExemptionMention))
+            throw new InvalidOperationException("A VAT exemption mention is required when a line has a zero VAT rate.");
+    }
+
+    private void EnsureDraft()
+    {
+        if (Status != InvoiceStatus.Draft) throw new InvalidOperationException("Issued invoices cannot be modified.");
     }
 
     private static string? Normalize(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
