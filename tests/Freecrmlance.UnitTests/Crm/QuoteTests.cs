@@ -52,6 +52,46 @@ public sealed class QuoteTests
         Assert.That(quote.Status, Is.EqualTo(QuoteStatus.Accepted));
     }
     [Test]
+    public void Draft_cannot_be_accepted_or_rejected_directly()
+    {
+        var quote = new Quote(Guid.NewGuid(), Guid.NewGuid(), "Q-001");
+
+        Assert.Multiple(() =>
+        {
+            Assert.Throws<InvalidOperationException>(() => quote.Accept());
+            Assert.Throws<InvalidOperationException>(() => quote.Reject());
+        });
+    }
+
+    [Test]
+    public void Sent_quote_can_be_rejected()
+    {
+        var quote = new Quote(Guid.NewGuid(), Guid.NewGuid(), "Q-001");
+        quote.MarkSent();
+
+        quote.Reject();
+
+        Assert.That(quote.Status, Is.EqualTo(QuoteStatus.Rejected));
+    }
+
+    [TestCase(QuoteStatus.Accepted)]
+    [TestCase(QuoteStatus.Rejected)]
+    public void Terminal_quote_cannot_transition_again(QuoteStatus terminalStatus)
+    {
+        var quote = new Quote(Guid.NewGuid(), Guid.NewGuid(), "Q-001");
+        quote.MarkSent();
+        if (terminalStatus == QuoteStatus.Accepted) quote.Accept();
+        else quote.Reject();
+
+        Assert.Multiple(() =>
+        {
+            Assert.Throws<InvalidOperationException>(() => quote.MarkSent());
+            Assert.Throws<InvalidOperationException>(() => quote.Accept());
+            Assert.Throws<InvalidOperationException>(() => quote.Reject());
+        });
+    }
+
+    [Test]
     public void Draft_can_replace_number_and_lines()
     {
         var quote = new Quote(Guid.NewGuid(), Guid.NewGuid(), "Q-001");

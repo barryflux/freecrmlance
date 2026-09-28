@@ -6,4 +6,7 @@ public interface IQuoteService
     Task<QuoteDto?> GetAsync(Guid customerId, Guid quoteId, CancellationToken cancellationToken = default);
     Task<Guid?> CreateAsync(CreateQuoteCommand command, CancellationToken cancellationToken = default);
     Task<bool> UpdateDraftAsync(Guid customerId, Guid quoteId, UpdateQuoteCommand command, CancellationToken cancellationToken = default);
+    Task<bool> MarkSentAsync(Guid customerId, Guid quoteId, CancellationToken cancellationToken = default);
+    Task<bool> AcceptAsync(Guid customerId, Guid quoteId, CancellationToken cancellationToken = default);
+    Task<bool> RejectAsync(Guid customerId, Guid quoteId, CancellationToken cancellationToken = default);
 }
