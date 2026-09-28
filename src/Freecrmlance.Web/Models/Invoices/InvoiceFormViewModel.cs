@@ -20,4 +20,7 @@ public sealed class InvoiceLineViewModel
 
     [Range(typeof(decimal), "0", "99999999999999", ParseLimitsInInvariantCulture = true, ErrorMessage = "Unit price cannot be negative.")]
     public decimal UnitPrice { get; set; }
+
+    [Range(typeof(decimal), "0", "100", ParseLimitsInInvariantCulture = true, ErrorMessage = "VAT rate must be between 0 and 100.")]
+    public decimal VatRate { get; set; } = 20m;
 }
