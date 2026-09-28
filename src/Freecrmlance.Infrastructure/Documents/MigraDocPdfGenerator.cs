@@ -18,7 +18,7 @@ public sealed class MigraDocPdfGenerator : IPdfGenerator
         document.Info.Title = $"Quote {model.Number}";
 
         var normal = document.Styles[StyleNames.Normal]!;
-        normal.Font.Name = "Segoe WP";
+        normal.Font.Name = "Arial";
         normal.Font.Size = 10;
 
         var section = document.AddSection();
@@ -86,12 +86,16 @@ public sealed class MigraDocPdfGenerator : IPdfGenerator
 
     private static void EnsureFontsConfigured()
     {
-        if (GlobalFontSettings.FontResolver is not null) return;
-
         lock (FontLock)
         {
-            GlobalFontSettings.FontResolver ??= new FailsafeFontResolver();
-            PredefinedFontsAndChars.ErrorFontName = "Segoe WP";
+            if (OperatingSystem.IsWindows())
+            {
+                GlobalFontSettings.UseWindowsFontsUnderWindows = true;
+                return;
+            }
+
+            throw new PlatformNotSupportedException(
+                "Quote PDF generation requires an explicit packaged font resolver on non-Windows hosts.");
         }
     }
 }
