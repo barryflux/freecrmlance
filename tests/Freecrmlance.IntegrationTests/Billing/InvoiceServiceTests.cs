@@ -124,8 +124,8 @@ public sealed class InvoiceServiceTests
         {
             Assert.That(first!.Status, Is.EqualTo(InvoiceStatus.Issued));
             Assert.That(first.IssueDate, Is.Not.Null);
-            Assert.That(first.Number, Does.Match(@"^\\d{4}-0001$"));
-            Assert.That(second!.Number, Does.Match(@"^\\d{4}-0002$"));
+            Assert.That(first.Number, Does.Match(@"^\d{4}-0001$"));
+            Assert.That(second!.Number, Does.Match(@"^\d{4}-0002$"));
         });
     }
 
