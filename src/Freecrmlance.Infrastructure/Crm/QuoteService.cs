@@ -60,10 +60,13 @@ public sealed class QuoteService(
 
         if (quote is null || quote.Status != QuoteStatus.Draft) return false;
 
+        var existingLines = quote.Lines.ToArray();
+
         quote.UpdateDraft(
             command.Number,
             (command.Lines ?? []).Select(line => (line.Description, line.Quantity, line.UnitPrice)));
 
+        dbContext.QuoteLines.RemoveRange(existingLines);
         await dbContext.SaveChangesAsync(cancellationToken);
         return true;
     }
