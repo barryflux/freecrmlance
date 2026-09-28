@@ -89,11 +89,19 @@ else
             <span>
                 <strong class="d-block">@document.FileName</strong>
                 <span class="text-body-secondary small">@document.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm") UTC · @((document.Size / 1024d).ToString("0.#")) KB</span>
-            </span>
-            <span class="d-flex gap-2">
                 @{
                     var activeShare = Model.DocumentShares.FirstOrDefault(share => share.DocumentId == document.Id);
                 }
+                @if (activeShare is not null)
+                {
+                    <span class="d-block small mt-1"><span class="badge text-bg-success">Shared</span> <span class="text-body-secondary">since @activeShare.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm") UTC</span></span>
+                }
+                else
+                {
+                    <span class="d-block small mt-1"><span class="badge text-bg-secondary">Not shared</span></span>
+                }
+            </span>
+            <span class="d-flex gap-2">
                 @if (activeShare is null)
                 {
                     <form asp-action="CreateDocumentShare" asp-route-customerId="@Model.Customer.Id" asp-route-documentId="@document.Id" method="post">
@@ -102,9 +110,13 @@ else
                 }
                 else
                 {
-                    <form asp-action="RevokeDocumentShare" asp-route-customerId="@Model.Customer.Id" asp-route-documentId="@document.Id" asp-route-shareId="@activeShare.Id" method="post">
-                        <button class="btn btn-sm btn-outline-warning" type="submit">Revoke share</button>
-                    </form>
+                    <button class="btn btn-sm btn-outline-warning"
+                            type="button"
+                            data-bs-toggle="modal"
+                            data-bs-target="#revokeShareModal"
+                            data-document-id="@document.Id"
+                            data-share-id="@activeShare.Id"
+                            data-document-name="@document.FileName">Revoke share</button>
                 }
                 <a class="btn btn-sm btn-outline-secondary"
                    asp-action="DownloadDocument"
@@ -132,6 +144,28 @@ else
         <button class="btn btn-sm btn-success text-nowrap" type="button" id="copyDocumentShareUrl">Copy link</button>
     </div>
 }
+
+<div class="modal fade" id="revokeShareModal" tabindex="-1" aria-labelledby="revokeShareModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="revokeShareForm" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="revokeShareModalLabel">Revoke public link</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">Revoke the public link for <strong id="revokeShareDocumentName"></strong>?</p>
+                    <p class="text-body-secondary small mb-0">Anyone using the current link will immediately receive a 404. You can create a new link afterwards.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">Revoke link</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="deleteDocumentModal" tabindex="-1" aria-labelledby="deleteDocumentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -211,6 +245,14 @@ else
             if (!shareUrl) return;
             await navigator.clipboard.writeText(shareUrl);
             copyShareButton.textContent = "Copied";
+        });
+
+        document.getElementById("revokeShareModal").addEventListener("show.bs.modal", event => {
+            const button = event.relatedTarget;
+            const documentId = button.dataset.documentId;
+            const shareId = button.dataset.shareId;
+            document.getElementById("revokeShareForm").action = `/Customers/${customerId}/Documents/${documentId}/Shares/${shareId}/Revoke`;
+            document.getElementById("revokeShareDocumentName").textContent = button.dataset.documentName ?? "this document";
         });
 
         document.getElementById("deleteDocumentModal").addEventListener("show.bs.modal", event => {
