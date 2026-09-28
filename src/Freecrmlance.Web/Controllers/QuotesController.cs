@@ -10,7 +10,8 @@ namespace Freecrmlance.Web.Controllers;
 public sealed class QuotesController(
     IQuoteService quoteService,
     ICustomerService customerService,
-    IQuotePdfService quotePdfService) : Controller
+    IQuotePdfService quotePdfService,
+    IQuoteShareService quoteShareService) : Controller
 {
     [HttpGet("Customers/{customerId:guid}/Quotes/Create")]
     public async Task<IActionResult> Create(Guid customerId, CancellationToken cancellationToken)
@@ -33,8 +34,35 @@ public sealed class QuotesController(
     public async Task<IActionResult> Details(Guid customerId, Guid quoteId, CancellationToken cancellationToken)
     {
         var quote = await quoteService.GetAsync(customerId, quoteId, cancellationToken);
-        return quote is null ? NotFound() : View(quote);
+        if (quote is null) return NotFound();
+
+        var share = await quoteShareService.GetActiveAsync(customerId, quoteId, cancellationToken);
+        var shareUrl = TempData["QuoteShareUrl"] as string;
+        return View(new QuoteDetailsViewModel(quote, share, shareUrl));
     }
+
+    [HttpPost("Customers/{customerId:guid}/Quotes/{quoteId:guid}/Share")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Share(Guid customerId, Guid quoteId, CancellationToken cancellationToken)
+    {
+        var share = await quoteShareService.CreateAsync(customerId, quoteId, cancellationToken);
+        if (share is null) return NotFound();
+
+        TempData["QuoteShareUrl"] = Url.Action(
+            nameof(SharedQuotesController.Details),
+            "SharedQuotes",
+            new { token = share.Token },
+            Request.Scheme);
+
+        return RedirectToAction(nameof(Details), new { customerId, quoteId });
+    }
+
+    [HttpPost("Customers/{customerId:guid}/Quotes/{quoteId:guid}/Shares/{shareId:guid}/Revoke")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RevokeShare(Guid customerId, Guid quoteId, Guid shareId, CancellationToken cancellationToken)
+        => await quoteShareService.RevokeAsync(customerId, quoteId, shareId, cancellationToken)
+            ? RedirectToAction(nameof(Details), new { customerId, quoteId })
+            : NotFound();
 
     [HttpGet("Customers/{customerId:guid}/Quotes/{quoteId:guid}/Edit")]
     public async Task<IActionResult> Edit(Guid customerId, Guid quoteId, CancellationToken cancellationToken)
