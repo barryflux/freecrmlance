@@ -23,7 +23,7 @@ public sealed class InvoicesController(IInvoiceService invoiceService, ICustomer
         if (!ModelState.IsValid) return View(model);
         var id = await invoiceService.CreateAsync(
             new CreateInvoiceCommand(customerId, model.Number,
-                model.Lines.Select(line => new CreateInvoiceLineCommand(line.Description, line.Quantity, line.UnitPrice)).ToArray()),
+                model.Lines.Select(line => new CreateInvoiceLineCommand(line.Description, line.Quantity, line.UnitPrice, line.VatRate)).ToArray()),
             cancellationToken);
         return id is null ? NotFound() : RedirectToAction(nameof(Details), new { customerId, invoiceId = id });
     }
