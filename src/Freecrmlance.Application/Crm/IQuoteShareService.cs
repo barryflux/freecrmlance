@@ -5,7 +5,16 @@ public interface IQuoteShareService
     Task<QuoteShareSummaryDto?> GetActiveAsync(Guid customerId, Guid quoteId, CancellationToken cancellationToken = default);
     Task<QuoteShareDto?> CreateAsync(Guid customerId, Guid quoteId, CancellationToken cancellationToken = default);
     Task<SharedQuoteDto?> GetPublicAsync(string token, CancellationToken cancellationToken = default);
+    Task<PublicQuoteResponseResult> AcceptPublicAsync(string token, CancellationToken cancellationToken = default);
+    Task<PublicQuoteResponseResult> RejectPublicAsync(string token, CancellationToken cancellationToken = default);
     Task<bool> RevokeAsync(Guid customerId, Guid quoteId, Guid shareId, CancellationToken cancellationToken = default);
+}
+
+public enum PublicQuoteResponseResult
+{
+    Success,
+    NotFound,
+    InvalidStatus
 }
 
 public sealed record QuoteShareDto(Guid Id, string Token, DateTime CreatedAtUtc);

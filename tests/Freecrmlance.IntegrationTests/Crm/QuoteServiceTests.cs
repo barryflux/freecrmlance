@@ -193,6 +193,82 @@ public sealed class QuoteServiceTests
         });
     }
 
+    [Test]
+    public async Task Public_quote_response_accepts_sent_quote_and_is_terminal()
+    {
+        await using var postgres = new PostgreSqlBuilder().WithImage("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        var options = new DbContextOptionsBuilder<FreecrmlanceDbContext>().UseNpgsql(postgres.GetConnectionString()).Options;
+        await using var db = new FreecrmlanceDbContext(options);
+        await db.Database.MigrateAsync();
+
+        var workspaceId = Guid.NewGuid();
+        var customer = new Customer(workspaceId, "Acme");
+        var quote = new Quote(workspaceId, customer.Id, "Q-022-A");
+        quote.AddLine("Design", 1, 250m);
+        quote.MarkSent();
+        db.Customers.Add(customer);
+        db.Quotes.Add(quote);
+        await db.SaveChangesAsync();
+
+        var service = new QuoteShareService(db, new StubWorkspaceContext(workspaceId));
+        var share = await service.CreateAsync(customer.Id, quote.Id);
+
+        var accepted = await service.AcceptPublicAsync(share!.Token);
+        db.ChangeTracker.Clear();
+        var publicQuote = await service.GetPublicAsync(share.Token);
+        var secondResponse = await service.RejectPublicAsync(share.Token);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(accepted, Is.EqualTo(PublicQuoteResponseResult.Success));
+            Assert.That(publicQuote!.Status, Is.EqualTo("Accepted"));
+            Assert.That(secondResponse, Is.EqualTo(PublicQuoteResponseResult.InvalidStatus));
+        });
+    }
+
+    [Test]
+    public async Task Public_quote_response_rejects_sent_quote_and_blocks_invalid_or_revoked_tokens()
+    {
+        await using var postgres = new PostgreSqlBuilder().WithImage("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        var options = new DbContextOptionsBuilder<FreecrmlanceDbContext>().UseNpgsql(postgres.GetConnectionString()).Options;
+        await using var db = new FreecrmlanceDbContext(options);
+        await db.Database.MigrateAsync();
+
+        var workspaceId = Guid.NewGuid();
+        var customer = new Customer(workspaceId, "Acme");
+        var sentQuote = new Quote(workspaceId, customer.Id, "Q-022-R");
+        sentQuote.MarkSent();
+        var draftQuote = new Quote(workspaceId, customer.Id, "Q-022-D");
+        db.Customers.Add(customer);
+        db.Quotes.AddRange(sentQuote, draftQuote);
+        await db.SaveChangesAsync();
+
+        var service = new QuoteShareService(db, new StubWorkspaceContext(workspaceId));
+        var sentShare = await service.CreateAsync(customer.Id, sentQuote.Id);
+        var draftShare = await service.CreateAsync(customer.Id, draftQuote.Id);
+
+        var invalid = await service.AcceptPublicAsync("invalid-token");
+        var draftResponse = await service.AcceptPublicAsync(draftShare!.Token);
+        var rejected = await service.RejectPublicAsync(sentShare!.Token);
+        var revoked = await service.RevokeAsync(customer.Id, sentQuote.Id, sentShare.Id);
+        var afterRevoke = await service.AcceptPublicAsync(sentShare.Token);
+
+        db.ChangeTracker.Clear();
+        var stored = await db.Quotes.AsNoTracking().SingleAsync(candidate => candidate.Id == sentQuote.Id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(invalid, Is.EqualTo(PublicQuoteResponseResult.NotFound));
+            Assert.That(draftResponse, Is.EqualTo(PublicQuoteResponseResult.InvalidStatus));
+            Assert.That(rejected, Is.EqualTo(PublicQuoteResponseResult.Success));
+            Assert.That(revoked, Is.True);
+            Assert.That(afterRevoke, Is.EqualTo(PublicQuoteResponseResult.NotFound));
+            Assert.That(stored.Status, Is.EqualTo(QuoteStatus.Rejected));
+        });
+    }
+
     private sealed class StubPdfGenerator : IPdfGenerator
     {
         public QuotePdfModel? LastModel { get; private set; }
