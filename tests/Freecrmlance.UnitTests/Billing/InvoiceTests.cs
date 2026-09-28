@@ -77,4 +77,49 @@ public sealed class InvoiceTests
         var invoice = new Invoice(Guid.NewGuid(), Guid.NewGuid(), "INV-001");
         Assert.Throws<ArgumentOutOfRangeException>(() => invoice.AddLine("Work", 1, 100m, 101m));
     }
+
+    [Test]
+    public void Complete_draft_can_be_issued_and_becomes_immutable()
+    {
+        var invoice = CompleteInvoice();
+        var issuedAt = new DateTime(2026, 9, 28, 14, 0, 0, DateTimeKind.Utc);
+
+        invoice.Issue("2026-0001", issuedAt);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(invoice.Status, Is.EqualTo(InvoiceStatus.Issued));
+            Assert.That(invoice.Number, Is.EqualTo("2026-0001"));
+            Assert.That(invoice.IssueDate, Is.EqualTo(issuedAt));
+            Assert.Throws<InvalidOperationException>(() => invoice.AddLine("More work", 1, 10m, 20m));
+            Assert.Throws<InvalidOperationException>(() => invoice.SetComplianceDetails(DateTime.UtcNow, DateTime.UtcNow.AddDays(30)));
+        });
+    }
+
+    [Test]
+    public void Incomplete_draft_cannot_be_issued()
+    {
+        var invoice = new Invoice(Guid.NewGuid(), Guid.NewGuid(), "DRAFT-001");
+        invoice.AddLine("Work", 1, 100m, 20m);
+
+        Assert.Throws<InvalidOperationException>(() => invoice.Issue("2026-0001", DateTime.UtcNow));
+        Assert.That(invoice.Status, Is.EqualTo(InvoiceStatus.Draft));
+    }
+
+    [Test]
+    public void Zero_vat_requires_an_exemption_mention_before_issuance()
+    {
+        var invoice = CompleteInvoice(vatRate: 0m, vatExemptionMention: null);
+        Assert.Throws<InvalidOperationException>(() => invoice.Issue("2026-0001", DateTime.UtcNow));
+    }
+
+    private static Invoice CompleteInvoice(decimal vatRate = 20m, string? vatExemptionMention = null)
+    {
+        var invoice = new Invoice(Guid.NewGuid(), Guid.NewGuid(), "DRAFT-001");
+        invoice.SnapshotSeller("Seller SAS", "SAS", "123456789", null, "FR123", "1 rue Seller", null, "75001", "Paris", "FR", null, null);
+        invoice.SnapshotCustomer("Customer SARL", "987654321", null, "FR987", "2 rue Customer", null, "69001", "Lyon", "FR");
+        invoice.AddLine("Work", 1, 100m, vatRate);
+        invoice.SetComplianceDetails(DateTime.UtcNow.Date, DateTime.UtcNow.Date.AddDays(30), vatExemptionMention: vatExemptionMention, paymentTerms: "30 days");
+        return invoice;
+    }
 }
