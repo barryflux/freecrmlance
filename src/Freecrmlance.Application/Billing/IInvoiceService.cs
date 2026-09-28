@@ -19,12 +19,12 @@ public enum IssueInvoiceResult
     Incomplete
 }
 
-public sealed record CreateInvoiceCommand(Guid CustomerId, string Number, IReadOnlyList<CreateInvoiceLineCommand>? Lines = null,
+public sealed record CreateInvoiceCommand(Guid CustomerId, string DraftReference, IReadOnlyList<CreateInvoiceLineCommand>? Lines = null,
     DateTime? ServiceDate = null, DateTime? DueDate = null, string? PurchaseOrderReference = null, string? VatExemptionMention = null,
     string? PaymentTerms = null, string? EarlyPaymentDiscountTerms = null, string? LatePaymentPenaltyTerms = null, decimal? RecoveryCostIndemnity = null);
-public sealed record CreateInvoiceFromQuoteCommand(Guid CustomerId, Guid QuoteId, string Number);
+public sealed record CreateInvoiceFromQuoteCommand(Guid CustomerId, Guid QuoteId, string DraftReference);
 public sealed record CreateInvoiceLineCommand(string Description, decimal Quantity, decimal UnitPrice, decimal VatRate = 0m);
-public sealed record InvoiceDto(Guid Id, Guid CustomerId, Guid? SourceQuoteId, string Number, InvoiceStatus Status, DateTime CreatedAtUtc, DateTime UpdatedAtUtc,
+public sealed record InvoiceDto(Guid Id, Guid CustomerId, Guid? SourceQuoteId, string DraftReference, string? Number, InvoiceStatus Status, DateTime CreatedAtUtc, DateTime UpdatedAtUtc,
     decimal Total, IReadOnlyList<InvoiceLineDto> Lines, decimal TotalExcludingTax = 0m, decimal TotalVat = 0m, decimal TotalIncludingTax = 0m,
     DateTime? IssueDate = null, DateTime? ServiceDate = null, DateTime? DueDate = null, string? PurchaseOrderReference = null,
     string? SellerLegalName = null, string? SellerSiren = null, string? SellerSiret = null, string? SellerVatNumber = null,
