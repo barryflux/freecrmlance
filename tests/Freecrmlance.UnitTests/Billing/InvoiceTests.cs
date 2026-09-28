@@ -39,4 +39,42 @@ public sealed class InvoiceTests
             Assert.Throws<ArgumentOutOfRangeException>(() => invoice.AddLine("Work", 1, -1));
         });
     }
+
+    [Test]
+    public void Invoice_calculates_ht_vat_and_ttc()
+    {
+        var invoice = new Invoice(Guid.NewGuid(), Guid.NewGuid(), "INV-001");
+        invoice.AddLine("Design", 2, 100m, 20m);
+        invoice.AddLine("Exempt service", 1, 50m, 0m);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(invoice.TotalExcludingTax, Is.EqualTo(250m));
+            Assert.That(invoice.TotalVat, Is.EqualTo(40m));
+            Assert.That(invoice.TotalIncludingTax, Is.EqualTo(290m));
+        });
+    }
+
+    [Test]
+    public void Invoice_snapshot_is_owned_by_invoice()
+    {
+        var invoice = new Invoice(Guid.NewGuid(), Guid.NewGuid(), "INV-001");
+        invoice.SnapshotSeller("Seller SAS", "SAS", "123456789", "12345678900012", "FR123", "1 rue Seller", null, "75001", "Paris", "FR", null, null);
+        invoice.SnapshotCustomer("Customer SARL", "987654321", null, "FR987", "2 rue Customer", null, "69001", "Lyon", "FR");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(invoice.SellerLegalName, Is.EqualTo("Seller SAS"));
+            Assert.That(invoice.SellerSiren, Is.EqualTo("123456789"));
+            Assert.That(invoice.CustomerLegalName, Is.EqualTo("Customer SARL"));
+            Assert.That(invoice.CustomerSiren, Is.EqualTo("987654321"));
+        });
+    }
+
+    [Test]
+    public void Invoice_line_rejects_invalid_vat_rate()
+    {
+        var invoice = new Invoice(Guid.NewGuid(), Guid.NewGuid(), "INV-001");
+        Assert.Throws<ArgumentOutOfRangeException>(() => invoice.AddLine("Work", 1, 100m, 101m));
+    }
 }
