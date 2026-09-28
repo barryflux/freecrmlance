@@ -4,7 +4,6 @@ using Freecrmlance.Domain.Billing;
 using Freecrmlance.Domain.Crm;
 using Freecrmlance.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System.Data;
 
 namespace Freecrmlance.Infrastructure.Billing;
 
@@ -74,7 +73,7 @@ public sealed class InvoiceService(FreecrmlanceDbContext dbContext, IWorkspaceCo
     public async Task<IssueInvoiceResult> IssueAsync(Guid customerId, Guid invoiceId, CancellationToken cancellationToken = default)
     {
         var workspaceId = await workspaceContext.RequireCurrentWorkspaceIdAsync(cancellationToken);
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         var invoice = await dbContext.Invoices.Include(item => item.Lines)
             .SingleOrDefaultAsync(item => item.Id == invoiceId && item.CustomerId == customerId && item.WorkspaceId == workspaceId, cancellationToken);
@@ -82,20 +81,12 @@ public sealed class InvoiceService(FreecrmlanceDbContext dbContext, IWorkspaceCo
         if (invoice.Status != InvoiceStatus.Draft) return IssueInvoiceResult.InvalidStatus;
 
         var issuedAtUtc = DateTime.UtcNow;
-        var sequence = await dbContext.InvoiceNumberSequences
-            .SingleOrDefaultAsync(item => item.WorkspaceId == workspaceId && item.Year == issuedAtUtc.Year, cancellationToken);
-        if (sequence is null)
-        {
-            sequence = new InvoiceNumberSequence(workspaceId, issuedAtUtc.Year);
-            dbContext.InvoiceNumberSequences.Add(sequence);
-        }
-
-        var next = sequence.Next();
-        var number = $"{issuedAtUtc.Year}-{next:D4}";
 
         try
         {
-            invoice.Issue(number, issuedAtUtc);
+            // Validate before consuming a sequence number. The definitive number is assigned below
+            // after PostgreSQL atomically allocates it.
+            invoice.Issue("PENDING", issuedAtUtc);
         }
         catch (InvalidOperationException)
         {
@@ -103,6 +94,18 @@ public sealed class InvoiceService(FreecrmlanceDbContext dbContext, IWorkspaceCo
             return IssueInvoiceResult.Incomplete;
         }
 
+        var next = await dbContext.Database.SqlQueryRaw<int>(
+                """
+                INSERT INTO billing."InvoiceNumberSequences" ("WorkspaceId", "Year", "LastNumber")
+                VALUES ({0}, {1}, 1)
+                ON CONFLICT ("WorkspaceId", "Year")
+                DO UPDATE SET "LastNumber" = billing."InvoiceNumberSequences"."LastNumber" + 1
+                RETURNING "LastNumber" AS "Value"
+                """,
+                workspaceId, issuedAtUtc.Year)
+            .SingleAsync(cancellationToken);
+
+        invoice.AssignDefinitiveNumber($"{issuedAtUtc.Year}-{next:D4}");
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return IssueInvoiceResult.Success;
