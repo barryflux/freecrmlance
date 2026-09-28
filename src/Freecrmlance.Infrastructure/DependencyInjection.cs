@@ -22,6 +22,7 @@ public static class DependencyInjection
 
         services.AddDbContext<FreecrmlanceDbContext>(options => options.UseNpgsql(connectionString));
         services.AddScoped<IWorkspaceContext, WorkspaceContext>();
+        services.AddScoped<IWorkspaceSettingsService, WorkspaceSettingsService>();
         services.AddScoped<IInvoiceService, InvoiceService>();
         services.AddScoped<ICustomerService, CustomerService>();
         services.AddScoped<IContactService, ContactService>();
