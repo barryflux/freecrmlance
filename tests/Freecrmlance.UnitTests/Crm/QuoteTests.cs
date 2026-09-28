@@ -20,14 +20,26 @@ public sealed class QuoteTests
         });
     }
 
-    [TestCase("", 1, 10)]
-    [TestCase("Work", 0, 10)]
-    [TestCase("Work", -1, 10)]
-    [TestCase("Work", 1, -1)]
-    public void Quote_line_rejects_invalid_values(string description, decimal quantity, decimal unitPrice)
+    [Test]
+    public void Quote_line_requires_a_description()
     {
         var quote = new Quote(Guid.NewGuid(), Guid.NewGuid(), "Q-001");
-        Assert.Throws<ArgumentException>(() => quote.AddLine(description, quantity, unitPrice));
+        Assert.Throws<ArgumentException>(() => quote.AddLine(" ", 1, 10));
+    }
+
+    [TestCase(0)]
+    [TestCase(-1)]
+    public void Quote_line_requires_a_positive_quantity(decimal quantity)
+    {
+        var quote = new Quote(Guid.NewGuid(), Guid.NewGuid(), "Q-001");
+        Assert.Throws<ArgumentOutOfRangeException>(() => quote.AddLine("Work", quantity, 10));
+    }
+
+    [Test]
+    public void Quote_line_rejects_a_negative_unit_price()
+    {
+        var quote = new Quote(Guid.NewGuid(), Guid.NewGuid(), "Q-001");
+        Assert.Throws<ArgumentOutOfRangeException>(() => quote.AddLine("Work", 1, -1));
     }
 
     [Test]
