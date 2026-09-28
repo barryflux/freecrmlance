@@ -7,7 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace Freecrmlance.Web.Controllers;
 
 [Authorize]
-public sealed class QuotesController(IQuoteService quoteService, ICustomerService customerService) : Controller
+public sealed class QuotesController(
+    IQuoteService quoteService,
+    ICustomerService customerService,
+    IQuotePdfService quotePdfService) : Controller
 {
     [HttpGet("Customers/{customerId:guid}/Quotes/Create")]
     public async Task<IActionResult> Create(Guid customerId, CancellationToken cancellationToken)
@@ -82,6 +85,13 @@ public sealed class QuotesController(IQuoteService quoteService, ICustomerServic
         => await quoteService.RejectAsync(customerId, quoteId, cancellationToken)
             ? RedirectToAction(nameof(Details), new { customerId, quoteId })
             : NotFound();
+
+    [HttpGet("Customers/{customerId:guid}/Quotes/{quoteId:guid}/Pdf")]
+    public async Task<IActionResult> Pdf(Guid customerId, Guid quoteId, CancellationToken cancellationToken)
+    {
+        var pdf = await quotePdfService.GenerateAsync(customerId, quoteId, cancellationToken);
+        return pdf is null ? NotFound() : File(pdf.Content, "application/pdf", pdf.FileName);
+    }
 
     private static CreateQuoteLineCommand[] MapLines(QuoteFormViewModel model)
         => model.Lines.Select(line => new CreateQuoteLineCommand(line.Description, line.Quantity, line.UnitPrice)).ToArray();
