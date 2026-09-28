@@ -49,6 +49,25 @@ public sealed class QuoteService(
         return quote.Id;
     }
 
+    public async Task<bool> UpdateDraftAsync(Guid customerId, Guid quoteId, UpdateQuoteCommand command, CancellationToken cancellationToken = default)
+    {
+        var workspaceId = await workspaceContext.RequireCurrentWorkspaceIdAsync(cancellationToken);
+        var quote = await dbContext.Quotes
+            .Include(item => item.Lines)
+            .SingleOrDefaultAsync(item => item.Id == quoteId
+                && item.CustomerId == customerId
+                && item.WorkspaceId == workspaceId, cancellationToken);
+
+        if (quote is null || quote.Status != QuoteStatus.Draft) return false;
+
+        quote.UpdateDraft(
+            command.Number,
+            (command.Lines ?? []).Select(line => (line.Description, line.Quantity, line.UnitPrice)));
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
     private Task<bool> CustomerExistsAsync(Guid workspaceId, Guid customerId, CancellationToken cancellationToken)
         => dbContext.Customers.AsNoTracking().AnyAsync(
             customer => customer.Id == customerId && customer.WorkspaceId == workspaceId,
