@@ -141,6 +141,58 @@ public sealed class QuoteServiceTests
         });
     }
 
+    [Test]
+    public async Task Quote_share_is_secure_revocable_single_active_and_tenant_scoped()
+    {
+        await using var postgres = new PostgreSqlBuilder().WithImage("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        var options = new DbContextOptionsBuilder<FreecrmlanceDbContext>().UseNpgsql(postgres.GetConnectionString()).Options;
+        await using var db = new FreecrmlanceDbContext(options);
+        await db.Database.MigrateAsync();
+
+        var workspaceA = Guid.NewGuid();
+        var workspaceB = Guid.NewGuid();
+        var customer = new Customer(workspaceA, "Acme");
+        db.Customers.Add(customer);
+        await db.SaveChangesAsync();
+
+        var contextA = new StubWorkspaceContext(workspaceA);
+        var contextB = new StubWorkspaceContext(workspaceB);
+        var quoteId = (await new QuoteService(db, contextA).CreateAsync(new CreateQuoteCommand(
+            customer.Id,
+            "Q-021",
+            [new CreateQuoteLineCommand("Design", 2, 150m)])))!.Value;
+
+        var serviceA = new QuoteShareService(db, contextA);
+        var serviceB = new QuoteShareService(db, contextB);
+
+        var crossWorkspaceCreate = await serviceB.CreateAsync(customer.Id, quoteId);
+        var share = await serviceA.CreateAsync(customer.Id, quoteId);
+        var duplicate = await serviceA.CreateAsync(customer.Id, quoteId);
+        var persisted = await db.QuoteShares.AsNoTracking().SingleAsync();
+        var invalid = await serviceA.GetPublicAsync("invalid-token");
+        var publicQuote = await serviceA.GetPublicAsync(share!.Token);
+        var crossWorkspaceRevoke = await serviceB.RevokeAsync(customer.Id, quoteId, share.Id);
+        var revoked = await serviceA.RevokeAsync(customer.Id, quoteId, share.Id);
+        var afterRevoke = await serviceA.GetPublicAsync(share.Token);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(crossWorkspaceCreate, Is.Null);
+            Assert.That(share.Token, Has.Length.EqualTo(64));
+            Assert.That(duplicate, Is.Null);
+            Assert.That(persisted.TokenHash, Is.Not.EqualTo(share.Token));
+            Assert.That(invalid, Is.Null);
+            Assert.That(publicQuote, Is.Not.Null);
+            Assert.That(publicQuote!.CustomerName, Is.EqualTo("Acme"));
+            Assert.That(publicQuote.Number, Is.EqualTo("Q-021"));
+            Assert.That(publicQuote.Total, Is.EqualTo(300m));
+            Assert.That(crossWorkspaceRevoke, Is.False);
+            Assert.That(revoked, Is.True);
+            Assert.That(afterRevoke, Is.Null);
+        });
+    }
+
     private sealed class StubPdfGenerator : IPdfGenerator
     {
         public QuotePdfModel? LastModel { get; private set; }
