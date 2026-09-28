@@ -76,6 +76,34 @@ public sealed class QuoteService(
         return true;
     }
 
+    public Task<bool> MarkSentAsync(Guid customerId, Guid quoteId, CancellationToken cancellationToken = default)
+        => ChangeStatusAsync(customerId, quoteId, QuoteStatus.Draft, quote => quote.MarkSent(), cancellationToken);
+
+    public Task<bool> AcceptAsync(Guid customerId, Guid quoteId, CancellationToken cancellationToken = default)
+        => ChangeStatusAsync(customerId, quoteId, QuoteStatus.Sent, quote => quote.Accept(), cancellationToken);
+
+    public Task<bool> RejectAsync(Guid customerId, Guid quoteId, CancellationToken cancellationToken = default)
+        => ChangeStatusAsync(customerId, quoteId, QuoteStatus.Sent, quote => quote.Reject(), cancellationToken);
+
+    private async Task<bool> ChangeStatusAsync(
+        Guid customerId,
+        Guid quoteId,
+        QuoteStatus requiredStatus,
+        Action<Quote> transition,
+        CancellationToken cancellationToken)
+    {
+        var workspaceId = await workspaceContext.RequireCurrentWorkspaceIdAsync(cancellationToken);
+        var quote = await dbContext.Quotes.SingleOrDefaultAsync(item => item.Id == quoteId
+            && item.CustomerId == customerId
+            && item.WorkspaceId == workspaceId, cancellationToken);
+
+        if (quote is null || quote.Status != requiredStatus) return false;
+
+        transition(quote);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
     private Task<bool> CustomerExistsAsync(Guid workspaceId, Guid customerId, CancellationToken cancellationToken)
         => dbContext.Customers.AsNoTracking().AnyAsync(
             customer => customer.Id == customerId && customer.WorkspaceId == workspaceId,
