@@ -1,3 +1,4 @@
+using Freecrmlance.Application.Billing;
 using Freecrmlance.Application.Crm;
 using Freecrmlance.Web.Models.Customers;
 using Microsoft.AspNetCore.Authorization;
@@ -6,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Freecrmlance.Web.Controllers;
 
 [Authorize]
-public sealed class CustomersController(ICustomerService customerService, IContactService contactService, IDocumentService documentService, IDocumentShareService documentShareService, IQuoteService quoteService) : Controller
+public sealed class CustomersController(ICustomerService customerService, IContactService contactService, IDocumentService documentService, IDocumentShareService documentShareService, IQuoteService quoteService, IInvoiceService invoiceService) : Controller
 {
     [HttpGet]
     public async Task<IActionResult> Index(CancellationToken cancellationToken) => View(await customerService.ListAsync(cancellationToken));
@@ -23,7 +24,9 @@ public sealed class CustomersController(ICustomerService customerService, IConta
         var documentShares = await documentShareService.ListAsync(id, cancellationToken);
         if (documentShares is null) return NotFound();
         var quotes = await quoteService.ListAsync(id, cancellationToken);
-        return quotes is null ? NotFound() : View(new CustomerDetailsViewModel(customer, contacts, documents, documentShares, quotes));
+        if (quotes is null) return NotFound();
+        var invoices = await invoiceService.ListAsync(id, cancellationToken);
+        return invoices is null ? NotFound() : View(new CustomerDetailsViewModel(customer, contacts, documents, documentShares, quotes, invoices));
     }
 
 
