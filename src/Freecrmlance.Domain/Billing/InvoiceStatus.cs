@@ -2,5 +2,6 @@ namespace Freecrmlance.Domain.Billing;
 
 public enum InvoiceStatus
 {
-    Draft
+    Draft,
+    Issued
 }
