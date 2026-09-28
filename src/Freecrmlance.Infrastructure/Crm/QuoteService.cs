@@ -60,9 +60,17 @@ public sealed class QuoteService(
 
         if (quote is null || quote.Status != QuoteStatus.Draft) return false;
 
+        var existingLines = quote.Lines.ToArray();
+
         quote.UpdateDraft(
             command.Number,
             (command.Lines ?? []).Select(line => (line.Description, line.Quantity, line.UnitPrice)));
+
+        foreach (var existingLine in existingLines)
+            dbContext.Entry(existingLine).State = EntityState.Deleted;
+
+        foreach (var newLine in quote.Lines)
+            dbContext.Entry(newLine).State = EntityState.Added;
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return true;
