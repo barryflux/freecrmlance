@@ -19,9 +19,10 @@
             @for (var i = 0; i < Model.Lines.Count; i++)
             {
                 <div class="row g-2 mb-2 invoice-line">
-                    <div class="col-md-6"><input asp-for="Lines[i].Description" class="form-control" placeholder="Description" /></div>
+                    <div class="col-md-5"><input asp-for="Lines[i].Description" class="form-control" placeholder="Description" /></div>
                     <div class="col-md-2"><input asp-for="Lines[i].Quantity" class="form-control" placeholder="Quantity" /></div>
-                    <div class="col-md-3"><input asp-for="Lines[i].UnitPrice" class="form-control" placeholder="Unit price" /></div>
+                    <div class="col-md-2"><input asp-for="Lines[i].UnitPrice" class="form-control" placeholder="Unit price HT" /></div>
+                    <div class="col-md-2"><input asp-for="Lines[i].VatRate" class="form-control" placeholder="VAT %" /></div>
                     <div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-line">×</button></div>
                 </div>
             }
@@ -42,12 +43,13 @@
         const index = container.querySelectorAll(".invoice-line").length;
         const row = document.createElement("div");
         row.className = "row g-2 mb-2 invoice-line";
-        row.innerHTML = `<div class="col-md-6"><input name="Lines[${index}].Description" class="form-control" placeholder="Description" /></div><div class="col-md-2"><input name="Lines[${index}].Quantity" value="1" class="form-control" placeholder="Quantity" /></div><div class="col-md-3"><input name="Lines[${index}].UnitPrice" value="0" class="form-control" placeholder="Unit price" /></div><div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-line">×</button></div>`;
+        row.innerHTML = `<div class="col-md-5"><input name="Lines[${index}].Description" class="form-control" placeholder="Description" /></div><div class="col-md-2"><input name="Lines[${index}].Quantity" value="1" class="form-control" placeholder="Quantity" /></div><div class="col-md-2"><input name="Lines[${index}].UnitPrice" value="0" class="form-control" placeholder="Unit price HT" /></div><div class="col-md-2"><input name="Lines[${index}].VatRate" value="20" class="form-control" placeholder="VAT %" /></div><div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-line">×</button></div>`;
         container.appendChild(row);
     });
     container.addEventListener("click", event => {
         if (event.target.classList.contains("remove-line") && container.querySelectorAll(".invoice-line").length > 1)
             event.target.closest(".invoice-line").remove();
+        [...container.querySelectorAll(".invoice-line")].forEach((row, index) => row.querySelectorAll("input").forEach(input => input.name = input.name.replace(/Lines\[\d+\]/, `Lines[${index}]`)));
     });
 })();
 </script>
