@@ -1,3 +1,4 @@
+using Freecrmlance.Application.Billing;
 using Freecrmlance.Application.Crm;
 using Freecrmlance.Domain.Crm;
 using Freecrmlance.Web.Models.Quotes;
@@ -11,7 +12,8 @@ public sealed class QuotesController(
     IQuoteService quoteService,
     ICustomerService customerService,
     IQuotePdfService quotePdfService,
-    IQuoteShareService quoteShareService) : Controller
+    IQuoteShareService quoteShareService,
+    IInvoiceService invoiceService) : Controller
 {
     [HttpGet("Customers/{customerId:guid}/Quotes/Create")]
     public async Task<IActionResult> Create(Guid customerId, CancellationToken cancellationToken)
@@ -38,7 +40,10 @@ public sealed class QuotesController(
 
         var share = await quoteShareService.GetActiveAsync(customerId, quoteId, cancellationToken);
         var shareUrl = TempData["QuoteShareUrl"] as string;
-        return View(new QuoteDetailsViewModel(quote, share, shareUrl));
+        var invoices = await invoiceService.ListAsync(customerId, cancellationToken);
+        if (invoices is null) return NotFound();
+        var sourceInvoice = invoices.SingleOrDefault(invoice => invoice.SourceQuoteId == quoteId);
+        return View(new QuoteDetailsViewModel(quote, share, shareUrl, sourceInvoice));
     }
 
     [HttpPost("Customers/{customerId:guid}/Quotes/{quoteId:guid}/Share")]
