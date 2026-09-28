@@ -109,7 +109,7 @@ public sealed class InvoiceServiceTests
         var service = new InvoiceService(db, new StubWorkspaceContext(workspace.Id));
         var command1 = new CreateInvoiceCommand(customer.Id, "DRAFT-A", [new("Work", 1, 100m, 20m)],
             DateTime.UtcNow.Date, DateTime.UtcNow.Date.AddDays(30), PaymentTerms: "30 days");
-        var command2 = command1 with { Number = "DRAFT-B" };
+        var command2 = command1 with { DraftReference = "DRAFT-B" };
         var firstId = (await service.CreateAsync(command1))!.Value;
         var secondId = (await service.CreateAsync(command2))!.Value;
 

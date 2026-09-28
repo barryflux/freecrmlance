@@ -36,7 +36,7 @@ public sealed class InvoiceService(FreecrmlanceDbContext dbContext, IWorkspaceCo
         var workspace = await dbContext.Workspaces.AsNoTracking().SingleOrDefaultAsync(item => item.Id == workspaceId, cancellationToken);
         if (customer is null || workspace is null) return null;
 
-        var invoice = new Invoice(workspaceId, command.CustomerId, command.Number);
+        var invoice = new Invoice(workspaceId, command.CustomerId, command.DraftReference);
         SnapshotIdentities(invoice, workspace, customer);
         invoice.SetComplianceDetails(command.ServiceDate, command.DueDate, command.PurchaseOrderReference, command.VatExemptionMention,
             command.PaymentTerms, command.EarlyPaymentDiscountTerms, command.LatePaymentPenaltyTerms, command.RecoveryCostIndemnity);
@@ -61,7 +61,7 @@ public sealed class InvoiceService(FreecrmlanceDbContext dbContext, IWorkspaceCo
         var workspace = await dbContext.Workspaces.AsNoTracking().SingleOrDefaultAsync(item => item.Id == workspaceId, cancellationToken);
         if (customer is null || workspace is null) return null;
 
-        var invoice = new Invoice(workspaceId, command.CustomerId, command.Number, quote.Id);
+        var invoice = new Invoice(workspaceId, command.CustomerId, command.DraftReference, quote.Id);
         SnapshotIdentities(invoice, workspace, customer);
         foreach (var line in quote.Lines)
             invoice.AddLine(line.Description, line.Quantity, line.UnitPrice);
@@ -137,7 +137,7 @@ public sealed class InvoiceService(FreecrmlanceDbContext dbContext, IWorkspaceCo
     }
 
     private static InvoiceDto ToDto(Invoice invoice)
-        => new(invoice.Id, invoice.CustomerId, invoice.SourceQuoteId, invoice.Number, invoice.Status, invoice.CreatedAtUtc, invoice.UpdatedAtUtc, invoice.Total,
+        => new(invoice.Id, invoice.CustomerId, invoice.SourceQuoteId, invoice.DraftReference, invoice.Number, invoice.Status, invoice.CreatedAtUtc, invoice.UpdatedAtUtc, invoice.Total,
             invoice.Lines.Select(line => new InvoiceLineDto(line.Id, line.Description, line.Quantity, line.UnitPrice, line.Total,
                 line.VatRate, line.TotalExcludingTax, line.VatAmount, line.TotalIncludingTax)).ToList(),
             invoice.TotalExcludingTax, invoice.TotalVat, invoice.TotalIncludingTax, invoice.IssueDate, invoice.ServiceDate, invoice.DueDate,

@@ -5,7 +5,8 @@ namespace Freecrmlance.Web.Models.Invoices;
 public sealed class InvoiceFormViewModel
 {
     [Required, StringLength(50)]
-    public string Number { get; set; } = string.Empty;
+    [Display(Name = "Draft reference")]
+    public string DraftReference { get; set; } = string.Empty;
 
     public List<InvoiceLineViewModel> Lines { get; set; } = [new()];
 }

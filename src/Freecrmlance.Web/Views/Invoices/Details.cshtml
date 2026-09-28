@@ -1,10 +1,11 @@
 @model Freecrmlance.Application.Billing.InvoiceDto
-@{ ViewData["Title"] = Model.Number; var customerId = ViewContext.RouteData.Values["customerId"]; }
+@{ var displayReference = Model.Number ?? Model.DraftReference; ViewData["Title"] = displayReference; var customerId = ViewContext.RouteData.Values["customerId"]; }
 
 <div class="page-header d-flex justify-content-between align-items-start gap-3">
     <div>
         <a class="text-decoration-none small" asp-controller="Customers" asp-action="Details" asp-route-id="@customerId">← Customer</a>
-        <h1 class="h2 mt-2 mb-1">@Model.Number</h1>
+        <h1 class="h2 mt-2 mb-1">@displayReference</h1>
+        @if (Model.Number is null) { <div class="text-body-secondary small">Draft reference: @Model.DraftReference</div> }
         <span class="badge text-bg-secondary">@Model.Status</span>
     </div>
     <div class="d-flex gap-2">
