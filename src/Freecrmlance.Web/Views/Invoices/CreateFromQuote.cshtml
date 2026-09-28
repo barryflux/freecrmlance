@@ -1,0 +1,27 @@
+@model Freecrmlance.Web.Models.Invoices.CreateInvoiceFromQuoteViewModel
+@using Freecrmlance.Application.Crm
+@{ var quote = (QuoteDto)ViewBag.Quote; ViewData["Title"] = "Create invoice"; var customerId = ViewContext.RouteData.Values["customerId"]; }
+
+<div class="page-header">
+    <a class="text-decoration-none small" asp-controller="Quotes" asp-action="Details" asp-route-customerId="@customerId" asp-route-quoteId="@quote.Id">← Quote @quote.Number</a>
+    <h1 class="h2 mt-2 mb-1">Create invoice from @quote.Number</h1>
+    <p class="text-body-secondary">The accepted quote lines will be copied into a new draft invoice.</p>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="mb-3">
+                <label asp-for="Number" class="form-label">Invoice number</label>
+                <input asp-for="Number" class="form-control" autofocus />
+                <span asp-validation-for="Number" class="text-danger"></span>
+            </div>
+            <div class="mb-4 text-body-secondary small">@quote.Lines.Count lines · Total @quote.Total.ToString("0.00")</div>
+            <div class="d-flex justify-content-end gap-2">
+                <a class="btn btn-outline-secondary" asp-controller="Quotes" asp-action="Details" asp-route-customerId="@customerId" asp-route-quoteId="@quote.Id">Cancel</a>
+                <button class="btn btn-primary" type="submit">Create draft invoice</button>
+            </div>
+        </form>
+    </div>
+</div>
