@@ -52,9 +52,23 @@ public sealed class Quote
         UpdatedAtUtc = DateTime.UtcNow;
     }
 
-    public void MarkSent() => ChangeStatus(QuoteStatus.Sent);
-    public void Accept() => ChangeStatus(QuoteStatus.Accepted);
-    public void Reject() => ChangeStatus(QuoteStatus.Rejected);
+    public void MarkSent()
+    {
+        if (Status != QuoteStatus.Draft) throw new InvalidOperationException("Only draft quotes can be marked as sent.");
+        ChangeStatus(QuoteStatus.Sent);
+    }
+
+    public void Accept()
+    {
+        if (Status != QuoteStatus.Sent) throw new InvalidOperationException("Only sent quotes can be accepted.");
+        ChangeStatus(QuoteStatus.Accepted);
+    }
+
+    public void Reject()
+    {
+        if (Status != QuoteStatus.Sent) throw new InvalidOperationException("Only sent quotes can be rejected.");
+        ChangeStatus(QuoteStatus.Rejected);
+    }
 
     private void ChangeStatus(QuoteStatus status)
     {
