@@ -14,6 +14,25 @@
             <div class="col-md-6"><div class="text-body-secondary small">Phone</div><div>@(Model.Customer.Phone ?? "—")</div></div>
         </div>
     </div>
+    @if (Model.Customer.Type is not null)
+    {
+        <hr />
+        <h2 class="h5 mb-3">Billing identity</h2>
+        <div class="row g-3">
+            <div class="col-md-4"><div class="text-body-secondary small">Type</div><div>@Model.Customer.Type</div></div>
+            @if (Model.Customer.Type == Freecrmlance.Domain.Crm.CustomerType.Business)
+            {
+                <div class="col-md-4"><div class="text-body-secondary small">SIREN</div><div>@Model.Customer.Siren</div></div>
+                <div class="col-md-4"><div class="text-body-secondary small">SIRET</div><div>@(Model.Customer.Siret ?? "—")</div></div>
+                <div class="col-md-4"><div class="text-body-secondary small">VAT number</div><div>@(Model.Customer.VatNumber ?? "—")</div></div>
+            }
+            <div class="col-md-8"><div class="text-body-secondary small">Address</div><div>@Model.Customer.AddressLine1@if (!string.IsNullOrWhiteSpace(Model.Customer.AddressLine2)) { <text>, @Model.Customer.AddressLine2</text> }<br />@Model.Customer.PostalCode @Model.Customer.City · @Model.Customer.CountryCode</div></div>
+            @if (!string.IsNullOrWhiteSpace(Model.Customer.BillingAddressLine1))
+            {
+                <div class="col-md-8"><div class="text-body-secondary small">Billing address</div><div>@Model.Customer.BillingAddressLine1@if (!string.IsNullOrWhiteSpace(Model.Customer.BillingAddressLine2)) { <text>, @Model.Customer.BillingAddressLine2</text> }<br />@Model.Customer.BillingPostalCode @Model.Customer.BillingCity · @Model.Customer.BillingCountryCode</div></div>
+            }
+        </div>
+    }
 </div>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
