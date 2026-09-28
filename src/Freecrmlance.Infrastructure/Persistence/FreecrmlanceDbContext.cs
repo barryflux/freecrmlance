@@ -13,6 +13,7 @@ public sealed class FreecrmlanceDbContext(DbContextOptions<FreecrmlanceDbContext
     public DbSet<DocumentShare> DocumentShares => Set<DocumentShare>();
     public DbSet<Quote> Quotes => Set<Quote>();
     public DbSet<QuoteLine> QuoteLines => Set<QuoteLine>();
+    public DbSet<QuoteShare> QuoteShares => Set<QuoteShare>();
     public DbSet<Workspace> Workspaces => Set<Workspace>();
     public DbSet<WorkspaceMember> WorkspaceMembers => Set<WorkspaceMember>();
 
