@@ -1,3 +1,4 @@
+using Freecrmlance.Application.Billing;
 using Freecrmlance.Application.Crm;
 
 namespace Freecrmlance.Web.Models.Customers;
@@ -7,4 +8,5 @@ public sealed record CustomerDetailsViewModel(
     IReadOnlyList<ContactDto> Contacts,
     IReadOnlyList<DocumentDto> Documents,
     IReadOnlyList<DocumentShareSummaryDto> DocumentShares,
-    IReadOnlyList<QuoteDto> Quotes);
+    IReadOnlyList<QuoteDto> Quotes,
+    IReadOnlyList<InvoiceDto> Invoices);
