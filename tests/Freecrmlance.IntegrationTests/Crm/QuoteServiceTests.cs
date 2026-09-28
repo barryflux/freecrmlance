@@ -69,6 +69,9 @@ public sealed class QuoteServiceTests
         var quoteId = (await serviceA.CreateAsync(new CreateQuoteCommand(
             customer.Id, "Q-001", [new CreateQuoteLineCommand("Old", 1, 10)])))!.Value;
 
+        // Simulate the next HTTP request: production uses a fresh scoped DbContext.
+        db.ChangeTracker.Clear();
+
         var crossWorkspace = await serviceB.UpdateDraftAsync(
             customer.Id, quoteId, new UpdateQuoteCommand("HACK", []));
         var updated = await serviceA.UpdateDraftAsync(
