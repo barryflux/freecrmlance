@@ -79,6 +79,35 @@ public sealed class QuoteShareService(
             lines);
     }
 
+    public Task<PublicQuoteResponseResult> AcceptPublicAsync(string token, CancellationToken cancellationToken = default)
+        => RespondPublicAsync(token, quote => quote.Accept(), cancellationToken);
+
+    public Task<PublicQuoteResponseResult> RejectPublicAsync(string token, CancellationToken cancellationToken = default)
+        => RespondPublicAsync(token, quote => quote.Reject(), cancellationToken);
+
+    private async Task<PublicQuoteResponseResult> RespondPublicAsync(
+        string token,
+        Action<Quote> transition,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(token)) return PublicQuoteResponseResult.NotFound;
+
+        var tokenHash = HashToken(token);
+        var quote = await (
+            from share in dbContext.QuoteShares
+            join candidate in dbContext.Quotes on share.QuoteId equals candidate.Id
+            where share.TokenHash == tokenHash && share.RevokedAtUtc == null
+            select candidate)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (quote is null) return PublicQuoteResponseResult.NotFound;
+        if (quote.Status != QuoteStatus.Sent) return PublicQuoteResponseResult.InvalidStatus;
+
+        transition(quote);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return PublicQuoteResponseResult.Success;
+    }
+
     public async Task<bool> RevokeAsync(Guid customerId, Guid quoteId, Guid shareId, CancellationToken cancellationToken = default)
     {
         var workspaceId = await workspaceContext.RequireCurrentWorkspaceIdAsync(cancellationToken);
