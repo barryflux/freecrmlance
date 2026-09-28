@@ -6,4 +6,5 @@ public sealed record CustomerDetailsViewModel(
     CustomerDto Customer,
     IReadOnlyList<ContactDto> Contacts,
     IReadOnlyList<DocumentDto> Documents,
-    IReadOnlyList<DocumentShareSummaryDto> DocumentShares);
+    IReadOnlyList<DocumentShareSummaryDto> DocumentShares,
+    IReadOnlyList<QuoteDto> Quotes);

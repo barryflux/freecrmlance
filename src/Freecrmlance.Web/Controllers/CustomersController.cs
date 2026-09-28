@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Freecrmlance.Web.Controllers;
 
 [Authorize]
-public sealed class CustomersController(ICustomerService customerService, IContactService contactService, IDocumentService documentService, IDocumentShareService documentShareService) : Controller
+public sealed class CustomersController(ICustomerService customerService, IContactService contactService, IDocumentService documentService, IDocumentShareService documentShareService, IQuoteService quoteService) : Controller
 {
     [HttpGet]
     public async Task<IActionResult> Index(CancellationToken cancellationToken) => View(await customerService.ListAsync(cancellationToken));
@@ -21,7 +21,9 @@ public sealed class CustomersController(ICustomerService customerService, IConta
         var documents = await documentService.ListAsync(id, cancellationToken);
         if (documents is null) return NotFound();
         var documentShares = await documentShareService.ListAsync(id, cancellationToken);
-        return documentShares is null ? NotFound() : View(new CustomerDetailsViewModel(customer, contacts, documents, documentShares));
+        if (documentShares is null) return NotFound();
+        var quotes = await quoteService.ListAsync(id, cancellationToken);
+        return quotes is null ? NotFound() : View(new CustomerDetailsViewModel(customer, contacts, documents, documentShares, quotes));
     }
 
 

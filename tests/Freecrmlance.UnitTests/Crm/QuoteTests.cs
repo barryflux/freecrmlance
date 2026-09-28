@@ -51,4 +51,29 @@ public sealed class QuoteTests
         quote.Accept();
         Assert.That(quote.Status, Is.EqualTo(QuoteStatus.Accepted));
     }
+    [Test]
+    public void Draft_can_replace_number_and_lines()
+    {
+        var quote = new Quote(Guid.NewGuid(), Guid.NewGuid(), "Q-001");
+        quote.AddLine("Old", 1, 10);
+
+        quote.UpdateDraft("Q-002", [("Design", 2m, 150m), ("Hosting", 1m, 50m)]);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(quote.Number, Is.EqualTo("Q-002"));
+            Assert.That(quote.Lines.Select(line => line.Description), Is.EqualTo(new[] { "Design", "Hosting" }));
+            Assert.That(quote.Total, Is.EqualTo(350m));
+        });
+    }
+
+    [Test]
+    public void Non_draft_quote_cannot_be_edited()
+    {
+        var quote = new Quote(Guid.NewGuid(), Guid.NewGuid(), "Q-001");
+        quote.MarkSent();
+
+        Assert.Throws<InvalidOperationException>(() => quote.UpdateDraft("Q-002", []));
+    }
+
 }

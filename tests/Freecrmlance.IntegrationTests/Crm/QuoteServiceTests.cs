@@ -49,6 +49,49 @@ public sealed class QuoteServiceTests
         });
     }
 
+    [Test]
+    public async Task UpdateDraft_replaces_lines_and_remains_tenant_scoped()
+    {
+        await using var postgres = new PostgreSqlBuilder().WithImage("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        var options = new DbContextOptionsBuilder<FreecrmlanceDbContext>().UseNpgsql(postgres.GetConnectionString()).Options;
+        await using var db = new FreecrmlanceDbContext(options);
+        await db.Database.MigrateAsync();
+
+        var workspaceA = Guid.NewGuid();
+        var workspaceB = Guid.NewGuid();
+        var customer = new Customer(workspaceA, "Acme");
+        db.Customers.Add(customer);
+        await db.SaveChangesAsync();
+
+        var serviceA = new QuoteService(db, new StubWorkspaceContext(workspaceA));
+        var serviceB = new QuoteService(db, new StubWorkspaceContext(workspaceB));
+        var quoteId = (await serviceA.CreateAsync(new CreateQuoteCommand(
+            customer.Id, "Q-001", [new CreateQuoteLineCommand("Old", 1, 10)])))!.Value;
+
+        // Simulate the next HTTP request: production uses a fresh scoped DbContext.
+        db.ChangeTracker.Clear();
+
+        var crossWorkspace = await serviceB.UpdateDraftAsync(
+            customer.Id, quoteId, new UpdateQuoteCommand("HACK", []));
+        var updated = await serviceA.UpdateDraftAsync(
+            customer.Id, quoteId, new UpdateQuoteCommand(
+                "Q-002",
+                [new CreateQuoteLineCommand("Design", 2, 150), new CreateQuoteLineCommand("Hosting", 1, 50)]));
+
+        db.ChangeTracker.Clear();
+        var quote = await serviceA.GetAsync(customer.Id, quoteId);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(crossWorkspace, Is.False);
+            Assert.That(updated, Is.True);
+            Assert.That(quote!.Number, Is.EqualTo("Q-002"));
+            Assert.That(quote.Lines.Select(line => line.Description), Is.EquivalentTo(new[] { "Design", "Hosting" }));
+            Assert.That(quote.Total, Is.EqualTo(350m));
+        });
+    }
+
     private sealed class StubWorkspaceContext(Guid workspaceId) : IWorkspaceContext
     {
         public Task<Guid?> GetCurrentWorkspaceIdAsync(CancellationToken cancellationToken = default) => Task.FromResult<Guid?>(workspaceId);
