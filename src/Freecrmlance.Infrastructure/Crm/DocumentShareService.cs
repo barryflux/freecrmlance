@@ -41,6 +41,14 @@ public sealed class DocumentShareService(
 
         if (!documentExists) return null;
 
+        var hasActiveShare = await dbContext.DocumentShares.AsNoTracking().AnyAsync(
+            share => share.DocumentId == documentId
+                && share.CustomerId == customerId
+                && share.WorkspaceId == workspaceId
+                && share.RevokedAtUtc == null,
+            cancellationToken);
+        if (hasActiveShare) return null;
+
         var token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32)).ToLowerInvariant();
         var share = new DocumentShare(workspaceId, customerId, documentId, HashToken(token));
         dbContext.DocumentShares.Add(share);

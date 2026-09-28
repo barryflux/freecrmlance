@@ -37,6 +37,7 @@ public sealed class DocumentShareServiceTests
 
         var crossWorkspaceCreate = await serviceB.CreateAsync(customerA.Id, documentId);
         var share = await serviceA.CreateAsync(customerA.Id, documentId);
+        var duplicateShare = await serviceA.CreateAsync(customerA.Id, documentId);
         var persisted = await db.DocumentShares.AsNoTracking().SingleAsync();
         var invalid = await serviceA.DownloadAsync("invalid-token");
         var downloaded = await serviceA.DownloadAsync(share!.Token);
@@ -48,6 +49,7 @@ public sealed class DocumentShareServiceTests
         {
             Assert.That(crossWorkspaceCreate, Is.Null);
             Assert.That(share.Token, Has.Length.EqualTo(64));
+            Assert.That(duplicateShare, Is.Null);
             Assert.That(persisted.TokenHash, Is.Not.EqualTo(share.Token));
             Assert.That(invalid, Is.Null);
             Assert.That(downloaded, Is.Not.Null);
