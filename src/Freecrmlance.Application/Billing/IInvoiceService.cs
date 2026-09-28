@@ -10,8 +10,15 @@ public interface IInvoiceService
     Task<Guid?> CreateFromAcceptedQuoteAsync(CreateInvoiceFromQuoteCommand command, CancellationToken cancellationToken = default);
 }
 
-public sealed record CreateInvoiceCommand(Guid CustomerId, string Number, IReadOnlyList<CreateInvoiceLineCommand>? Lines = null);
+public sealed record CreateInvoiceCommand(Guid CustomerId, string Number, IReadOnlyList<CreateInvoiceLineCommand>? Lines = null,
+    DateTime? ServiceDate = null, DateTime? DueDate = null, string? PurchaseOrderReference = null, string? VatExemptionMention = null,
+    string? PaymentTerms = null, string? EarlyPaymentDiscountTerms = null, string? LatePaymentPenaltyTerms = null, decimal? RecoveryCostIndemnity = null);
 public sealed record CreateInvoiceFromQuoteCommand(Guid CustomerId, Guid QuoteId, string Number);
-public sealed record CreateInvoiceLineCommand(string Description, decimal Quantity, decimal UnitPrice);
-public sealed record InvoiceDto(Guid Id, Guid CustomerId, Guid? SourceQuoteId, string Number, InvoiceStatus Status, DateTime CreatedAtUtc, DateTime UpdatedAtUtc, decimal Total, IReadOnlyList<InvoiceLineDto> Lines);
-public sealed record InvoiceLineDto(Guid Id, string Description, decimal Quantity, decimal UnitPrice, decimal Total);
+public sealed record CreateInvoiceLineCommand(string Description, decimal Quantity, decimal UnitPrice, decimal VatRate = 0m);
+public sealed record InvoiceDto(Guid Id, Guid CustomerId, Guid? SourceQuoteId, string Number, InvoiceStatus Status, DateTime CreatedAtUtc, DateTime UpdatedAtUtc,
+    decimal Total, IReadOnlyList<InvoiceLineDto> Lines, decimal TotalExcludingTax = 0m, decimal TotalVat = 0m, decimal TotalIncludingTax = 0m,
+    DateTime? IssueDate = null, DateTime? ServiceDate = null, DateTime? DueDate = null, string? PurchaseOrderReference = null,
+    string? SellerLegalName = null, string? SellerSiren = null, string? SellerSiret = null, string? SellerVatNumber = null,
+    string? CustomerLegalName = null, string? CustomerSiren = null, string? CustomerSiret = null, string? CustomerVatNumber = null);
+public sealed record InvoiceLineDto(Guid Id, string Description, decimal Quantity, decimal UnitPrice, decimal Total,
+    decimal VatRate = 0m, decimal TotalExcludingTax = 0m, decimal VatAmount = 0m, decimal TotalIncludingTax = 0m);
