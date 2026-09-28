@@ -1,6 +1,7 @@
 using Freecrmlance.Application.Crm;
 using Freecrmlance.Application.Platform;
 using Freecrmlance.Infrastructure.Crm;
+using Freecrmlance.Infrastructure.Documents;
 using Freecrmlance.Infrastructure.Persistence;
 using Freecrmlance.Infrastructure.Platform;
 using Microsoft.AspNetCore.Identity;
@@ -24,6 +25,8 @@ public static class DependencyInjection
         services.AddScoped<IDocumentService, DocumentService>();
         services.AddScoped<IDocumentShareService, DocumentShareService>();
         services.AddScoped<IQuoteService, QuoteService>();
+        services.AddScoped<IQuotePdfService, QuotePdfService>();
+        services.AddSingleton<IPdfGenerator, MigraDocPdfGenerator>();
         services.AddSingleton<IFileStorage, LocalFileStorage>();
 
         services.AddIdentity<IdentityUser, IdentityRole>()
