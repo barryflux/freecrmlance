@@ -15,7 +15,7 @@
             <div class="mb-3">
                 <label asp-for="DraftReference" class="form-label"></label>
                 <input asp-for="DraftReference" class="form-control" autofocus />
-                <span asp-validation-for="Number" class="text-danger"></span>
+                <span asp-validation-for="DraftReference" class="text-danger"></span>
             </div>
             <div class="mb-4 text-body-secondary small">@quote.Lines.Count lines · Total @quote.Total.ToString("0.00")</div>
             <div class="d-flex justify-content-end gap-2">
