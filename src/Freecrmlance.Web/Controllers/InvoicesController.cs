@@ -1,0 +1,75 @@
+using Freecrmlance.Application.Billing;
+using Freecrmlance.Application.Crm;
+using Freecrmlance.Domain.Crm;
+using Freecrmlance.Web.Models.Invoices;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Freecrmlance.Web.Controllers;
+
+[Authorize]
+public sealed class InvoicesController(IInvoiceService invoiceService, ICustomerService customerService, IQuoteService quoteService) : Controller
+{
+    [HttpGet("Customers/{customerId:guid}/Invoices/Create")]
+    public async Task<IActionResult> Create(Guid customerId, CancellationToken cancellationToken)
+        => await customerService.GetAsync(customerId, cancellationToken) is null
+            ? NotFound()
+            : View(new InvoiceFormViewModel());
+
+    [HttpPost("Customers/{customerId:guid}/Invoices/Create")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(Guid customerId, InvoiceFormViewModel model, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return View(model);
+        var id = await invoiceService.CreateAsync(
+            new CreateInvoiceCommand(customerId, model.Number,
+                model.Lines.Select(line => new CreateInvoiceLineCommand(line.Description, line.Quantity, line.UnitPrice)).ToArray()),
+            cancellationToken);
+        return id is null ? NotFound() : RedirectToAction(nameof(Details), new { customerId, invoiceId = id });
+    }
+
+    [HttpGet("Customers/{customerId:guid}/Invoices/{invoiceId:guid}")]
+    public async Task<IActionResult> Details(Guid customerId, Guid invoiceId, CancellationToken cancellationToken)
+    {
+        var invoice = await invoiceService.GetAsync(customerId, invoiceId, cancellationToken);
+        return invoice is null ? NotFound() : View(invoice);
+    }
+
+    [HttpGet("Customers/{customerId:guid}/Quotes/{quoteId:guid}/Invoice/Create")]
+    public async Task<IActionResult> CreateFromQuote(Guid customerId, Guid quoteId, CancellationToken cancellationToken)
+    {
+        var quote = await quoteService.GetAsync(customerId, quoteId, cancellationToken);
+        if (quote is null) return NotFound();
+        if (quote.Status != QuoteStatus.Accepted) return RedirectToAction("Details", "Quotes", new { customerId, quoteId });
+
+        var invoices = await invoiceService.ListAsync(customerId, cancellationToken);
+        if (invoices is null) return NotFound();
+        var existing = invoices.SingleOrDefault(invoice => invoice.SourceQuoteId == quoteId);
+        if (existing is not null) return RedirectToAction(nameof(Details), new { customerId, invoiceId = existing.Id });
+
+        ViewBag.Quote = quote;
+        return View(new CreateInvoiceFromQuoteViewModel());
+    }
+
+    [HttpPost("Customers/{customerId:guid}/Quotes/{quoteId:guid}/Invoice/Create")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateFromQuote(Guid customerId, Guid quoteId, CreateInvoiceFromQuoteViewModel model, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            var quote = await quoteService.GetAsync(customerId, quoteId, cancellationToken);
+            if (quote is null) return NotFound();
+            ViewBag.Quote = quote;
+            return View(model);
+        }
+
+        var id = await invoiceService.CreateFromAcceptedQuoteAsync(new(customerId, quoteId, model.Number), cancellationToken);
+        if (id is not null) return RedirectToAction(nameof(Details), new { customerId, invoiceId = id });
+
+        var invoices = await invoiceService.ListAsync(customerId, cancellationToken);
+        var existing = invoices?.SingleOrDefault(invoice => invoice.SourceQuoteId == quoteId);
+        return existing is not null
+            ? RedirectToAction(nameof(Details), new { customerId, invoiceId = existing.Id })
+            : NotFound();
+    }
+}
