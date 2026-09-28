@@ -5,13 +5,13 @@ public sealed class Invoice
     private readonly List<InvoiceLine> lines = [];
     private Invoice() { }
 
-    public Invoice(Guid workspaceId, Guid customerId, string number, Guid? sourceQuoteId = null)
+    public Invoice(Guid workspaceId, Guid customerId, string draftReference, Guid? sourceQuoteId = null)
     {
         if (workspaceId == Guid.Empty) throw new ArgumentException("Workspace is required.", nameof(workspaceId));
         if (customerId == Guid.Empty) throw new ArgumentException("Customer is required.", nameof(customerId));
-        if (string.IsNullOrWhiteSpace(number)) throw new ArgumentException("Invoice number is required.", nameof(number));
+        if (string.IsNullOrWhiteSpace(draftReference)) throw new ArgumentException("Draft reference is required.", nameof(draftReference));
         if (sourceQuoteId == Guid.Empty) throw new ArgumentException("Source quote cannot be empty.", nameof(sourceQuoteId));
-        Id = Guid.NewGuid(); WorkspaceId = workspaceId; CustomerId = customerId; Number = number.Trim(); SourceQuoteId = sourceQuoteId;
+        Id = Guid.NewGuid(); WorkspaceId = workspaceId; CustomerId = customerId; DraftReference = draftReference.Trim(); SourceQuoteId = sourceQuoteId;
         Status = InvoiceStatus.Draft; CreatedAtUtc = DateTime.UtcNow; UpdatedAtUtc = CreatedAtUtc;
     }
 
@@ -19,7 +19,8 @@ public sealed class Invoice
     public Guid WorkspaceId { get; private set; }
     public Guid CustomerId { get; private set; }
     public Guid? SourceQuoteId { get; private set; }
-    public string Number { get; private set; } = string.Empty;
+    public string DraftReference { get; private set; } = string.Empty;
+    public string? Number { get; private set; }
     public InvoiceStatus Status { get; private set; }
     public DateTime? IssueDate { get; private set; }
     public DateTime? ServiceDate { get; private set; }
