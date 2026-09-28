@@ -17,6 +17,6 @@ The generated quote PDF is created on demand and is not persisted in document st
 - Domain and Application remain independent from PDFsharp/MigraDoc.
 - Infrastructure owns the concrete PDF dependency.
 - PDF rendering is suitable for Windows and Linux deployments.
-- The renderer explicitly configures PDFsharp's `FailsafeFontResolver` and uses its Segoe WP fallback so Core rendering does not depend on Windows fonts.
-- This is intentionally sufficient for the initial quote template; custom branding/fonts can later replace the fallback resolver with packaged font assets.
+- During the current Windows development phase, PDFsharp's supported `UseWindowsFontsUnderWindows` switch resolves Arial from the Windows font directory.
+- Before Linux/container deployment, replace this development resolver with an application-owned packaged font and custom `IFontResolver`. The renderer fails explicitly on non-Windows hosts until that production step is completed.
 - Branding, templates, PDF archival and public sharing remain separate concerns.
