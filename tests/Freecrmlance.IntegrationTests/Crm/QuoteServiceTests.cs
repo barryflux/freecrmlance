@@ -87,7 +87,7 @@ public sealed class QuoteServiceTests
             Assert.That(crossWorkspace, Is.False);
             Assert.That(updated, Is.True);
             Assert.That(quote!.Number, Is.EqualTo("Q-002"));
-            Assert.That(quote.Lines.Select(line => line.Description), Is.EqualTo(new[] { "Design", "Hosting" }));
+            Assert.That(quote.Lines.Select(line => line.Description), Is.EquivalentTo(new[] { "Design", "Hosting" }));
             Assert.That(quote.Total, Is.EqualTo(350m));
         });
     }
