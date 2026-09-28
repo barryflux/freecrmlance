@@ -81,19 +81,6 @@ public sealed class InvoiceService(FreecrmlanceDbContext dbContext, IWorkspaceCo
         if (invoice.Status != InvoiceStatus.Draft) return IssueInvoiceResult.InvalidStatus;
 
         var issuedAtUtc = DateTime.UtcNow;
-
-        try
-        {
-            // Validate before consuming a sequence number. The definitive number is assigned below
-            // after PostgreSQL atomically allocates it.
-            invoice.Issue("PENDING", issuedAtUtc);
-        }
-        catch (InvalidOperationException)
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            return IssueInvoiceResult.Incomplete;
-        }
-
         var next = await dbContext.Database.SqlQueryRaw<int>(
                 """
                 INSERT INTO billing."InvoiceNumberSequences" ("WorkspaceId", "Year", "LastNumber")
@@ -105,7 +92,18 @@ public sealed class InvoiceService(FreecrmlanceDbContext dbContext, IWorkspaceCo
                 workspaceId, issuedAtUtc.Year)
             .SingleAsync(cancellationToken);
 
-        invoice.AssignDefinitiveNumber($"{issuedAtUtc.Year}-{next:D4}");
+        try
+        {
+            invoice.Issue($"{issuedAtUtc.Year}-{next:D4}", issuedAtUtc);
+        }
+        catch (InvalidOperationException)
+        {
+            // The sequence increment participates in this transaction, so an invalid invoice
+            // does not consume a definitive accounting number.
+            await transaction.RollbackAsync(cancellationToken);
+            return IssueInvoiceResult.Incomplete;
+        }
+
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return IssueInvoiceResult.Success;
