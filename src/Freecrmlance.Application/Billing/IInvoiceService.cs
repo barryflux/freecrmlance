@@ -8,6 +8,15 @@ public interface IInvoiceService
     Task<InvoiceDto?> GetAsync(Guid customerId, Guid invoiceId, CancellationToken cancellationToken = default);
     Task<Guid?> CreateAsync(CreateInvoiceCommand command, CancellationToken cancellationToken = default);
     Task<Guid?> CreateFromAcceptedQuoteAsync(CreateInvoiceFromQuoteCommand command, CancellationToken cancellationToken = default);
+    Task<IssueInvoiceResult> IssueAsync(Guid customerId, Guid invoiceId, CancellationToken cancellationToken = default);
+}
+
+public enum IssueInvoiceResult
+{
+    Success,
+    NotFound,
+    InvalidStatus,
+    Incomplete
 }
 
 public sealed record CreateInvoiceCommand(Guid CustomerId, string Number, IReadOnlyList<CreateInvoiceLineCommand>? Lines = null,

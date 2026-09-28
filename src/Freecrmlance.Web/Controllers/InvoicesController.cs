@@ -35,6 +35,21 @@ public sealed class InvoicesController(IInvoiceService invoiceService, ICustomer
         return invoice is null ? NotFound() : View(invoice);
     }
 
+    [HttpPost("Customers/{customerId:guid}/Invoices/{invoiceId:guid}/Issue")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Issue(Guid customerId, Guid invoiceId, CancellationToken cancellationToken)
+    {
+        var result = await invoiceService.IssueAsync(customerId, invoiceId, cancellationToken);
+        return result switch
+        {
+            IssueInvoiceResult.Success => RedirectToAction(nameof(Details), new { customerId, invoiceId }),
+            IssueInvoiceResult.NotFound => NotFound(),
+            IssueInvoiceResult.InvalidStatus => Conflict(),
+            IssueInvoiceResult.Incomplete => RedirectToAction(nameof(Details), new { customerId, invoiceId, issuanceError = true }),
+            _ => throw new InvalidOperationException("Unknown invoice issuance result.")
+        };
+    }
+
     [HttpGet("Customers/{customerId:guid}/Quotes/{quoteId:guid}/Invoice/Create")]
     public async Task<IActionResult> CreateFromQuote(Guid customerId, Guid quoteId, CancellationToken cancellationToken)
     {

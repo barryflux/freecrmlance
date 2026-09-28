@@ -7,11 +7,24 @@
         <h1 class="h2 mt-2 mb-1">@Model.Number</h1>
         <span class="badge text-bg-secondary">@Model.Status</span>
     </div>
+    <div class="d-flex gap-2">
+    @if (Model.Status == Freecrmlance.Domain.Billing.InvoiceStatus.Draft)
+    {
+        <form method="post" asp-action="Issue" asp-route-customerId="@customerId" asp-route-invoiceId="@Model.Id">
+            <button class="btn btn-primary" type="submit">Issue invoice</button>
+        </form>
+    }
     @if (Model.SourceQuoteId is not null)
     {
         <a class="btn btn-outline-secondary" asp-controller="Quotes" asp-action="Details" asp-route-customerId="@customerId" asp-route-quoteId="@Model.SourceQuoteId">Source quote</a>
     }
+    </div>
 </div>
+
+@if (Context.Request.Query["issuanceError"] == "true")
+{
+    <div class="alert alert-danger">This invoice is incomplete and cannot be issued yet. Check legal identities, addresses, service date, payment terms and VAT treatment.</div>
+}
 
 <div class="card shadow-sm border-0"><div class="card-body p-4">
     <div class="table-responsive"><table class="table align-middle">
@@ -24,5 +37,9 @@
         </tbody>
         <tfoot><tr><th colspan="4" class="text-end">Total HT</th><th class="text-end">@Model.TotalExcludingTax.ToString("0.00")</th></tr><tr><th colspan="4" class="text-end">VAT</th><th class="text-end">@Model.TotalVat.ToString("0.00")</th></tr><tr><th colspan="4" class="text-end">Total TTC</th><th class="text-end">@Model.TotalIncludingTax.ToString("0.00")</th></tr></tfoot>
     </table></div>
+    @if (Model.IssueDate is not null)
+    {
+        <div class="mb-2"><strong>Issued:</strong> @Model.IssueDate.Value.ToString("yyyy-MM-dd HH:mm") UTC</div>
+    }
     <div class="text-body-secondary small">Created @Model.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm") UTC · Updated @Model.UpdatedAtUtc.ToString("yyyy-MM-dd HH:mm") UTC</div>
 </div></div>

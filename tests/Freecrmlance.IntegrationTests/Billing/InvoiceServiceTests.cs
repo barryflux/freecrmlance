@@ -88,6 +88,71 @@ public sealed class InvoiceServiceTests
         });
     }
 
+
+    [Test]
+    public async Task Complete_invoices_receive_sequential_numbers_per_workspace()
+    {
+        await using var postgres = new PostgreSqlBuilder().WithImage("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        var options = new DbContextOptionsBuilder<FreecrmlanceDbContext>().UseNpgsql(postgres.GetConnectionString()).Options;
+        await using var db = new FreecrmlanceDbContext(options);
+        await db.Database.MigrateAsync();
+
+        var workspace = new Workspace("Seller");
+        workspace.SetLegalIdentity("Seller SAS", "1 rue Seller", "75001", "Paris", "FR");
+        var customer = new Customer(workspace.Id, "Customer");
+        customer.SetBillingIdentity(CustomerType.Business, "2 rue Customer", "69001", "Lyon", "FR", siren: "123456789");
+        db.Workspaces.Add(workspace);
+        db.Customers.Add(customer);
+        await db.SaveChangesAsync();
+
+        var service = new InvoiceService(db, new StubWorkspaceContext(workspace.Id));
+        var command1 = new CreateInvoiceCommand(customer.Id, "DRAFT-A", [new("Work", 1, 100m, 20m)],
+            DateTime.UtcNow.Date, DateTime.UtcNow.Date.AddDays(30), PaymentTerms: "30 days");
+        var command2 = command1 with { Number = "DRAFT-B" };
+        var firstId = (await service.CreateAsync(command1))!.Value;
+        var secondId = (await service.CreateAsync(command2))!.Value;
+
+        Assert.That(await service.IssueAsync(customer.Id, firstId), Is.EqualTo(IssueInvoiceResult.Success));
+        Assert.That(await service.IssueAsync(customer.Id, secondId), Is.EqualTo(IssueInvoiceResult.Success));
+
+        db.ChangeTracker.Clear();
+        var first = await service.GetAsync(customer.Id, firstId);
+        var second = await service.GetAsync(customer.Id, secondId);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(first!.Status, Is.EqualTo(InvoiceStatus.Issued));
+            Assert.That(first.IssueDate, Is.Not.Null);
+            Assert.That(first.Number, Does.Match(@"^\d{4}-0001$"));
+            Assert.That(second!.Number, Does.Match(@"^\d{4}-0002$"));
+        });
+    }
+
+    [Test]
+    public async Task Incomplete_invoice_is_not_issued()
+    {
+        await using var postgres = new PostgreSqlBuilder().WithImage("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        var options = new DbContextOptionsBuilder<FreecrmlanceDbContext>().UseNpgsql(postgres.GetConnectionString()).Options;
+        await using var db = new FreecrmlanceDbContext(options);
+        await db.Database.MigrateAsync();
+
+        var workspace = new Workspace("Seller");
+        var customer = new Customer(workspace.Id, "Customer");
+        db.Workspaces.Add(workspace);
+        db.Customers.Add(customer);
+        await db.SaveChangesAsync();
+
+        var service = new InvoiceService(db, new StubWorkspaceContext(workspace.Id));
+        var invoiceId = (await service.CreateAsync(new CreateInvoiceCommand(customer.Id, "DRAFT-A", [new("Work", 1, 100m, 20m)])))!.Value;
+
+        Assert.That(await service.IssueAsync(customer.Id, invoiceId), Is.EqualTo(IssueInvoiceResult.Incomplete));
+        db.ChangeTracker.Clear();
+        var invoice = await service.GetAsync(customer.Id, invoiceId);
+        Assert.That(invoice!.Status, Is.EqualTo(InvoiceStatus.Draft));
+    }
+
     private sealed class StubWorkspaceContext(Guid workspaceId) : IWorkspaceContext
     {
         public Task<Guid?> GetCurrentWorkspaceIdAsync(CancellationToken cancellationToken = default) => Task.FromResult<Guid?>(workspaceId);

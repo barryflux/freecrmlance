@@ -4,6 +4,7 @@ using Freecrmlance.Domain.Billing;
 using Freecrmlance.Domain.Crm;
 using Freecrmlance.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Freecrmlance.Infrastructure.Billing;
 
@@ -68,6 +69,57 @@ public sealed class InvoiceService(FreecrmlanceDbContext dbContext, IWorkspaceCo
         dbContext.Invoices.Add(invoice);
         await dbContext.SaveChangesAsync(cancellationToken);
         return invoice.Id;
+    }
+
+    public async Task<IssueInvoiceResult> IssueAsync(Guid customerId, Guid invoiceId, CancellationToken cancellationToken = default)
+    {
+        var workspaceId = await workspaceContext.RequireCurrentWorkspaceIdAsync(cancellationToken);
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        var invoice = await dbContext.Invoices.Include(item => item.Lines)
+            .SingleOrDefaultAsync(item => item.Id == invoiceId && item.CustomerId == customerId && item.WorkspaceId == workspaceId, cancellationToken);
+        if (invoice is null) return IssueInvoiceResult.NotFound;
+        if (invoice.Status != InvoiceStatus.Draft) return IssueInvoiceResult.InvalidStatus;
+
+        var issuedAtUtc = DateTime.UtcNow;
+        await using var command = dbContext.Database.GetDbConnection().CreateCommand();
+        command.Transaction = transaction.GetDbTransaction();
+        command.CommandText =
+            """
+            INSERT INTO billing."InvoiceNumberSequences" ("WorkspaceId", "Year", "LastNumber")
+            VALUES (@workspaceId, @year, 1)
+            ON CONFLICT ("WorkspaceId", "Year")
+            DO UPDATE SET "LastNumber" = billing."InvoiceNumberSequences"."LastNumber" + 1
+            RETURNING "LastNumber"
+            """;
+
+        var workspaceParameter = command.CreateParameter();
+        workspaceParameter.ParameterName = "workspaceId";
+        workspaceParameter.Value = workspaceId;
+        command.Parameters.Add(workspaceParameter);
+
+        var yearParameter = command.CreateParameter();
+        yearParameter.ParameterName = "year";
+        yearParameter.Value = issuedAtUtc.Year;
+        command.Parameters.Add(yearParameter);
+
+        var next = Convert.ToInt32(await command.ExecuteScalarAsync(cancellationToken));
+
+        try
+        {
+            invoice.Issue($"{issuedAtUtc.Year}-{next:D4}", issuedAtUtc);
+        }
+        catch (InvalidOperationException)
+        {
+            // The sequence increment participates in this transaction, so an invalid invoice
+            // does not consume a definitive accounting number.
+            await transaction.RollbackAsync(cancellationToken);
+            return IssueInvoiceResult.Incomplete;
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return IssueInvoiceResult.Success;
     }
 
     private Task<bool> CustomerExistsAsync(Guid workspaceId, Guid customerId, CancellationToken cancellationToken)
