@@ -4,6 +4,7 @@ using Freecrmlance.Domain.Billing;
 using Freecrmlance.Domain.Crm;
 using Freecrmlance.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Freecrmlance.Infrastructure.Billing;
 
@@ -81,16 +82,28 @@ public sealed class InvoiceService(FreecrmlanceDbContext dbContext, IWorkspaceCo
         if (invoice.Status != InvoiceStatus.Draft) return IssueInvoiceResult.InvalidStatus;
 
         var issuedAtUtc = DateTime.UtcNow;
-        var next = await dbContext.Database.SqlQueryRaw<int>(
-                """
-                INSERT INTO billing."InvoiceNumberSequences" ("WorkspaceId", "Year", "LastNumber")
-                VALUES ({0}, {1}, 1)
-                ON CONFLICT ("WorkspaceId", "Year")
-                DO UPDATE SET "LastNumber" = billing."InvoiceNumberSequences"."LastNumber" + 1
-                RETURNING "LastNumber" AS "Value"
-                """,
-                workspaceId, issuedAtUtc.Year)
-            .SingleAsync(cancellationToken);
+        await using var command = dbContext.Database.GetDbConnection().CreateCommand();
+        command.Transaction = transaction.GetDbTransaction();
+        command.CommandText =
+            """
+            INSERT INTO billing."InvoiceNumberSequences" ("WorkspaceId", "Year", "LastNumber")
+            VALUES (@workspaceId, @year, 1)
+            ON CONFLICT ("WorkspaceId", "Year")
+            DO UPDATE SET "LastNumber" = billing."InvoiceNumberSequences"."LastNumber" + 1
+            RETURNING "LastNumber"
+            """;
+
+        var workspaceParameter = command.CreateParameter();
+        workspaceParameter.ParameterName = "workspaceId";
+        workspaceParameter.Value = workspaceId;
+        command.Parameters.Add(workspaceParameter);
+
+        var yearParameter = command.CreateParameter();
+        yearParameter.ParameterName = "year";
+        yearParameter.Value = issuedAtUtc.Year;
+        command.Parameters.Add(yearParameter);
+
+        var next = Convert.ToInt32(await command.ExecuteScalarAsync(cancellationToken));
 
         try
         {
