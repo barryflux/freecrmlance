@@ -1,0 +1,26 @@
+@model dynamic
+<fieldset class="mb-4">
+    <legend class="h5 mb-3">Billing identity</legend>
+    <div class="row g-3">
+        <div class="col-md-4"><label class="form-label" for="Type">Customer type</label><select class="form-select" id="Type" name="Type" required><option value="">Choose…</option><option value="Individual" selected="@(Model.Type?.ToString() == "Individual")">Individual</option><option value="Business" selected="@(Model.Type?.ToString() == "Business")">Business</option></select></div>
+        <div class="col-md-4"><label class="form-label" for="Siren">SIREN</label><input class="form-control" id="Siren" name="Siren" value="@Model.Siren" maxlength="9" inputmode="numeric" /><div class="form-text">Required for business customers.</div></div>
+        <div class="col-md-4"><label class="form-label" for="Siret">SIRET</label><input class="form-control" id="Siret" name="Siret" value="@Model.Siret" maxlength="14" inputmode="numeric" /></div>
+        <div class="col-md-6"><label class="form-label" for="VatNumber">EU VAT number</label><input class="form-control" id="VatNumber" name="VatNumber" value="@Model.VatNumber" maxlength="30" /></div>
+    </div>
+    <h3 class="h6 mt-4">Postal address</h3>
+    <div class="row g-3">
+        <div class="col-12"><label class="form-label" for="AddressLine1">Address</label><input class="form-control" id="AddressLine1" name="AddressLine1" value="@Model.AddressLine1" required maxlength="200" /></div>
+        <div class="col-12"><label class="form-label" for="AddressLine2">Address line 2</label><input class="form-control" id="AddressLine2" name="AddressLine2" value="@Model.AddressLine2" maxlength="200" /></div>
+        <div class="col-md-3"><label class="form-label" for="PostalCode">Postal code</label><input class="form-control" id="PostalCode" name="PostalCode" value="@Model.PostalCode" required maxlength="20" /></div>
+        <div class="col-md-6"><label class="form-label" for="City">City</label><input class="form-control" id="City" name="City" value="@Model.City" required maxlength="100" /></div>
+        <div class="col-md-3"><label class="form-label" for="CountryCode">Country</label><input class="form-control" id="CountryCode" name="CountryCode" value="@Model.CountryCode" required maxlength="2" /></div>
+    </div>
+    <h3 class="h6 mt-4">Distinct billing address <span class="text-body-secondary fw-normal">(optional)</span></h3>
+    <div class="row g-3">
+        <div class="col-12"><label class="form-label" for="BillingAddressLine1">Billing address</label><input class="form-control" id="BillingAddressLine1" name="BillingAddressLine1" value="@Model.BillingAddressLine1" maxlength="200" /></div>
+        <div class="col-12"><label class="form-label" for="BillingAddressLine2">Billing address line 2</label><input class="form-control" id="BillingAddressLine2" name="BillingAddressLine2" value="@Model.BillingAddressLine2" maxlength="200" /></div>
+        <div class="col-md-3"><label class="form-label" for="BillingPostalCode">Postal code</label><input class="form-control" id="BillingPostalCode" name="BillingPostalCode" value="@Model.BillingPostalCode" maxlength="20" /></div>
+        <div class="col-md-6"><label class="form-label" for="BillingCity">City</label><input class="form-control" id="BillingCity" name="BillingCity" value="@Model.BillingCity" maxlength="100" /></div>
+        <div class="col-md-3"><label class="form-label" for="BillingCountryCode">Country</label><input class="form-control" id="BillingCountryCode" name="BillingCountryCode" value="@Model.BillingCountryCode" maxlength="2" /></div>
+    </div>
+</fieldset>
