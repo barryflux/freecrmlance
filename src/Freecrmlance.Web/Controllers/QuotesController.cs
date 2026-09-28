@@ -62,6 +62,27 @@ public sealed class QuotesController(IQuoteService quoteService, ICustomerServic
         return updated ? RedirectToAction(nameof(Details), new { customerId, quoteId }) : NotFound();
     }
 
+    [HttpPost("Customers/{customerId:guid}/Quotes/{quoteId:guid}/Send")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Send(Guid customerId, Guid quoteId, CancellationToken cancellationToken)
+        => await quoteService.MarkSentAsync(customerId, quoteId, cancellationToken)
+            ? RedirectToAction(nameof(Details), new { customerId, quoteId })
+            : NotFound();
+
+    [HttpPost("Customers/{customerId:guid}/Quotes/{quoteId:guid}/Accept")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Accept(Guid customerId, Guid quoteId, CancellationToken cancellationToken)
+        => await quoteService.AcceptAsync(customerId, quoteId, cancellationToken)
+            ? RedirectToAction(nameof(Details), new { customerId, quoteId })
+            : NotFound();
+
+    [HttpPost("Customers/{customerId:guid}/Quotes/{quoteId:guid}/Reject")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Reject(Guid customerId, Guid quoteId, CancellationToken cancellationToken)
+        => await quoteService.RejectAsync(customerId, quoteId, cancellationToken)
+            ? RedirectToAction(nameof(Details), new { customerId, quoteId })
+            : NotFound();
+
     private static CreateQuoteLineCommand[] MapLines(QuoteFormViewModel model)
         => model.Lines.Select(line => new CreateQuoteLineCommand(line.Description, line.Quantity, line.UnitPrice)).ToArray();
 }
