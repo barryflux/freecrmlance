@@ -22,7 +22,7 @@ public sealed class InvoicesController(IInvoiceService invoiceService, ICustomer
     {
         if (!ModelState.IsValid) return View(model);
         var id = await invoiceService.CreateAsync(
-            new CreateInvoiceCommand(customerId, model.Number,
+            new CreateInvoiceCommand(customerId, model.DraftReference,
                 model.Lines.Select(line => new CreateInvoiceLineCommand(line.Description, line.Quantity, line.UnitPrice, line.VatRate)).ToArray()),
             cancellationToken);
         return id is null ? NotFound() : RedirectToAction(nameof(Details), new { customerId, invoiceId = id });
@@ -78,7 +78,7 @@ public sealed class InvoicesController(IInvoiceService invoiceService, ICustomer
             return View(model);
         }
 
-        var id = await invoiceService.CreateFromAcceptedQuoteAsync(new(customerId, quoteId, model.Number), cancellationToken);
+        var id = await invoiceService.CreateFromAcceptedQuoteAsync(new(customerId, quoteId, model.DraftReference), cancellationToken);
         if (id is not null) return RedirectToAction(nameof(Details), new { customerId, invoiceId = id });
 
         var invoices = await invoiceService.ListAsync(customerId, cancellationToken);
