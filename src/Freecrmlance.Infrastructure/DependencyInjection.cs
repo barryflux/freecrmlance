@@ -1,5 +1,7 @@
+using Freecrmlance.Application.Billing;
 using Freecrmlance.Application.Crm;
 using Freecrmlance.Application.Platform;
+using Freecrmlance.Infrastructure.Billing;
 using Freecrmlance.Infrastructure.Crm;
 using Freecrmlance.Infrastructure.Documents;
 using Freecrmlance.Infrastructure.Persistence;
@@ -20,6 +22,7 @@ public static class DependencyInjection
 
         services.AddDbContext<FreecrmlanceDbContext>(options => options.UseNpgsql(connectionString));
         services.AddScoped<IWorkspaceContext, WorkspaceContext>();
+        services.AddScoped<IInvoiceService, InvoiceService>();
         services.AddScoped<ICustomerService, CustomerService>();
         services.AddScoped<IContactService, ContactService>();
         services.AddScoped<IDocumentService, DocumentService>();
