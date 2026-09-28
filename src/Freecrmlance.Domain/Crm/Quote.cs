@@ -37,6 +37,21 @@ public sealed class Quote
         UpdatedAtUtc = DateTime.UtcNow;
     }
 
+    public void UpdateDraft(string number, IEnumerable<(string Description, decimal Quantity, decimal UnitPrice)> newLines)
+    {
+        if (Status != QuoteStatus.Draft) throw new InvalidOperationException("Only draft quotes can be edited.");
+        if (string.IsNullOrWhiteSpace(number)) throw new ArgumentException("Quote number is required.", nameof(number));
+
+        var replacementLines = newLines
+            .Select(line => new QuoteLine(Id, line.Description, line.Quantity, line.UnitPrice))
+            .ToList();
+
+        Number = number.Trim();
+        lines.Clear();
+        lines.AddRange(replacementLines);
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
+
     public void MarkSent() => ChangeStatus(QuoteStatus.Sent);
     public void Accept() => ChangeStatus(QuoteStatus.Accepted);
     public void Reject() => ChangeStatus(QuoteStatus.Rejected);
