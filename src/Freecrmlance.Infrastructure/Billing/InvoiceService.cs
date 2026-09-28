@@ -4,6 +4,7 @@ using Freecrmlance.Domain.Billing;
 using Freecrmlance.Domain.Crm;
 using Freecrmlance.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace Freecrmlance.Infrastructure.Billing;
 
@@ -68,6 +69,43 @@ public sealed class InvoiceService(FreecrmlanceDbContext dbContext, IWorkspaceCo
         dbContext.Invoices.Add(invoice);
         await dbContext.SaveChangesAsync(cancellationToken);
         return invoice.Id;
+    }
+
+    public async Task<IssueInvoiceResult> IssueAsync(Guid customerId, Guid invoiceId, CancellationToken cancellationToken = default)
+    {
+        var workspaceId = await workspaceContext.RequireCurrentWorkspaceIdAsync(cancellationToken);
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+
+        var invoice = await dbContext.Invoices.Include(item => item.Lines)
+            .SingleOrDefaultAsync(item => item.Id == invoiceId && item.CustomerId == customerId && item.WorkspaceId == workspaceId, cancellationToken);
+        if (invoice is null) return IssueInvoiceResult.NotFound;
+        if (invoice.Status != InvoiceStatus.Draft) return IssueInvoiceResult.InvalidStatus;
+
+        var issuedAtUtc = DateTime.UtcNow;
+        var sequence = await dbContext.InvoiceNumberSequences
+            .SingleOrDefaultAsync(item => item.WorkspaceId == workspaceId && item.Year == issuedAtUtc.Year, cancellationToken);
+        if (sequence is null)
+        {
+            sequence = new InvoiceNumberSequence(workspaceId, issuedAtUtc.Year);
+            dbContext.InvoiceNumberSequences.Add(sequence);
+        }
+
+        var next = sequence.Next();
+        var number = $"{issuedAtUtc.Year}-{next:D4}";
+
+        try
+        {
+            invoice.Issue(number, issuedAtUtc);
+        }
+        catch (InvalidOperationException)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return IssueInvoiceResult.Incomplete;
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return IssueInvoiceResult.Success;
     }
 
     private Task<bool> CustomerExistsAsync(Guid workspaceId, Guid customerId, CancellationToken cancellationToken)
