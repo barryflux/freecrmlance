@@ -92,6 +92,66 @@ public sealed class QuoteServiceTests
         });
     }
 
+    [Test]
+    public async Task Quote_pdf_orchestration_is_tenant_scoped_and_builds_safe_file_name()
+    {
+        await using var postgres = new PostgreSqlBuilder().WithImage("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        var options = new DbContextOptionsBuilder<FreecrmlanceDbContext>().UseNpgsql(postgres.GetConnectionString()).Options;
+        await using var db = new FreecrmlanceDbContext(options);
+        await db.Database.MigrateAsync();
+
+        var workspaceA = Guid.NewGuid();
+        var workspaceB = Guid.NewGuid();
+        var customer = new Customer(workspaceA, "Acme");
+        db.Customers.Add(customer);
+        await db.SaveChangesAsync();
+
+        var contextA = new StubWorkspaceContext(workspaceA);
+        var contextB = new StubWorkspaceContext(workspaceB);
+        var quoteServiceA = new QuoteService(db, contextA);
+        var quoteId = (await quoteServiceA.CreateAsync(new CreateQuoteCommand(
+            customer.Id,
+            "Q/001",
+            [new CreateQuoteLineCommand("Design", 2, 150m)])))!.Value;
+
+        db.ChangeTracker.Clear();
+
+        var generator = new StubPdfGenerator();
+        var pdfServiceA = new QuotePdfService(
+            new QuoteService(db, contextA),
+            new CustomerService(db, contextA),
+            generator);
+        var pdfServiceB = new QuotePdfService(
+            new QuoteService(db, contextB),
+            new CustomerService(db, contextB),
+            generator);
+
+        var own = await pdfServiceA.GenerateAsync(customer.Id, quoteId);
+        var crossWorkspace = await pdfServiceB.GenerateAsync(customer.Id, quoteId);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(own, Is.Not.Null);
+            Assert.That(own!.Content, Is.EqualTo(new byte[] { 1, 2, 3 }));
+            Assert.That(own.FileName, Is.EqualTo("quote-Q001.pdf"));
+            Assert.That(generator.LastModel!.CustomerName, Is.EqualTo("Acme"));
+            Assert.That(generator.LastModel.Total, Is.EqualTo(300m));
+            Assert.That(crossWorkspace, Is.Null);
+        });
+    }
+
+    private sealed class StubPdfGenerator : IPdfGenerator
+    {
+        public QuotePdfModel? LastModel { get; private set; }
+
+        public byte[] GenerateQuote(QuotePdfModel model)
+        {
+            LastModel = model;
+            return [1, 2, 3];
+        }
+    }
+
     private sealed class StubWorkspaceContext(Guid workspaceId) : IWorkspaceContext
     {
         public Task<Guid?> GetCurrentWorkspaceIdAsync(CancellationToken cancellationToken = default) => Task.FromResult<Guid?>(workspaceId);
