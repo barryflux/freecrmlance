@@ -28,4 +28,28 @@
             </div>
         </div>
     </div>
+
+    @if (Model.Status == "Sent")
+    {
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-body p-4">
+                <h2 class="h5">Respond to this quote</h2>
+                <p class="text-body-secondary">Your response is final for this quote.</p>
+                <div class="d-flex gap-2">
+                    <form method="post" asp-controller="SharedQuotes" asp-action="Accept" asp-route-token="@Context.Request.RouteValues["token"]">
+                        <button type="submit" class="btn btn-success">Accept quote</button>
+                    </form>
+                    <form method="post" asp-controller="SharedQuotes" asp-action="Reject" asp-route-token="@Context.Request.RouteValues["token"]">
+                        <button type="submit" class="btn btn-outline-danger">Reject quote</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+    else if (Model.Status is "Accepted" or "Rejected")
+    {
+        <div class="alert alert-secondary mt-4 mb-0">
+            This quote has been @Model.Status.ToLowerInvariant().
+        </div>
+    }
 </div>
