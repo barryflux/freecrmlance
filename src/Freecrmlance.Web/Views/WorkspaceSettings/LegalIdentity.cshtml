@@ -1,0 +1,34 @@
+@model Freecrmlance.Web.Models.WorkspaceSettings.WorkspaceLegalIdentityViewModel
+@{ ViewData["Title"] = "Legal identity"; }
+
+<div class="page-header">
+    <h1 class="h2 mb-1">Seller legal identity</h1>
+    <p class="text-body-secondary mb-0">Information for @Model.WorkspaceName that will later appear on quotes and invoices.</p>
+</div>
+@if (TempData["Success"] is string success) { <div class="alert alert-success">@success</div> }
+<div class="card shadow-sm border-0"><div class="card-body p-4">
+<form method="post">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+    <div class="row g-3">
+        <div class="col-md-8"><label asp-for="LegalName" class="form-label"></label><input asp-for="LegalName" class="form-control" /><span asp-validation-for="LegalName"></span></div>
+        <div class="col-md-4"><label asp-for="LegalForm" class="form-label"></label><input asp-for="LegalForm" class="form-control" /><span asp-validation-for="LegalForm"></span></div>
+        <div class="col-md-4"><label asp-for="Siren" class="form-label"></label><input asp-for="Siren" class="form-control" inputmode="numeric" /><span asp-validation-for="Siren"></span></div>
+        <div class="col-md-4"><label asp-for="Siret" class="form-label"></label><input asp-for="Siret" class="form-control" inputmode="numeric" /><span asp-validation-for="Siret"></span></div>
+        <div class="col-md-4"><label asp-for="VatNumber" class="form-label">EU VAT number</label><input asp-for="VatNumber" class="form-control" /><span asp-validation-for="VatNumber"></span></div>
+    </div>
+    <h2 class="h5 mt-4">Registered address</h2>
+    <div class="row g-3">
+        <div class="col-12"><label asp-for="AddressLine1" class="form-label"></label><input asp-for="AddressLine1" class="form-control" /><span asp-validation-for="AddressLine1"></span></div>
+        <div class="col-12"><label asp-for="AddressLine2" class="form-label"></label><input asp-for="AddressLine2" class="form-control" /></div>
+        <div class="col-md-3"><label asp-for="PostalCode" class="form-label"></label><input asp-for="PostalCode" class="form-control" /><span asp-validation-for="PostalCode"></span></div>
+        <div class="col-md-6"><label asp-for="City" class="form-label"></label><input asp-for="City" class="form-control" /><span asp-validation-for="City"></span></div>
+        <div class="col-md-3"><label asp-for="CountryCode" class="form-label"></label><input asp-for="CountryCode" class="form-control" /><span asp-validation-for="CountryCode"></span></div>
+    </div>
+    <h2 class="h5 mt-4">Document contact</h2>
+    <div class="row g-3 mb-4">
+        <div class="col-md-6"><label asp-for="ContactEmail" class="form-label"></label><input asp-for="ContactEmail" class="form-control" /><span asp-validation-for="ContactEmail"></span></div>
+        <div class="col-md-6"><label asp-for="ContactPhone" class="form-label"></label><input asp-for="ContactPhone" class="form-control" /></div>
+    </div>
+    <button class="btn btn-primary" type="submit">Save legal identity</button>
+</form>
+</div></div>
