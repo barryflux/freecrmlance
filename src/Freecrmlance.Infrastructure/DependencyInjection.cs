@@ -25,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<IDocumentService, DocumentService>();
         services.AddScoped<IDocumentShareService, DocumentShareService>();
         services.AddScoped<IQuoteService, QuoteService>();
+        services.AddScoped<IQuoteShareService, QuoteShareService>();
         services.AddScoped<IQuotePdfService, QuotePdfService>();
         services.AddSingleton<IPdfGenerator, MigraDocPdfGenerator>();
         services.AddSingleton<IFileStorage, LocalFileStorage>();
