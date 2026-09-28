@@ -1,3 +1,4 @@
+using Freecrmlance.Domain.Billing;
 using Freecrmlance.Domain.Crm;
 using Freecrmlance.Domain.Platform;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -7,6 +8,8 @@ namespace Freecrmlance.Infrastructure.Persistence;
 
 public sealed class FreecrmlanceDbContext(DbContextOptions<FreecrmlanceDbContext> options) : IdentityDbContext(options)
 {
+    public DbSet<Invoice> Invoices => Set<Invoice>();
+    public DbSet<InvoiceLine> InvoiceLines => Set<InvoiceLine>();
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<Contact> Contacts => Set<Contact>();
     public DbSet<Document> Documents => Set<Document>();
