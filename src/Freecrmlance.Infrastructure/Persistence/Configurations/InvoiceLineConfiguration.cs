@@ -13,6 +13,10 @@ public sealed class InvoiceLineConfiguration : IEntityTypeConfiguration<InvoiceL
         builder.Property(line => line.Description).HasMaxLength(500).IsRequired();
         builder.Property(line => line.Quantity).HasPrecision(18, 4).IsRequired();
         builder.Property(line => line.UnitPrice).HasPrecision(18, 2).IsRequired();
+        builder.Property(line => line.VatRate).HasPrecision(5, 2).IsRequired();
         builder.Ignore(line => line.Total);
+        builder.Ignore(line => line.TotalExcludingTax);
+        builder.Ignore(line => line.VatAmount);
+        builder.Ignore(line => line.TotalIncludingTax);
     }
 }
