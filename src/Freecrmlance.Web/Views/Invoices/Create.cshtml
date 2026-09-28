@@ -1,0 +1,54 @@
+@model Freecrmlance.Web.Models.Invoices.InvoiceFormViewModel
+@{ ViewData["Title"] = "Create invoice"; var customerId = ViewContext.RouteData.Values["customerId"]; }
+
+<div class="page-header">
+    <a class="text-decoration-none small" asp-controller="Customers" asp-action="Details" asp-route-id="@customerId">← Customer</a>
+    <h1 class="h2 mt-2">Create invoice</h1>
+</div>
+
+<form method="post" class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="mb-4">
+            <label asp-for="Number" class="form-label"></label>
+            <input asp-for="Number" class="form-control" />
+            <span asp-validation-for="Number" class="text-danger"></span>
+        </div>
+        <h2 class="h5">Lines</h2>
+        <div id="invoice-lines">
+            @for (var i = 0; i < Model.Lines.Count; i++)
+            {
+                <div class="row g-2 mb-2 invoice-line">
+                    <div class="col-md-6"><input asp-for="Lines[i].Description" class="form-control" placeholder="Description" /></div>
+                    <div class="col-md-2"><input asp-for="Lines[i].Quantity" class="form-control" placeholder="Quantity" /></div>
+                    <div class="col-md-3"><input asp-for="Lines[i].UnitPrice" class="form-control" placeholder="Unit price" /></div>
+                    <div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-line">×</button></div>
+                </div>
+            }
+        </div>
+        <button type="button" id="add-line" class="btn btn-outline-secondary btn-sm">Add line</button>
+    </div>
+    <div class="card-footer bg-transparent p-4 d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" asp-controller="Customers" asp-action="Details" asp-route-id="@customerId">Cancel</a>
+        <button class="btn btn-primary" type="submit">Create draft invoice</button>
+    </div>
+</form>
+
+@section Scripts {
+<script>
+(() => {
+    const container = document.getElementById("invoice-lines");
+    document.getElementById("add-line").addEventListener("click", () => {
+        const index = container.querySelectorAll(".invoice-line").length;
+        const row = document.createElement("div");
+        row.className = "row g-2 mb-2 invoice-line";
+        row.innerHTML = `<div class="col-md-6"><input name="Lines[${index}].Description" class="form-control" placeholder="Description" /></div><div class="col-md-2"><input name="Lines[${index}].Quantity" value="1" class="form-control" placeholder="Quantity" /></div><div class="col-md-3"><input name="Lines[${index}].UnitPrice" value="0" class="form-control" placeholder="Unit price" /></div><div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-line">×</button></div>`;
+        container.appendChild(row);
+    });
+    container.addEventListener("click", event => {
+        if (event.target.classList.contains("remove-line") && container.querySelectorAll(".invoice-line").length > 1)
+            event.target.closest(".invoice-line").remove();
+    });
+})();
+</script>
+}
