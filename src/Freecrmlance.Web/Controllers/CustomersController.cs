@@ -154,7 +154,15 @@ public sealed class CustomersController(ICustomerService customerService, IConta
     {
         var customer = await customerService.GetAsync(id, cancellationToken);
         if (customer is null) return NotFound();
-        return View(new EditCustomerViewModel { Name = customer.Name, Email = customer.Email, Phone = customer.Phone });
+        return View(new EditCustomerViewModel
+        {
+            Name = customer.Name, Email = customer.Email, Phone = customer.Phone, Type = customer.Type,
+            Siren = customer.Siren, Siret = customer.Siret, VatNumber = customer.VatNumber,
+            AddressLine1 = customer.AddressLine1 ?? string.Empty, AddressLine2 = customer.AddressLine2,
+            PostalCode = customer.PostalCode ?? string.Empty, City = customer.City ?? string.Empty, CountryCode = customer.CountryCode ?? "FR",
+            BillingAddressLine1 = customer.BillingAddressLine1, BillingAddressLine2 = customer.BillingAddressLine2,
+            BillingPostalCode = customer.BillingPostalCode, BillingCity = customer.BillingCity, BillingCountryCode = customer.BillingCountryCode
+        });
     }
 
     [HttpPost("Customers/{id:guid}/Edit")]
@@ -162,7 +170,9 @@ public sealed class CustomersController(ICustomerService customerService, IConta
     public async Task<IActionResult> Edit(Guid id, EditCustomerViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return View(model);
-        var updated = await customerService.UpdateAsync(id, new UpdateCustomerCommand(model.Name, model.Email, model.Phone), cancellationToken);
+        var updated = await customerService.UpdateAsync(id, new UpdateCustomerCommand(model.Name, model.Email, model.Phone, model.Type, model.Siren, model.Siret, model.VatNumber,
+                model.AddressLine1, model.AddressLine2, model.PostalCode, model.City, model.CountryCode,
+                model.BillingAddressLine1, model.BillingAddressLine2, model.BillingPostalCode, model.BillingCity, model.BillingCountryCode), cancellationToken);
         return updated ? RedirectToAction(nameof(Details), new { id }) : NotFound();
     }
 
@@ -179,7 +189,9 @@ public sealed class CustomersController(ICustomerService customerService, IConta
             .ToArray();
 
         var customerId = await customerService.CreateAsync(
-            new CreateCustomerCommand(model.Name, model.Email, model.Phone, contacts),
+            new CreateCustomerCommand(model.Name, model.Email, model.Phone, contacts, model.Type, model.Siren, model.Siret, model.VatNumber,
+                model.AddressLine1, model.AddressLine2, model.PostalCode, model.City, model.CountryCode,
+                model.BillingAddressLine1, model.BillingAddressLine2, model.BillingPostalCode, model.BillingCity, model.BillingCountryCode),
             cancellationToken);
 
         return RedirectToAction(nameof(Details), new { id = customerId });
