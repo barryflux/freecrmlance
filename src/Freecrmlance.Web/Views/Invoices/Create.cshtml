@@ -6,7 +6,7 @@
     <h1 class="h2 mt-2">Créer une facture</h1>
 </div>
 
-<form method="post" class="card shadow-sm border-0">
+<form method="post" class="invoice-form-card">
     <div class="card-body p-4">
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <div class="mb-4">
@@ -18,12 +18,12 @@
         <div id="invoice-lines">
             @for (var i = 0; i < Model.Lines.Count; i++)
             {
-                <div class="row g-2 mb-2 invoice-line">
+                <div class="invoice-line">
                     <div class="col-md-5"><input asp-for="Lines[i].Description" class="form-control" placeholder="Description" /></div>
                     <div class="col-md-2"><input asp-for="Lines[i].Quantity" class="form-control" placeholder="Quantité" /></div>
                     <div class="col-md-2"><input asp-for="Lines[i].UnitPrice" class="form-control" placeholder="Prix unitaire HT" /></div>
                     <div class="col-md-2"><input asp-for="Lines[i].VatRate" class="form-control" placeholder="TVA %" /></div>
-                    <div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-line">×</button></div>
+                    <div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-line invoice-line-remove">×</button></div>
                 </div>
             }
         </div>
@@ -42,8 +42,8 @@
     document.getElementById("add-line").addEventListener("click", () => {
         const index = container.querySelectorAll(".invoice-line").length;
         const row = document.createElement("div");
-        row.className = "row g-2 mb-2 invoice-line";
-        row.innerHTML = `<div class="col-md-5"><input name="Lines[${index}].Description" class="form-control" placeholder="Description" /></div><div class="col-md-2"><input name="Lines[${index}].Quantity" value="1" class="form-control" placeholder="Quantité" /></div><div class="col-md-2"><input name="Lines[${index}].UnitPrice" value="0" class="form-control" placeholder="Prix unitaire HT" /></div><div class="col-md-2"><input name="Lines[${index}].VatRate" value="20" class="form-control" placeholder="TVA %" /></div><div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-line">×</button></div>`;
+        row.className = "invoice-line";
+        row.innerHTML = `<div class="col-md-5"><input name="Lines[${index}].Description" class="form-control" placeholder="Description" /></div><div class="col-md-2"><input name="Lines[${index}].Quantity" value="1" class="form-control" placeholder="Quantité" /></div><div class="col-md-2"><input name="Lines[${index}].UnitPrice" value="0" class="form-control" placeholder="Prix unitaire HT" /></div><div class="col-md-2"><input name="Lines[${index}].VatRate" value="20" class="form-control" placeholder="TVA %" /></div><div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-line invoice-line-remove">×</button></div>`;
         container.appendChild(row);
     });
     container.addEventListener("click", event => {
