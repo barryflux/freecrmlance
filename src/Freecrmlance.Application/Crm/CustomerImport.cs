@@ -76,6 +76,8 @@ public sealed class CustomerImportService(ICustomerService customerService)
         ValidateMappings(mappings);
         var existing = await customerService.ListAsync(cancellationToken);
         var previews = new List<CustomerImportRowPreview>();
+        var seenSirets = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var seenEmails = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         for (var index = 0; index < file.Rows.Count; index++)
         {
@@ -83,8 +85,8 @@ public sealed class CustomerImportService(ICustomerService customerService)
             var errors = Validate(values);
             var siret = Value(values, CustomerImportField.Siret);
             var email = Value(values, CustomerImportField.Email);
-            var duplicate = !string.IsNullOrWhiteSpace(siret) && existing.Any(x => string.Equals(x.Siret, siret, StringComparison.OrdinalIgnoreCase))
-                || !string.IsNullOrWhiteSpace(email) && existing.Any(x => string.Equals(x.Email, email, StringComparison.OrdinalIgnoreCase));
+            var duplicate = !string.IsNullOrWhiteSpace(siret) && (existing.Any(x => string.Equals(x.Siret, siret, StringComparison.OrdinalIgnoreCase)) || !seenSirets.Add(siret))
+                || !string.IsNullOrWhiteSpace(email) && (existing.Any(x => string.Equals(x.Email, email, StringComparison.OrdinalIgnoreCase)) || !seenEmails.Add(email));
             previews.Add(new CustomerImportRowPreview(index + 2, Value(values, CustomerImportField.Name) ?? string.Empty, email, siret, duplicate, errors));
         }
 
