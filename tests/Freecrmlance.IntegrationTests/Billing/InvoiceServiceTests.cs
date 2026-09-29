@@ -195,6 +195,40 @@ public sealed class InvoiceServiceTests
     }
 
     [Test]
+    public async Task Draft_update_is_tenant_scoped()
+    {
+        await using var postgres = new PostgreSqlBuilder().WithImage("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        var options = new DbContextOptionsBuilder<FreecrmlanceDbContext>().UseNpgsql(postgres.GetConnectionString()).Options;
+        await using var db = new FreecrmlanceDbContext(options);
+        await db.Database.MigrateAsync();
+
+        var workspaceA = new Workspace("Workspace A");
+        var workspaceB = new Workspace("Workspace B");
+        var customer = new Customer(workspaceA.Id, "Customer");
+        db.Workspaces.AddRange(workspaceA, workspaceB);
+        db.Customers.Add(customer);
+        await db.SaveChangesAsync();
+
+        var serviceA = new InvoiceService(db, new StubWorkspaceContext(workspaceA.Id));
+        var serviceB = new InvoiceService(db, new StubWorkspaceContext(workspaceB.Id));
+        var id = (await serviceA.CreateAsync(new CreateInvoiceCommand(customer.Id, "DRAFT-A", [new("Work", 1, 100m, 20m)])))!.Value;
+
+        db.ChangeTracker.Clear();
+        var result = await serviceB.UpdateAsync(new UpdateInvoiceCommand(customer.Id, id, "HIJACKED", [new("Changed", 1, 1m, 20m)]));
+
+        db.ChangeTracker.Clear();
+        var invoice = await serviceA.GetAsync(customer.Id, id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result, Is.EqualTo(UpdateInvoiceResult.NotFound));
+            Assert.That(invoice!.DraftReference, Is.EqualTo("DRAFT-A"));
+            Assert.That(invoice.Lines.Single().Description, Is.EqualTo("Work"));
+        });
+    }
+
+    [Test]
     public async Task Issued_invoice_cannot_be_edited()
     {
         await using var postgres = new PostgreSqlBuilder().WithImage("postgres:17-alpine").Build();
