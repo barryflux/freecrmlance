@@ -25,6 +25,8 @@ public static class DependencyInjection
         services.AddScoped<IWorkspaceSettingsService, WorkspaceSettingsService>();
         services.AddScoped<IInvoiceService, InvoiceService>();
         services.AddScoped<ICustomerService, CustomerService>();
+        services.AddScoped<ICustomerImportFileReader, CustomerImportFileReader>();
+        services.AddScoped<CustomerImportService>();
         services.AddScoped<IContactService, ContactService>();
         services.AddScoped<IDocumentService, DocumentService>();
         services.AddScoped<IDocumentShareService, DocumentShareService>();
