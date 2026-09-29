@@ -1,5 +1,5 @@
 @model IReadOnlyList<Freecrmlance.Application.Crm.CustomerDto>
-@{ VoirData["Title"] = "Clients"; }
+@{ ViewData["Title"] = "Clients"; }
 
 <div class="page-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
     <div>
@@ -60,7 +60,7 @@ else
                     <tr data-customer-row>
                         <td data-value="name"><a class="fw-semibold text-decoration-none" asp-action="Details" asp-route-id="@customer.Id">@customer.Name</a></td>
                         <td data-column="email" data-value="email">@(customer.Email ?? "—")</td>
-                        <td data-column="phone" data-value="phone">@(customer.Téléphone ?? "—")</td>
+                        <td data-column="phone" data-value="phone">@(customer.Phone ?? "—")</td>
                         <td class="text-end text-nowrap">
                             <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@customer.Id">Voir</a>
                             <a class="btn btn-sm btn-outline-primary" asp-action="Modifier" asp-route-id="@customer.Id">Modifier</a>
