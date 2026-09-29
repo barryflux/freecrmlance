@@ -1,15 +1,21 @@
 @model Freecrmlance.Web.Models.Account.RegisterViewModel
 @{ ViewData["Title"] = "Créer un compte"; }
-<div class="auth-card">
-    <div class="text-center mb-4"><h1 class="h2">Créez votre compte</h1><p class="text-body-secondary">Centralisez simplement toute votre relation client.</p></div>
-    <div class="card shadow-sm border-0"><div class="card-body p-4">
+<div class="auth-layout">
+    <section class="auth-story">
+        <span class="eyebrow">Freecrmlance</span>
+        <h1>Moins d’administratif.<br />Plus de temps pour vos clients.</h1>
+        <p>Construisez votre espace de travail et centralisez toute votre relation client, du premier contact à la facture.</p>
+        <div class="auth-promise"><span>✓</span> Simple, clair et conçu pour les indépendants.</div>
+    </section>
+    <section class="auth-panel">
+        <div class="mb-4"><span class="eyebrow">Bienvenue</span><h2>Créez votre espace</h2><p>Quelques secondes suffisent pour démarrer.</p></div>
         <form asp-action="Register" method="post">
             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-            <div class="mb-3"><label asp-for="Email" class="form-label"></label><input asp-for="Email" class="form-control" /><span asp-validation-for="Email"></span></div>
+            <div class="mb-3"><label asp-for="Email" class="form-label"></label><input asp-for="Email" class="form-control" placeholder="vous@exemple.fr" /><span asp-validation-for="Email"></span></div>
             <div class="mb-3"><label asp-for="Password" class="form-label"></label><input asp-for="Password" class="form-control" /><span asp-validation-for="Password"></span></div>
             <div class="mb-4"><label asp-for="ConfirmPassword" class="form-label"></label><input asp-for="ConfirmPassword" class="form-control" /><span asp-validation-for="ConfirmPassword"></span></div>
-            <button class="btn btn-primary w-100" type="submit">Créer mon compte</button>
+            <button class="btn btn-primary btn-lg w-100" type="submit">Créer mon espace</button>
         </form>
-        <p class="text-center text-body-secondary mt-3 mb-0">Déjà inscrit ? <a asp-action="Login">Se connecter</a></p>
-    </div></div>
+        <p class="text-center text-body-secondary mt-4 mb-0">Déjà inscrit ? <a asp-action="Login">Se connecter</a></p>
+    </section>
 </div>
