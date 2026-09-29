@@ -1,23 +1,23 @@
 @model Freecrmlance.Web.Models.Quotes.QuoteFormViewModel
-<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+<div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4"></div>
 <div class="mb-4">
-    <label asp-for="Number" class="form-label">Quote number</label>
-    <input asp-for="Number" class="form-control" placeholder="Q-001" />
+    <label asp-for="Number" class="form-label">Numéro du devis</label>
+    <input asp-for="Number" class="form-control" placeholder="DEV-001" />
     <span asp-validation-for="Number" class="text-danger small"></span>
 </div>
-<div class="d-flex justify-content-between align-items-center mb-2">
-    <h2 class="h5 mb-0">Lines</h2>
-    <button class="btn btn-sm btn-outline-primary" type="button" id="addQuoteLine">+ Add line</button>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div><h2 class="h5 mb-1">Prestations</h2><p class="text-body-secondary small mb-0">Détaillez les prestations et leur prix unitaire.</p></div>
+    <button class="btn btn-sm btn-outline-primary" type="button" id="addQuoteLine">+ Ajouter une ligne</button>
 </div>
 <div id="quoteLines">
 @for (var i = 0; i < Model.Lines.Count; i++)
 {
-    <div class="quote-line border rounded p-3 mb-3">
+    <div class="quote-line border rounded p-3 mb-3 bg-body-tertiary">
         <div class="row g-3 align-items-end">
             <div class="col-md-6"><label class="form-label">Description</label><input class="form-control" name="Lines[@i].Description" value="@Model.Lines[i].Description" required maxlength="500" /></div>
-            <div class="col-md-2"><label class="form-label">Quantity</label><input class="form-control" name="Lines[@i].Quantity" value="@Model.Lines[i].Quantity" type="number" min="0.0001" step="0.0001" required /></div>
-            <div class="col-md-3"><label class="form-label">Unit price</label><input class="form-control" name="Lines[@i].UnitPrice" value="@Model.Lines[i].UnitPrice" type="number" min="0" step="0.01" required /></div>
-            <div class="col-md-1"><button class="btn btn-outline-danger remove-quote-line" type="button">×</button></div>
+            <div class="col-md-2"><label class="form-label">Quantité</label><input class="form-control" name="Lines[@i].Quantity" value="@Model.Lines[i].Quantity" type="number" min="0.0001" step="0.0001" required /></div>
+            <div class="col-md-3"><label class="form-label">Prix unitaire HT</label><input class="form-control" name="Lines[@i].UnitPrice" value="@Model.Lines[i].UnitPrice" type="number" min="0" step="0.01" required /></div>
+            <div class="col-md-1"><button class="btn btn-outline-danger remove-quote-line" type="button" aria-label="Supprimer la ligne">×</button></div>
         </div>
     </div>
 }
@@ -31,12 +31,12 @@
     document.getElementById("addQuoteLine").addEventListener("click", () => {
         const index = container.querySelectorAll(".quote-line").length;
         const row = document.createElement("div");
-        row.className = "quote-line border rounded p-3 mb-3";
+        row.className = "quote-line border rounded p-3 mb-3 bg-body-tertiary";
         row.innerHTML = '<div class="row g-3 align-items-end">' +
             '<div class="col-md-6"><label class="form-label">Description</label><input class="form-control" name="Lines[' + index + '].Description" required maxlength="500" /></div>' +
-            '<div class="col-md-2"><label class="form-label">Quantity</label><input class="form-control" name="Lines[' + index + '].Quantity" value="1" type="number" min="0.0001" step="0.0001" required /></div>' +
-            '<div class="col-md-3"><label class="form-label">Unit price</label><input class="form-control" name="Lines[' + index + '].UnitPrice" value="0" type="number" min="0" step="0.01" required /></div>' +
-            '<div class="col-md-1"><button class="btn btn-outline-danger remove-quote-line" type="button">×</button></div></div>';
+            '<div class="col-md-2"><label class="form-label">Quantité</label><input class="form-control" name="Lines[' + index + '].Quantity" value="1" type="number" min="0.0001" step="0.0001" required /></div>' +
+            '<div class="col-md-3"><label class="form-label">Prix unitaire HT</label><input class="form-control" name="Lines[' + index + '].UnitPrice" value="0" type="number" min="0" step="0.01" required /></div>' +
+            '<div class="col-md-1"><button class="btn btn-outline-danger remove-quote-line" type="button" aria-label="Supprimer la ligne">×</button></div></div>';
         container.appendChild(row);
     });
     container.addEventListener("click", event => {
