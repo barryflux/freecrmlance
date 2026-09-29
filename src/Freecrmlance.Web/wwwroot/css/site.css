@@ -161,3 +161,57 @@ hr { border-color: var(--freecrmlance-border); opacity: 1; }
     .search-field { width: 100%; }
     .auth-panel { padding: 1.35rem; }
 }
+
+
+/* Commercial documents */
+.document-page { max-width: 1040px; margin: 0 auto; }
+.document-toolbar { display: flex; justify-content: space-between; align-items: flex-end; gap: 2rem; margin-bottom: 1.5rem; }
+.document-toolbar h1 { margin: 0; font-size: 1.8rem; font-weight: 800; letter-spacing: -.04em; }
+.document-toolbar p { margin: .3rem 0 0; color: var(--freecrmlance-muted); font-size: .84rem; }
+.back-link { color: var(--freecrmlance-muted); font-size: .8rem; font-weight: 650; text-decoration: none; }
+.back-link:hover { color: var(--freecrmlance-brand); }
+.document-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .5rem; }
+.status-pill { display: inline-flex; align-items: center; padding: .35rem .62rem; border-radius: 999px; font-size: .72rem; font-weight: 750; }
+.status-neutral { background: #f2f4f7; color: #475467; }
+.status-info { background: #eef4ff; color: #3538cd; }
+.status-success { background: #ecfdf3; color: #027a48; }
+.status-danger { background: #fef3f2; color: #b42318; }
+.paper-card { padding: clamp(1.25rem, 4vw, 2.5rem); border: 1px solid var(--freecrmlance-border); border-radius: 18px; background: #fff; box-shadow: 0 16px 45px rgba(16,24,40,.07); }
+.paper-heading { display: flex; justify-content: space-between; gap: 2rem; padding-bottom: 1.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--freecrmlance-border); }
+.paper-heading strong { display: block; font-size: 1.35rem; letter-spacing: -.025em; }
+.paper-heading small { display: block; margin-top: .25rem; color: var(--freecrmlance-muted); font-size: .75rem; }
+.paper-total { text-align: right; }
+.paper-total span { display: block; color: var(--freecrmlance-muted); font-size: .75rem; }
+.paper-total strong { font-size: 1.65rem; }
+.document-table thead th { background: transparent; border-top: 0; }
+.document-table tbody td { padding-block: 1rem; }
+.document-total { display: flex; justify-content: flex-end; align-items: baseline; gap: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--freecrmlance-border); }
+.document-total span { color: var(--freecrmlance-muted); }
+.document-total strong { font-size: 1.55rem; }
+.party-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+.party-grid > div { padding: 1rem; border-radius: 12px; background: #fafbfc; }
+.party-grid span, .invoice-meta span { display: block; margin-bottom: .3rem; color: var(--freecrmlance-muted); font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.party-grid strong { display: block; margin-bottom: .35rem; }
+.party-grid p { margin: 0; color: #667085; font-size: .84rem; line-height: 1.5; }
+.totals-box { width: min(380px,100%); margin: 1.5rem 0 1.5rem auto; }
+.totals-box > div { display: flex; justify-content: space-between; padding: .42rem 0; color: #475467; }
+.totals-box .grand-total { margin-top: .4rem; padding-top: .85rem; border-top: 1px solid var(--freecrmlance-border); color: #101828; font-size: 1.12rem; }
+.invoice-meta { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1rem; padding-top: 1.5rem; border-top: 1px solid var(--freecrmlance-border); }
+.invoice-meta strong { font-size: .88rem; }
+.sharing-panel { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 1.5rem; margin-top: 1rem; padding: 1.25rem 1.4rem; border: 1px solid #dddff8; border-radius: 14px; background: #f9f9ff; }
+.sharing-panel h2 { margin: 0 0 .25rem; font-size: 1rem; font-weight: 750; }
+.sharing-panel p { margin: 0; color: var(--freecrmlance-muted); font-size: .82rem; }
+.share-url { grid-column: 1 / -1; display: flex; overflow: hidden; border: 1px solid #d8dde6; border-radius: 10px; background: #fff; }
+.share-url input { flex: 1; min-width: 0; padding: .65rem .75rem; border: 0; outline: 0; font-size: .8rem; }
+.share-url button { padding: .65rem .9rem; border: 0; border-left: 1px solid #e4e7ec; background: #fff; color: var(--freecrmlance-brand); font-weight: 700; }
+
+@media (max-width: 767.98px) {
+    .document-toolbar { align-items: stretch; flex-direction: column; }
+    .document-actions { justify-content: flex-start; }
+    .document-actions .btn, .document-actions form, .document-actions form .btn { width: 100%; }
+    .paper-heading { align-items: flex-start; }
+    .party-grid, .invoice-meta { grid-template-columns: 1fr; gap: .75rem; }
+    .sharing-panel { grid-template-columns: 1fr; }
+    .sharing-panel > div:last-of-type { justify-self: stretch; }
+    .sharing-panel .btn { width: 100%; }
+}
