@@ -1,4 +1,8 @@
 @model Freecrmlance.Web.Models.Quotes.QuoteFormViewModel
-@{ ViewData["Title"] = "Edit quote"; }
-<div class="page-header"><h1 class="h2">Edit draft quote</h1><p class="text-body-secondary mb-0">Update the quote number and lines.</p></div>
-<div class="card form-card shadow-sm border-0"><div class="card-body p-4"><form method="post"><partial name="_QuoteForm" model="Model" /><div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Save quote</button><a class="btn btn-outline-secondary" asp-action="Details" asp-route-customerId="@ViewContext.RouteData.Values["customerId"]" asp-route-quoteId="@ViewContext.RouteData.Values["quoteId"]">Cancel</a></div></form></div></div>
+@{ ViewData["Title"] = "Modifier le devis"; }
+<div class="page-header">
+    <a class="text-decoration-none small" asp-action="Details" asp-route-customerId="@ViewContext.RouteData.Values["customerId"]" asp-route-quoteId="@ViewContext.RouteData.Values["quoteId"]">← Devis</a>
+    <h1 class="h2 mt-2 mb-1">Modifier le devis brouillon</h1>
+    <p class="text-body-secondary mb-0">Modifiez le numéro, les prestations et les montants avant envoi.</p>
+</div>
+<div class="card form-card shadow-sm border-0"><div class="card-body p-4"><form method="post"><partial name="_QuoteForm" model="Model" /><div class="d-flex justify-content-end gap-2 mt-4"><a class="btn btn-outline-secondary" asp-action="Details" asp-route-customerId="@ViewContext.RouteData.Values["customerId"]" asp-route-quoteId="@ViewContext.RouteData.Values["quoteId"]">Annuler</a><button class="btn btn-primary" type="submit">Enregistrer</button></div></form></div></div>

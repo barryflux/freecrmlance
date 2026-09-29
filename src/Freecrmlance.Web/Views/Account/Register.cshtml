@@ -1,15 +1,15 @@
 @model Freecrmlance.Web.Models.Account.RegisterViewModel
-@{ ViewData["Title"] = "Register"; }
+@{ ViewData["Title"] = "Créer un compte"; }
 <div class="auth-card">
-    <div class="text-center mb-4"><h1 class="h2">Create your account</h1><p class="text-body-secondary">Start managing your client relationships.</p></div>
+    <div class="text-center mb-4"><h1 class="h2">Créez votre compte</h1><p class="text-body-secondary">Centralisez simplement toute votre relation client.</p></div>
     <div class="card shadow-sm border-0"><div class="card-body p-4">
         <form asp-action="Register" method="post">
             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
             <div class="mb-3"><label asp-for="Email" class="form-label"></label><input asp-for="Email" class="form-control" /><span asp-validation-for="Email"></span></div>
             <div class="mb-3"><label asp-for="Password" class="form-label"></label><input asp-for="Password" class="form-control" /><span asp-validation-for="Password"></span></div>
             <div class="mb-4"><label asp-for="ConfirmPassword" class="form-label"></label><input asp-for="ConfirmPassword" class="form-control" /><span asp-validation-for="ConfirmPassword"></span></div>
-            <button class="btn btn-primary w-100" type="submit">Create account</button>
+            <button class="btn btn-primary w-100" type="submit">Créer mon compte</button>
         </form>
-        <p class="text-center text-body-secondary mt-3 mb-0">Already registered? <a asp-action="Login">Login</a></p>
+        <p class="text-center text-body-secondary mt-3 mb-0">Déjà inscrit ? <a asp-action="Login">Se connecter</a></p>
     </div></div>
 </div>

@@ -1,4 +1,8 @@
 @model Freecrmlance.Web.Models.Quotes.QuoteFormViewModel
-@{ ViewData["Title"] = "Create quote"; }
-<div class="page-header"><h1 class="h2">Create quote</h1><p class="text-body-secondary mb-0">Create a draft quote for this customer.</p></div>
-<div class="card form-card shadow-sm border-0"><div class="card-body p-4"><form method="post"><partial name="_QuoteForm" model="Model" /><div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Create quote</button><a class="btn btn-outline-secondary" asp-controller="Customers" asp-action="Details" asp-route-id="@ViewContext.RouteData.Values["customerId"]">Cancel</a></div></form></div></div>
+@{ ViewData["Title"] = "Créer un devis"; }
+<div class="page-header">
+    <a class="text-decoration-none small" asp-controller="Customers" asp-action="Details" asp-route-id="@ViewContext.RouteData.Values["customerId"]">← Client</a>
+    <h1 class="h2 mt-2 mb-1">Créer un devis</h1>
+    <p class="text-body-secondary mb-0">Préparez un nouveau devis brouillon pour ce client.</p>
+</div>
+<div class="card form-card shadow-sm border-0"><div class="card-body p-4"><form method="post"><partial name="_QuoteForm" model="Model" /><div class="d-flex justify-content-end gap-2 mt-4"><a class="btn btn-outline-secondary" asp-controller="Customers" asp-action="Details" asp-route-id="@ViewContext.RouteData.Values["customerId"]">Annuler</a><button class="btn btn-primary" type="submit">Créer le devis</button></div></form></div></div>

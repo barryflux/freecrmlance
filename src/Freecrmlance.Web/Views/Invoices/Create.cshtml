@@ -1,9 +1,9 @@
 @model Freecrmlance.Web.Models.Invoices.InvoiceFormViewModel
-@{ ViewData["Title"] = "Create invoice"; var customerId = ViewContext.RouteData.Values["customerId"]; }
+@{ ViewData["Title"] = "Créer une facture"; var customerId = ViewContext.RouteData.Values["customerId"]; }
 
 <div class="page-header">
-    <a class="text-decoration-none small" asp-controller="Customers" asp-action="Details" asp-route-id="@customerId">← Customer</a>
-    <h1 class="h2 mt-2">Create invoice</h1>
+    <a class="text-decoration-none small" asp-controller="Customers" asp-action="Details" asp-route-id="@customerId">← Client</a>
+    <h1 class="h2 mt-2">Créer une facture</h1>
 </div>
 
 <form method="post" class="card shadow-sm border-0">
@@ -14,24 +14,24 @@
             <input asp-for="DraftReference" class="form-control" />
             <span asp-validation-for="DraftReference" class="text-danger"></span>
         </div>
-        <h2 class="h5">Lines</h2>
+        <h2 class="h5">Prestations</h2>
         <div id="invoice-lines">
             @for (var i = 0; i < Model.Lines.Count; i++)
             {
                 <div class="row g-2 mb-2 invoice-line">
                     <div class="col-md-5"><input asp-for="Lines[i].Description" class="form-control" placeholder="Description" /></div>
-                    <div class="col-md-2"><input asp-for="Lines[i].Quantity" class="form-control" placeholder="Quantity" /></div>
-                    <div class="col-md-2"><input asp-for="Lines[i].UnitPrice" class="form-control" placeholder="Unit price HT" /></div>
-                    <div class="col-md-2"><input asp-for="Lines[i].VatRate" class="form-control" placeholder="VAT %" /></div>
+                    <div class="col-md-2"><input asp-for="Lines[i].Quantity" class="form-control" placeholder="Quantité" /></div>
+                    <div class="col-md-2"><input asp-for="Lines[i].UnitPrice" class="form-control" placeholder="Prix unitaire HT" /></div>
+                    <div class="col-md-2"><input asp-for="Lines[i].VatRate" class="form-control" placeholder="TVA %" /></div>
                     <div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-line">×</button></div>
                 </div>
             }
         </div>
-        <button type="button" id="add-line" class="btn btn-outline-secondary btn-sm">Add line</button>
+        <button type="button" id="add-line" class="btn btn-outline-secondary btn-sm">Ajouter une ligne</button>
     </div>
     <div class="card-footer bg-transparent p-4 d-flex justify-content-end gap-2">
-        <a class="btn btn-outline-secondary" asp-controller="Customers" asp-action="Details" asp-route-id="@customerId">Cancel</a>
-        <button class="btn btn-primary" type="submit">Create draft invoice</button>
+        <a class="btn btn-outline-secondary" asp-controller="Customers" asp-action="Details" asp-route-id="@customerId">Annuler</a>
+        <button class="btn btn-primary" type="submit">Créer la facture brouillon</button>
     </div>
 </form>
 
@@ -43,7 +43,7 @@
         const index = container.querySelectorAll(".invoice-line").length;
         const row = document.createElement("div");
         row.className = "row g-2 mb-2 invoice-line";
-        row.innerHTML = `<div class="col-md-5"><input name="Lines[${index}].Description" class="form-control" placeholder="Description" /></div><div class="col-md-2"><input name="Lines[${index}].Quantity" value="1" class="form-control" placeholder="Quantity" /></div><div class="col-md-2"><input name="Lines[${index}].UnitPrice" value="0" class="form-control" placeholder="Unit price HT" /></div><div class="col-md-2"><input name="Lines[${index}].VatRate" value="20" class="form-control" placeholder="VAT %" /></div><div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-line">×</button></div>`;
+        row.innerHTML = `<div class="col-md-5"><input name="Lines[${index}].Description" class="form-control" placeholder="Description" /></div><div class="col-md-2"><input name="Lines[${index}].Quantity" value="1" class="form-control" placeholder="Quantité" /></div><div class="col-md-2"><input name="Lines[${index}].UnitPrice" value="0" class="form-control" placeholder="Prix unitaire HT" /></div><div class="col-md-2"><input name="Lines[${index}].VatRate" value="20" class="form-control" placeholder="TVA %" /></div><div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-line">×</button></div>`;
         container.appendChild(row);
     });
     container.addEventListener("click", event => {
