@@ -101,7 +101,7 @@ public sealed class CustomersController(ICustomerService customerService, IConta
     {
         if (!ModelState.IsValid) return View(model);
         var contactId = await contactService.CreateAsync(id, new CreateContactCommand(model.Name, model.Email, model.Phone, model.Role), cancellationToken);
-        return contactId is null ? NotFound() : RedirectToAction(nameof(Details), new { id });
+        return contactId is null ? NotFound() : Redirect($"{Url.Action(nameof(Details), new { id })}#contacts");
     }
 
     [HttpGet("Customers/{customerId:guid}/Contacts/{contactId:guid}/Edit")]
