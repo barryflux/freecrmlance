@@ -1,20 +1,14 @@
 @model Freecrmlance.Web.Models.Account.LoginViewModel
 @{ ViewData["Title"] = "Connexion"; }
-<div class="auth-layout">
-    <section class="auth-story">
-        <span class="eyebrow">Freecrmlance</span>
-        <h1>Votre activité freelance.<br />Enfin au même endroit.</h1>
-        <p>Clients, contacts, documents, devis et factures dans un espace simple, pensé pour travailler — pas pour administrer un logiciel.</p>
-        <div class="auth-promise"><span>✓</span> Un client, un espace, toute la relation.</div>
-    </section>
-    <section class="auth-panel">
-        <div class="mb-4"><span class="eyebrow">Connexion</span><h2>Bon retour parmi nous</h2><p>Accédez à votre espace Freecrmlance.</p></div>
+<div class="auth-card">
+    <div class="text-center mb-4"><h1 class="h2">Bon retour parmi nous</h1><p class="text-body-secondary">Connectez-vous à votre espace Freecrmlance.</p></div>
+    <div class="card shadow-sm border-0"><div class="card-body p-4">
         <form asp-action="Login" method="post">
             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-            <div class="mb-3"><label asp-for="Email" class="form-label"></label><input asp-for="Email" class="form-control" placeholder="vous@exemple.fr" /><span asp-validation-for="Email"></span></div>
+            <div class="mb-3"><label asp-for="Email" class="form-label"></label><input asp-for="Email" class="form-control" /><span asp-validation-for="Email"></span></div>
             <div class="mb-4"><label asp-for="Password" class="form-label"></label><input asp-for="Password" class="form-control" /><span asp-validation-for="Password"></span></div>
-            <button class="btn btn-primary btn-lg w-100" type="submit">Se connecter</button>
+            <button class="btn btn-primary w-100" type="submit">Se connecter</button>
         </form>
-        <p class="text-center text-body-secondary mt-4 mb-0">Nouveau ici ? <a asp-action="Register">Créer un compte</a></p>
-    </section>
+        <p class="text-center text-body-secondary mt-3 mb-0">Pas encore de compte ? <a asp-action="Register">Créer un compte</a></p>
+    </div></div>
 </div>
