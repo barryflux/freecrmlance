@@ -9,7 +9,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>@ViewData["Title"] - Freecrmlance</title>
+    <title>@ViewData["Title"] - Alouva</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
@@ -19,7 +19,7 @@
     <div class="app-shell">
         <aside class="app-sidebar" aria-label="Navigation de l'application">
             <div class="app-sidebar-top">
-                <a class="app-brand" asp-controller="Customers" asp-action="Index">Freecrmlance</a>
+                <a class="app-brand" asp-controller="Customers" asp-action="Index">Alouva</a>
                 <nav class="app-nav" aria-label="Navigation principale">
                     <a class="app-nav-link @(customersActive ? "active" : null)"
                        aria-current="@(customersActive ? "page" : null)"
@@ -50,7 +50,7 @@
 
         <div class="app-main">
             <header class="app-mobile-header">
-                <a class="app-brand" asp-controller="Customers" asp-action="Index">Freecrmlance</a>
+                <a class="app-brand" asp-controller="Customers" asp-action="Index">Alouva</a>
                 <button class="btn app-menu-button" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav"
                         aria-controls="mobileNav" aria-label="Ouvrir le menu">
                     <span aria-hidden="true">☰</span>
@@ -63,7 +63,7 @@
 
     <div class="offcanvas offcanvas-start app-mobile-nav" tabindex="-1" id="mobileNav" aria-labelledby="mobileNavLabel">
         <div class="offcanvas-header">
-            <h2 class="offcanvas-title app-brand mb-0" id="mobileNavLabel">Freecrmlance</h2>
+            <h2 class="offcanvas-title app-brand mb-0" id="mobileNavLabel">Alouva</h2>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fermer le menu"></button>
         </div>
         <div class="offcanvas-body d-flex flex-column">
@@ -99,7 +99,7 @@ else
 {
     <header class="public-header">
         <div class="container d-flex align-items-center justify-content-between gap-3">
-            <a class="app-brand" asp-controller="Home" asp-action="Index">Freecrmlance</a>
+            <a class="app-brand" asp-controller="Home" asp-action="Index">Alouva</a>
             <a class="btn btn-sm btn-outline-primary px-3" asp-controller="Account" asp-action="Login">Se connecter</a>
         </div>
     </header>
