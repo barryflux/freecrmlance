@@ -153,6 +153,105 @@ public sealed class InvoiceServiceTests
         Assert.That(invoice!.Status, Is.EqualTo(InvoiceStatus.Draft));
     }
 
+    [Test]
+    public async Task Draft_can_be_edited_without_refreshing_legal_snapshots()
+    {
+        await using var postgres = new PostgreSqlBuilder().WithImage("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        var options = new DbContextOptionsBuilder<FreecrmlanceDbContext>().UseNpgsql(postgres.GetConnectionString()).Options;
+        await using var db = new FreecrmlanceDbContext(options);
+        await db.Database.MigrateAsync();
+
+        var workspace = new Workspace("Seller");
+        workspace.SetLegalIdentity("Seller SAS", "1 rue Seller", "75001", "Paris", "FR");
+        var customer = new Customer(workspace.Id, "Customer");
+        customer.SetBillingIdentity(CustomerType.Business, "2 rue Customer", "69001", "Lyon", "FR", siren: "123456789");
+        db.Workspaces.Add(workspace); db.Customers.Add(customer); await db.SaveChangesAsync();
+
+        var service = new InvoiceService(db, new StubWorkspaceContext(workspace.Id));
+        var id = (await service.CreateAsync(new CreateInvoiceCommand(customer.Id, "DRAFT-A", [new("Old", 1, 100m, 20m)])))!.Value;
+
+        workspace.SetLegalIdentity("Changed Seller", "99 rue Changed", "13001", "Marseille", "FR");
+        customer.SetBillingIdentity(CustomerType.Business, "88 rue Changed", "31000", "Toulouse", "FR", siren: "123456789");
+        await db.SaveChangesAsync();
+
+        var result = await service.UpdateAsync(new UpdateInvoiceCommand(customer.Id, id, "DRAFT-B",
+            [new("Consulting", 2, 200m, 20m), new("Expenses", 1, 50m, 10m)],
+            new DateTime(2026, 9, 29), new DateTime(2026, 10, 29), PaymentTerms: "30 days", RecoveryCostIndemnity: 40m));
+
+        db.ChangeTracker.Clear();
+        var invoice = await service.GetAsync(customer.Id, id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result, Is.EqualTo(UpdateInvoiceResult.Success));
+            Assert.That(invoice!.DraftReference, Is.EqualTo("DRAFT-B"));
+            Assert.That(invoice.Lines, Has.Count.EqualTo(2));
+            Assert.That(invoice.TotalIncludingTax, Is.EqualTo(535m));
+            Assert.That(invoice.SellerLegalName, Is.EqualTo("Seller SAS"));
+            Assert.That(invoice.SellerCity, Is.EqualTo("Paris"));
+            Assert.That(invoice.CustomerCity, Is.EqualTo("Lyon"));
+        });
+    }
+
+    [Test]
+    public async Task Draft_update_is_tenant_scoped()
+    {
+        await using var postgres = new PostgreSqlBuilder().WithImage("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        var options = new DbContextOptionsBuilder<FreecrmlanceDbContext>().UseNpgsql(postgres.GetConnectionString()).Options;
+        await using var db = new FreecrmlanceDbContext(options);
+        await db.Database.MigrateAsync();
+
+        var workspaceA = new Workspace("Workspace A");
+        var workspaceB = new Workspace("Workspace B");
+        var customer = new Customer(workspaceA.Id, "Customer");
+        db.Workspaces.AddRange(workspaceA, workspaceB);
+        db.Customers.Add(customer);
+        await db.SaveChangesAsync();
+
+        var serviceA = new InvoiceService(db, new StubWorkspaceContext(workspaceA.Id));
+        var serviceB = new InvoiceService(db, new StubWorkspaceContext(workspaceB.Id));
+        var id = (await serviceA.CreateAsync(new CreateInvoiceCommand(customer.Id, "DRAFT-A", [new("Work", 1, 100m, 20m)])))!.Value;
+
+        db.ChangeTracker.Clear();
+        var result = await serviceB.UpdateAsync(new UpdateInvoiceCommand(customer.Id, id, "HIJACKED", [new("Changed", 1, 1m, 20m)]));
+
+        db.ChangeTracker.Clear();
+        var invoice = await serviceA.GetAsync(customer.Id, id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result, Is.EqualTo(UpdateInvoiceResult.NotFound));
+            Assert.That(invoice!.DraftReference, Is.EqualTo("DRAFT-A"));
+            Assert.That(invoice.Lines.Single().Description, Is.EqualTo("Work"));
+        });
+    }
+
+    [Test]
+    public async Task Issued_invoice_cannot_be_edited()
+    {
+        await using var postgres = new PostgreSqlBuilder().WithImage("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        var options = new DbContextOptionsBuilder<FreecrmlanceDbContext>().UseNpgsql(postgres.GetConnectionString()).Options;
+        await using var db = new FreecrmlanceDbContext(options);
+        await db.Database.MigrateAsync();
+
+        var workspace = new Workspace("Seller");
+        workspace.SetLegalIdentity("Seller SAS", "1 rue Seller", "75001", "Paris", "FR");
+        var customer = new Customer(workspace.Id, "Customer");
+        customer.SetBillingIdentity(CustomerType.Business, "2 rue Customer", "69001", "Lyon", "FR", siren: "123456789");
+        db.Workspaces.Add(workspace); db.Customers.Add(customer); await db.SaveChangesAsync();
+
+        var service = new InvoiceService(db, new StubWorkspaceContext(workspace.Id));
+        var id = (await service.CreateAsync(new CreateInvoiceCommand(customer.Id, "DRAFT-A", [new("Work", 1, 100m, 20m)],
+            DateTime.UtcNow.Date, DateTime.UtcNow.Date.AddDays(30), PaymentTerms: "30 days")))!.Value;
+        Assert.That(await service.IssueAsync(customer.Id, id), Is.EqualTo(IssueInvoiceResult.Success));
+
+        var result = await service.UpdateAsync(new UpdateInvoiceCommand(customer.Id, id, "EDITED", [new("Changed", 1, 1m, 20m)]));
+        Assert.That(result, Is.EqualTo(UpdateInvoiceResult.InvalidStatus));
+    }
+
     private sealed class StubWorkspaceContext(Guid workspaceId) : IWorkspaceContext
     {
         public Task<Guid?> GetCurrentWorkspaceIdAsync(CancellationToken cancellationToken = default) => Task.FromResult<Guid?>(workspaceId);

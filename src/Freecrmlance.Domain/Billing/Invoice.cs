@@ -70,6 +70,35 @@ public sealed class Invoice
         UpdatedAtUtc = DateTime.UtcNow;
     }
 
+    public void UpdateDraft(string draftReference, DateTime? serviceDate, DateTime? dueDate, string? purchaseOrderReference,
+        string? vatExemptionMention, string? paymentTerms, string? earlyPaymentDiscountTerms,
+        string? latePaymentPenaltyTerms, decimal? recoveryCostIndemnity,
+        IEnumerable<(string Description, decimal Quantity, decimal UnitPrice, decimal VatRate)> replacementLines)
+    {
+        EnsureDraft();
+        if (string.IsNullOrWhiteSpace(draftReference)) throw new ArgumentException("Draft reference is required.", nameof(draftReference));
+        if (replacementLines is null) throw new ArgumentNullException(nameof(replacementLines));
+
+        var validatedLines = replacementLines
+            .Select(line => new InvoiceLine(Id, line.Description, line.Quantity, line.UnitPrice, line.VatRate))
+            .ToList();
+        if (validatedLines.Count == 0) throw new ArgumentException("At least one invoice line is required.", nameof(replacementLines));
+        if (recoveryCostIndemnity < 0) throw new ArgumentOutOfRangeException(nameof(recoveryCostIndemnity));
+
+        DraftReference = draftReference.Trim();
+        ServiceDate = NormalizeUtcDate(serviceDate);
+        DueDate = NormalizeUtcDate(dueDate);
+        PurchaseOrderReference = Normalize(purchaseOrderReference);
+        VatExemptionMention = Normalize(vatExemptionMention);
+        PaymentTerms = Normalize(paymentTerms);
+        EarlyPaymentDiscountTerms = Normalize(earlyPaymentDiscountTerms);
+        LatePaymentPenaltyTerms = Normalize(latePaymentPenaltyTerms);
+        RecoveryCostIndemnity = recoveryCostIndemnity;
+        lines.Clear();
+        lines.AddRange(validatedLines);
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
+
     public void Issue(string definitiveNumber, DateTime issuedAtUtc)
     {
         EnsureDraft();
@@ -88,7 +117,7 @@ public sealed class Invoice
     {
         EnsureDraft();
         if (recoveryCostIndemnity < 0) throw new ArgumentOutOfRangeException(nameof(recoveryCostIndemnity));
-        ServiceDate = serviceDate; DueDate = dueDate; PurchaseOrderReference = Normalize(purchaseOrderReference);
+        ServiceDate = NormalizeUtcDate(serviceDate); DueDate = NormalizeUtcDate(dueDate); PurchaseOrderReference = Normalize(purchaseOrderReference);
         VatExemptionMention = Normalize(vatExemptionMention); PaymentTerms = Normalize(paymentTerms);
         EarlyPaymentDiscountTerms = Normalize(earlyPaymentDiscountTerms); LatePaymentPenaltyTerms = Normalize(latePaymentPenaltyTerms);
         RecoveryCostIndemnity = recoveryCostIndemnity; UpdatedAtUtc = DateTime.UtcNow;
@@ -130,6 +159,17 @@ public sealed class Invoice
     private void EnsureDraft()
     {
         if (Status != InvoiceStatus.Draft) throw new InvalidOperationException("Issued invoices cannot be modified.");
+    }
+
+    private static DateTime? NormalizeUtcDate(DateTime? value)
+    {
+        if (value is null) return null;
+        return value.Value.Kind switch
+        {
+            DateTimeKind.Utc => value.Value,
+            DateTimeKind.Local => value.Value.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)
+        };
     }
 
     private static string? Normalize(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();

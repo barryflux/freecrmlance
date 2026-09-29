@@ -71,6 +71,30 @@ public sealed class InvoiceService(FreecrmlanceDbContext dbContext, IWorkspaceCo
         return invoice.Id;
     }
 
+    public async Task<UpdateInvoiceResult> UpdateAsync(UpdateInvoiceCommand command, CancellationToken cancellationToken = default)
+    {
+        var workspaceId = await workspaceContext.RequireCurrentWorkspaceIdAsync(cancellationToken);
+        var invoice = await dbContext.Invoices.Include(item => item.Lines)
+            .SingleOrDefaultAsync(item => item.Id == command.InvoiceId && item.CustomerId == command.CustomerId && item.WorkspaceId == workspaceId, cancellationToken);
+        if (invoice is null) return UpdateInvoiceResult.NotFound;
+        if (invoice.Status != InvoiceStatus.Draft) return UpdateInvoiceResult.InvalidStatus;
+
+        var previousLines = invoice.Lines.ToList();
+
+        invoice.UpdateDraft(command.DraftReference, command.ServiceDate, command.DueDate, command.PurchaseOrderReference,
+            command.VatExemptionMention, command.PaymentTerms, command.EarlyPaymentDiscountTerms, command.LatePaymentPenaltyTerms,
+            command.RecoveryCostIndemnity,
+            command.Lines.Select(line => (line.Description, line.Quantity, line.UnitPrice, line.VatRate)));
+
+        foreach (var previousLine in previousLines)
+            dbContext.Entry(previousLine).State = EntityState.Deleted;
+        foreach (var replacementLine in invoice.Lines)
+            dbContext.Entry(replacementLine).State = EntityState.Added;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return UpdateInvoiceResult.Success;
+    }
+
     public async Task<IssueInvoiceResult> IssueAsync(Guid customerId, Guid invoiceId, CancellationToken cancellationToken = default)
     {
         var workspaceId = await workspaceContext.RequireCurrentWorkspaceIdAsync(cancellationToken);
@@ -142,5 +166,8 @@ public sealed class InvoiceService(FreecrmlanceDbContext dbContext, IWorkspaceCo
                 line.VatRate, line.TotalExcludingTax, line.VatAmount, line.TotalIncludingTax)).ToList(),
             invoice.TotalExcludingTax, invoice.TotalVat, invoice.TotalIncludingTax, invoice.IssueDate, invoice.ServiceDate, invoice.DueDate,
             invoice.PurchaseOrderReference, invoice.SellerLegalName, invoice.SellerSiren, invoice.SellerSiret, invoice.SellerVatNumber,
-            invoice.CustomerLegalName, invoice.CustomerSiren, invoice.CustomerSiret, invoice.CustomerVatNumber);
+            invoice.CustomerLegalName, invoice.CustomerSiren, invoice.CustomerSiret, invoice.CustomerVatNumber,
+            invoice.VatExemptionMention, invoice.PaymentTerms, invoice.EarlyPaymentDiscountTerms, invoice.LatePaymentPenaltyTerms, invoice.RecoveryCostIndemnity,
+            invoice.SellerAddressLine1, invoice.SellerAddressLine2, invoice.SellerPostalCode, invoice.SellerCity, invoice.SellerCountryCode,
+            invoice.CustomerAddressLine1, invoice.CustomerAddressLine2, invoice.CustomerPostalCode, invoice.CustomerCity, invoice.CustomerCountryCode);
 }
