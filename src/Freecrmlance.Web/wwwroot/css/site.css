@@ -272,3 +272,114 @@ body { background: var(--freecrmlance-bg); color: var(--freecrmlance-ink); }
     .customer-profile-card { padding: 1.1rem; }
     .customer-data-grid { grid-template-columns: 1fr; }
 }
+
+
+/* Customer workspace content */
+.customer-section-header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.customer-section-header h2 { font-size: 1.15rem; font-weight: 700; }
+.customer-section-header .btn-primary { min-height: 38px; }
+
+.contact-card {
+    height: 100%;
+    overflow: hidden;
+    border: 1px solid var(--freecrmlance-border);
+    border-radius: 1rem;
+    background: var(--freecrmlance-surface);
+    box-shadow: var(--freecrmlance-shadow);
+}
+.contact-card-body { padding: 1.15rem; }
+.contact-card-body h3 { font-size: 1rem; font-weight: 700; }
+.contact-card-actions {
+    display: flex;
+    gap: .5rem;
+    padding: .75rem 1.15rem;
+    border-top: 1px solid var(--freecrmlance-border);
+    background: var(--freecrmlance-surface-soft);
+}
+
+.customer-record-list {
+    overflow: hidden;
+    border: 1px solid var(--freecrmlance-border);
+    border-radius: 1rem;
+    background: var(--freecrmlance-surface);
+    box-shadow: var(--freecrmlance-shadow);
+}
+.customer-record-item {
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .9rem 1rem;
+    color: var(--freecrmlance-ink);
+    text-decoration: none;
+}
+.customer-record-item + .customer-record-item { border-top: 1px solid var(--freecrmlance-border); }
+.customer-record-item:hover { background: var(--freecrmlance-primary-soft); color: var(--freecrmlance-ink); }
+.customer-record-main { min-width: 0; display: flex; flex-direction: column; gap: .2rem; }
+.customer-record-main strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.customer-record-main > span { color: var(--freecrmlance-muted); font-size: .8rem; }
+.customer-record-end { display: flex; align-items: center; gap: 1rem; }
+.customer-record-end > strong { min-width: 7rem; text-align: right; font-variant-numeric: tabular-nums; }
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: .2rem .55rem;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 650;
+    white-space: nowrap;
+}
+.status-draft { color: #58655e; background: #e7ece9; }
+.status-sent { color: #315d75; background: #e5f2f8; }
+.status-accepted, .status-issued { color: #246343; background: #dcf5e8; }
+.status-rejected { color: #8b3540; background: #fae7e9; }
+
+.customer-upload-form { display: flex; gap: .5rem; }
+.customer-document-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem;
+}
+.customer-document-item + .customer-document-item { border-top: 1px solid var(--freecrmlance-border); }
+.customer-document-item > span:first-child { min-width: 0; }
+.customer-document-item > span:first-child > strong { overflow-wrap: anywhere; }
+.customer-document-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .5rem; }
+
+.empty-state {
+    border-color: #b8d6c6;
+    background: rgba(255,255,255,.62);
+    box-shadow: 0 8px 24px rgba(23,56,42,.04);
+}
+
+@media (max-width: 767.98px) {
+    .customer-section-header { align-items: stretch; flex-direction: column; }
+    .customer-section-header .btn-primary { align-self: flex-start; }
+    .customer-document-item { align-items: stretch; flex-direction: column; }
+    .customer-document-actions { justify-content: flex-start; }
+    .customer-upload-form { width: 100%; }
+    .customer-upload-form .form-control { min-width: 0; }
+}
+
+@media (max-width: 575.98px) {
+    .customer-section-header .btn-primary { width: 100%; min-height: 44px; }
+    .customer-record-item { align-items: flex-start; }
+    .customer-record-end { align-items: flex-end; flex-direction: column-reverse; gap: .35rem; }
+    .customer-record-end > strong { min-width: 0; }
+    .customer-document-actions > *,
+    .customer-document-actions form,
+    .customer-document-actions form .btn { width: 100%; }
+    .customer-document-actions .btn { min-height: 40px; }
+    .customer-upload-form { flex-direction: column; }
+    .customer-upload-form .btn { min-height: 44px; }
+}
