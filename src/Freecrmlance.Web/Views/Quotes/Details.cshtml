@@ -1,80 +1,118 @@
 @model Freecrmlance.Web.Models.Quotes.QuoteDetailsViewModel
-@{ var quote = Model.Quote; ViewData["Title"] = quote.Number; var customerId = ViewContext.RouteData.Values["customerId"]; }
-<div class="page-header d-flex justify-content-between align-items-start gap-3">
-<div><a class="text-decoration-none small" asp-controller="Customers" asp-action="Details" asp-route-id="@customerId">← Client</a><h1 class="h2 mt-2 mb-1">@quote.Number</h1><span class="badge text-bg-secondary">@(quote.Status switch { Freecrmlance.Domain.Crm.QuoteStatus.Draft => "Brouillon", Freecrmlance.Domain.Crm.QuoteStatus.Sent => "Envoyé", Freecrmlance.Domain.Crm.QuoteStatus.Accepted => "Accepté", Freecrmlance.Domain.Crm.QuoteStatus.Rejected => "Refusé", _ => quote.Status.ToString() })</span></div>
-<div class="d-flex gap-2">
-<a class="btn btn-outline-secondary" asp-action="Pdf" asp-route-customerId="@customerId" asp-route-quoteId="@quote.Id">Télécharger le PDF</a>
-@if (quote.Status == Freecrmlance.Domain.Crm.QuoteStatus.Accepted)
-{
-    if (Model.SourceInvoice is null)
+@{
+    var quote = Model.Quote;
+    ViewData["Title"] = quote.Number;
+    var customerId = ViewContext.RouteData.Values["customerId"];
+    var statusLabel = quote.Status switch
     {
-        <a class="btn btn-primary" asp-controller="Invoices" asp-action="CreateFromQuote" asp-route-customerId="@customerId" asp-route-quoteId="@quote.Id">Créer la facture</a>
-    }
-    else
-    {
-        <a class="btn btn-outline-primary" asp-controller="Invoices" asp-action="Details" asp-route-customerId="@customerId" asp-route-invoiceId="@Model.SourceInvoice.Id">Voir la facture @Model.SourceInvoice.Number</a>
-    }
+        Freecrmlance.Domain.Crm.QuoteStatus.Draft => "Brouillon",
+        Freecrmlance.Domain.Crm.QuoteStatus.Sent => "Envoyé",
+        Freecrmlance.Domain.Crm.QuoteStatus.Accepted => "Accepté",
+        Freecrmlance.Domain.Crm.QuoteStatus.Rejected => "Refusé",
+        _ => quote.Status.ToString()
+    };
 }
-@if (quote.Status == Freecrmlance.Domain.Crm.QuoteStatus.Draft)
-{
-    <a class="btn btn-outline-primary" asp-action="Edit" asp-route-customerId="@customerId" asp-route-quoteId="@quote.Id">Modifier le brouillon</a>
-    <form asp-action="Send" asp-route-customerId="@customerId" asp-route-quoteId="@quote.Id" method="post">
-        <button class="btn btn-primary" type="submit">Marquer comme envoyé</button>
-    </form>
-}
-else if (quote.Status == Freecrmlance.Domain.Crm.QuoteStatus.Sent)
-{
-    <form asp-action="Accept" asp-route-customerId="@customerId" asp-route-quoteId="@quote.Id" method="post">
-        <button class="btn btn-success" type="submit">Accepter</button>
-    </form>
-    <form asp-action="Reject" asp-route-customerId="@customerId" asp-route-quoteId="@quote.Id" method="post">
-        <button class="btn btn-outline-danger" type="submit">Refuser</button>
-    </form>
-}
-</div>
-</div>
-<div class="card shadow-sm border-0"><div class="card-body p-4">
-<div class="table-responsive"><table class="table align-middle"><thead><tr><th>Description</th><th class="text-end">Quantité</th><th class="text-end">Prix unitaire</th><th class="text-end">Total</th></tr></thead><tbody>
-@foreach (var line in quote.Lines) { <tr><td>@line.Description</td><td class="text-end">@line.Quantity</td><td class="text-end">@line.UnitPrice.ToString("C")</td><td class="text-end">@line.Total.ToString("C")</td></tr> }
-</tbody><tfoot><tr><th colspan="3" class="text-end">Total</th><th class="text-end">@quote.Total.ToString("C")</th></tr></tfoot></table></div>
-<div class="text-body-secondary small">Créé le @quote.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm") UTC · Modifié le @quote.UpdatedAtUtc.ToString("yyyy-MM-dd HH:mm") UTC</div>
-</div></div>
 
-<div class="card shadow-sm border-0 mt-4">
-    <div class="card-body p-4">
-        <div class="d-flex justify-content-between align-items-start gap-3">
-            <div>
-                <h2 class="h5 mb-1">Partage public</h2>
-                @if (Model.ActiveShare is null)
-                {
-                    <span class="badge text-bg-light">Non partagé</span>
-                }
-                else
-                {
-                    <span class="badge text-bg-success">Partagé</span>
-                    <div class="text-body-secondary small mt-2">Créé le @Model.ActiveShare.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm") UTC</div>
-                }
-            </div>
-            @if (Model.ActiveShare is null)
+<div class="page-header quote-page-header">
+    <div>
+        <a class="text-decoration-none small" asp-controller="Customers" asp-action="Details" asp-route-id="@customerId" asp-fragment="quotes">← Devis du client</a>
+        <div class="quote-title-row">
+            <h1 class="h2 mb-0">@quote.Number</h1>
+            <span class="status-badge status-@quote.Status.ToString().ToLowerInvariant()">@statusLabel</span>
+        </div>
+        <p class="text-body-secondary mb-0">Créé le @quote.CreatedAtUtc.ToString("dd/MM/yyyy") · modifié le @quote.UpdatedAtUtc.ToString("dd/MM/yyyy")</p>
+    </div>
+    <div class="quote-header-total">
+        <span>Total</span>
+        <strong>@quote.Total.ToString("C")</strong>
+    </div>
+</div>
+
+<div class="quote-action-bar">
+    <div class="quote-primary-actions">
+        @if (quote.Status == Freecrmlance.Domain.Crm.QuoteStatus.Draft)
+        {
+            <form asp-action="Send" asp-route-customerId="@customerId" asp-route-quoteId="@quote.Id" method="post">
+                <button class="btn btn-primary" type="submit">Marquer comme envoyé</button>
+            </form>
+            <a class="btn btn-outline-secondary" asp-action="Edit" asp-route-customerId="@customerId" asp-route-quoteId="@quote.Id">Modifier</a>
+        }
+        else if (quote.Status == Freecrmlance.Domain.Crm.QuoteStatus.Sent)
+        {
+            <form asp-action="Accept" asp-route-customerId="@customerId" asp-route-quoteId="@quote.Id" method="post">
+                <button class="btn btn-primary" type="submit">Accepter le devis</button>
+            </form>
+            <form asp-action="Reject" asp-route-customerId="@customerId" asp-route-quoteId="@quote.Id" method="post">
+                <button class="btn btn-outline-danger" type="submit">Refuser</button>
+            </form>
+        }
+        else if (quote.Status == Freecrmlance.Domain.Crm.QuoteStatus.Accepted)
+        {
+            if (Model.SourceInvoice is null)
             {
-                <form asp-action="Share" asp-route-customerId="@customerId" asp-route-quoteId="@quote.Id" method="post">
-                    <button class="btn btn-outline-primary" type="submit">Créer un lien public</button>
-                </form>
+                <a class="btn btn-primary" asp-controller="Invoices" asp-action="CreateFromQuote" asp-route-customerId="@customerId" asp-route-quoteId="@quote.Id">Créer la facture</a>
             }
             else
             {
-                <form asp-action="RevokeShare" asp-route-customerId="@customerId" asp-route-quoteId="@quote.Id" asp-route-shareId="@Model.ActiveShare.Id" method="post" onsubmit="return confirm('Révoquer ce lien public ?');">
-                    <button class="btn btn-outline-danger" type="submit">Révoquer le lien</button>
-                </form>
+                <a class="btn btn-primary" asp-controller="Invoices" asp-action="Details" asp-route-customerId="@customerId" asp-route-invoiceId="@Model.SourceInvoice.Id">Voir la facture</a>
             }
-        </div>
-        @if (!string.IsNullOrWhiteSpace(Model.ShareUrl))
-        {
-            <div class="input-group mt-3">
-                <input id="quote-share-url" class="form-control" value="@Model.ShareUrl" readonly />
-                <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('quote-share-url').value)">Copier</button>
-            </div>
-            <div class="form-text">Ce lien n’est affiché que maintenant. Copiez-le avant de quitter cette page.</div>
         }
     </div>
+    <a class="btn btn-outline-secondary" asp-action="Pdf" asp-route-customerId="@customerId" asp-route-quoteId="@quote.Id">Télécharger le PDF</a>
 </div>
+
+<section class="quote-surface">
+    <div class="quote-surface-heading">
+        <div><span class="customer-profile-kicker">Prestations</span><h2>Détail du devis</h2></div>
+        <span>@quote.Lines.Count ligne@(quote.Lines.Count > 1 ? "s" : "")</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table quote-lines-table align-middle mb-0">
+            <thead><tr><th>Description</th><th class="text-end">Quantité</th><th class="text-end">Prix unitaire</th><th class="text-end">Total</th></tr></thead>
+            <tbody>
+            @foreach (var line in quote.Lines)
+            {
+                <tr><td>@line.Description</td><td class="text-end">@line.Quantity</td><td class="text-end">@line.UnitPrice.ToString("C")</td><td class="text-end fw-semibold">@line.Total.ToString("C")</td></tr>
+            }
+            </tbody>
+            <tfoot><tr><th colspan="3" class="text-end">Total</th><th class="text-end">@quote.Total.ToString("C")</th></tr></tfoot>
+        </table>
+    </div>
+</section>
+
+<section class="quote-share-panel">
+    <div>
+        <span class="customer-profile-kicker">Client</span>
+        <h2>Partage public</h2>
+        @if (Model.ActiveShare is null)
+        {
+            <p class="mb-0 text-body-secondary">Aucun lien public actif pour ce devis.</p>
+        }
+        else
+        {
+            <p class="mb-0"><span class="status-badge status-accepted">Lien actif</span> <span class="text-body-secondary small">depuis le @Model.ActiveShare.CreatedAtUtc.ToString("dd/MM/yyyy")</span></p>
+        }
+    </div>
+    <div class="quote-share-actions">
+        @if (Model.ActiveShare is null)
+        {
+            <form asp-action="Share" asp-route-customerId="@customerId" asp-route-quoteId="@quote.Id" method="post">
+                <button class="btn btn-outline-primary" type="submit">Créer un lien public</button>
+            </form>
+        }
+        else
+        {
+            <form asp-action="RevokeShare" asp-route-customerId="@customerId" asp-route-quoteId="@quote.Id" asp-route-shareId="@Model.ActiveShare.Id" method="post" onsubmit="return confirm('Révoquer ce lien public ?');">
+                <button class="btn btn-outline-danger" type="submit">Révoquer le lien</button>
+            </form>
+        }
+    </div>
+    @if (!string.IsNullOrWhiteSpace(Model.ShareUrl))
+    {
+        <div class="quote-share-url">
+            <input id="quote-share-url" class="form-control" value="@Model.ShareUrl" readonly />
+            <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('quote-share-url').value)">Copier</button>
+            <div class="form-text">Ce lien n’est affiché que maintenant. Copiez-le avant de quitter cette page.</div>
+        </div>
+    }
+</section>

@@ -10,7 +10,7 @@
 <form method="post">
     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-    <div class="card shadow-sm border-0 mb-4"><div class="card-body p-4">
+    <div class="invoice-form-card mb-4"><div class="card-body p-4">
         <div class="row g-3">
             <div class="col-md-6"><label asp-for="DraftReference" class="form-label"></label><input asp-for="DraftReference" class="form-control" /><span asp-validation-for="DraftReference" class="text-danger"></span></div>
             <div class="col-md-3"><label asp-for="ServiceDate" class="form-label"></label><input asp-for="ServiceDate" class="form-control" /><span asp-validation-for="ServiceDate" class="text-danger"></span></div>
@@ -24,18 +24,18 @@
         </div>
     </div></div>
 
-    <div class="card shadow-sm border-0 mb-4"><div class="card-body p-4">
+    <div class="invoice-form-card mb-4"><div class="card-body p-4">
         <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="h5 mb-0">Prestations</h2><button type="button" class="btn btn-outline-secondary btn-sm" id="add-line">Ajouter une ligne</button></div>
         <span asp-validation-for="Lines" class="text-danger"></span>
         <div id="invoice-lines">
         @for (var i = 0; i < Model.Lines.Count; i++)
         {
-            <div class="invoice-line row g-2 align-items-end mb-3">
+            <div class="invoice-line">
                 <div class="col-md-5"><label class="form-label">Description</label><input asp-for="Lines[i].Description" class="form-control" /><span asp-validation-for="Lines[i].Description" class="text-danger"></span></div>
                 <div class="col-md-2"><label class="form-label">Quantité</label><input asp-for="Lines[i].Quantity" class="form-control" /><span asp-validation-for="Lines[i].Quantity" class="text-danger"></span></div>
                 <div class="col-md-2"><label class="form-label">Prix unitaire HT</label><input asp-for="Lines[i].UnitPrice" class="form-control" /><span asp-validation-for="Lines[i].UnitPrice" class="text-danger"></span></div>
                 <div class="col-md-2"><label class="form-label">TVA %</label><input asp-for="Lines[i].VatRate" class="form-control" /><span asp-validation-for="Lines[i].VatRate" class="text-danger"></span></div>
-                <div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-line">×</button></div>
+                <div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-line invoice-line-remove">×</button></div>
             </div>
         }
         </div>
@@ -45,7 +45,6 @@
 </form>
 
 @section Scripts {
-<partial name="_ValidationScriptsPartial" />
 <script>
 (() => {
     const container = document.getElementById('invoice-lines');
@@ -60,12 +59,12 @@
     document.getElementById('add-line').addEventListener('click', () => {
         const index = container.querySelectorAll('.invoice-line').length;
         const row = document.createElement('div');
-        row.className = 'invoice-line row g-2 align-items-end mb-3';
+        row.className = 'invoice-line';
         row.innerHTML = `<div class="col-md-5"><label class="form-label">Description</label><input name="Lines[${index}].Description" class="form-control" /></div>
 <div class="col-md-2"><label class="form-label">Quantité</label><input name="Lines[${index}].Quantity" value="1" class="form-control" /></div>
 <div class="col-md-2"><label class="form-label">Prix unitaire HT</label><input name="Lines[${index}].UnitPrice" value="0" class="form-control" /></div>
 <div class="col-md-2"><label class="form-label">TVA %</label><input name="Lines[${index}].VatRate" value="20" class="form-control" /></div>
-<div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-line">×</button></div>`;
+<div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-line invoice-line-remove">×</button></div>`;
         container.appendChild(row);
     });
     container.addEventListener('click', event => {
