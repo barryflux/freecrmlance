@@ -1,20 +1,20 @@
 @model IReadOnlyList<Freecrmlance.Application.Crm.CustomerDto>
-@{ ViewData["Title"] = "Customers"; }
+@{ VoirData["Title"] = "Clients"; }
 
 <div class="page-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
     <div>
-        <h1 class="h2 mb-1">Customers</h1>
-        <p class="text-body-secondary mb-0">Manage your customers and their contacts.</p>
+        <h1 class="h2 mb-1">Clients</h1>
+        <p class="text-body-secondary mb-0">Gérez vos clients et leurs contacts depuis un seul espace.</p>
     </div>
-    <a class="btn btn-primary" asp-action="Create">Add customer</a>
+    <a class="btn btn-primary" asp-action="Create">Ajouter un client</a>
 </div>
 
 @if (Model.Count == 0)
 {
     <div class="empty-state">
-        <h2 class="h5">No customers yet</h2>
-        <p class="text-body-secondary">Create your first customer to start centralizing the relationship.</p>
-        <a class="btn btn-primary" asp-action="Create">Add customer</a>
+        <h2 class="h5">Aucun client pour le moment</h2>
+        <p class="text-body-secondary">Ajoutez votre premier client pour commencer à centraliser la relation.</p>
+        <a class="btn btn-primary" asp-action="Create">Ajouter un client</a>
     </div>
 }
 else
@@ -24,11 +24,11 @@ else
             <div class="d-flex flex-column flex-md-row gap-2 justify-content-between">
                 <div class="input-group" style="max-width: 420px;">
                     <span class="input-group-text" aria-hidden="true">⌕</span>
-                    <input id="customerSearch" class="form-control" type="search" placeholder="Search customers..." aria-label="Search customers" />
+                    <input id="customerSearch" class="form-control" type="search" placeholder="Rechercher un client…" aria-label="Rechercher un client" />
                 </div>
                 <div class="dropdown">
                     <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                        Columns
+                        Colonnes
                     </button>
                     <div class="dropdown-menu dropdown-menu-end p-3">
                         <div class="form-check mb-2">
@@ -36,21 +36,21 @@ else
                             <label class="form-check-label" for="showEmail">Email</label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input column-toggle" type="checkbox" value="phone" id="showPhone" checked />
-                            <label class="form-check-label" for="showPhone">Phone</label>
+                            <input class="form-check-input column-toggle" type="checkbox" value="phone" id="showTéléphone" checked />
+                            <label class="form-check-label" for="showTéléphone">Téléphone</label>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="small text-body-secondary mt-2"><span id="customerCount">@Model.Count</span> customer(s)</div>
+            <div class="small text-body-secondary mt-2"><span id="customerCount">@Model.Count</span> client(s)</div>
         </div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0" id="customersTable">
                 <thead class="table-light">
                     <tr>
-                        <th scope="col"><button class="btn btn-sm p-0 fw-semibold sort-button" type="button" data-sort="name">Name ↕</button></th>
+                        <th scope="col"><button class="btn btn-sm p-0 fw-semibold sort-button" type="button" data-sort="name">Nom ↕</button></th>
                         <th scope="col" data-column="email"><button class="btn btn-sm p-0 fw-semibold sort-button" type="button" data-sort="email">Email ↕</button></th>
-                        <th scope="col" data-column="phone"><button class="btn btn-sm p-0 fw-semibold sort-button" type="button" data-sort="phone">Phone ↕</button></th>
+                        <th scope="col" data-column="phone"><button class="btn btn-sm p-0 fw-semibold sort-button" type="button" data-sort="phone">Téléphone ↕</button></th>
                         <th scope="col" class="text-end">Actions</th>
                     </tr>
                 </thead>
@@ -60,18 +60,18 @@ else
                     <tr data-customer-row>
                         <td data-value="name"><a class="fw-semibold text-decoration-none" asp-action="Details" asp-route-id="@customer.Id">@customer.Name</a></td>
                         <td data-column="email" data-value="email">@(customer.Email ?? "—")</td>
-                        <td data-column="phone" data-value="phone">@(customer.Phone ?? "—")</td>
+                        <td data-column="phone" data-value="phone">@(customer.Téléphone ?? "—")</td>
                         <td class="text-end text-nowrap">
-                            <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@customer.Id">View</a>
-                            <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@customer.Id">Edit</a>
+                            <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@customer.Id">Voir</a>
+                            <a class="btn btn-sm btn-outline-primary" asp-action="Modifier" asp-route-id="@customer.Id">Modifier</a>
                         </td>
                     </tr>
                 }
                 </tbody>
             </table>
             <div id="noCustomerResults" class="empty-state m-3 d-none">
-                <h2 class="h5">No matching customers</h2>
-                <p class="text-body-secondary mb-0">Try another search.</p>
+                <h2 class="h5">Aucun client correspondant</h2>
+                <p class="text-body-secondary mb-0">Essayez une autre recherche.</p>
             </div>
         </div>
     </div>
