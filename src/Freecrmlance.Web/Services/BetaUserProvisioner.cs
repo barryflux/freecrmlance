@@ -1,7 +1,6 @@
 using Freecrmlance.Domain.Platform;
 using Freecrmlance.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace Freecrmlance.Web.Services;
 
