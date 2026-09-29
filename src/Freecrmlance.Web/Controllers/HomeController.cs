@@ -1,8 +1,16 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Freecrmlance.Web.Controllers;
 
 public sealed class HomeController : Controller
 {
-    public IActionResult Index() => View();
+    [AllowAnonymous]
+    public IActionResult Index()
+    {
+        if (User.Identity?.IsAuthenticated == true)
+            return RedirectToAction("Index", "Customers");
+
+        return View();
+    }
 }

@@ -1,3 +1,89 @@
-@{ ViewData["Title"] = "Freecrmlance"; }
-<h1>Freecrmlance</h1>
-<p>Un client, un espace, toute la relation.</p>
+@{ ViewData["Title"] = "Gestion client, devis et factures pour freelances"; }
+
+<section class="landing-hero">
+    <div class="container">
+        <div class="landing-hero-grid">
+            <div class="landing-hero-copy">
+                <span class="landing-eyebrow">Pensé pour les indépendants</span>
+                <h1>Un client, un espace,<br /><span>toute la relation.</span></h1>
+                <p class="landing-lead">Freecrmlance rassemble vos clients, contacts, documents, devis et factures dans un espace simple. Moins d’administratif dispersé, plus de visibilité sur votre activité.</p>
+                <div class="landing-actions">
+                    <a class="btn btn-primary btn-lg px-4" asp-controller="Account" asp-action="Login">Se connecter</a>
+                    <a class="btn btn-link landing-discover" href="#fonctionnalites">Découvrir Freecrmlance <span aria-hidden="true">↓</span></a>
+                </div>
+                <div class="landing-reassurance" aria-label="Points clés">
+                    <span><b aria-hidden="true">✓</b> Clients centralisés</span>
+                    <span><b aria-hidden="true">✓</b> Devis & factures</span>
+                    <span><b aria-hidden="true">✓</b> Documents partagés</span>
+                </div>
+            </div>
+            <div class="landing-visual">
+                <img src="https://images.unsplash.com/photo-1622675363311-3e1904dc1885?auto=format&fit=crop&w=1200&q=82"
+                     alt="Espace de travail lumineux avec un ordinateur portable"
+                     width="1200" height="900" fetchpriority="high" />
+                <div class="landing-visual-card">
+                    <span class="landing-visual-icon" aria-hidden="true">✓</span>
+                    <span><strong>Votre activité, au même endroit</strong><small>Du premier contact à la facture</small></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="landing-section" id="fonctionnalites">
+    <div class="container">
+        <div class="landing-section-heading">
+            <span class="landing-eyebrow">L’essentiel, sans la complexité</span>
+            <h2>Votre gestion quotidienne devient plus claire.</h2>
+            <p>Chaque outil reste relié au dossier client. Vous retrouvez le contexte sans naviguer entre plusieurs applications.</p>
+        </div>
+        <div class="landing-feature-grid">
+            <article class="landing-feature">
+                <span class="landing-feature-number">01</span>
+                <h3>Clients & contacts</h3>
+                <p>Gardez les coordonnées, contacts et informations de facturation au même endroit. Importez aussi votre portefeuille existant depuis CSV ou Excel.</p>
+            </article>
+            <article class="landing-feature">
+                <span class="landing-feature-number">02</span>
+                <h3>Devis & factures</h3>
+                <p>Préparez vos documents commerciaux depuis le dossier client et suivez leur évolution sans perdre le fil de la relation.</p>
+            </article>
+            <article class="landing-feature">
+                <span class="landing-feature-number">03</span>
+                <h3>Documents & partage</h3>
+                <p>Centralisez les fichiers utiles et partagez-les avec votre client quand vous en avez besoin, depuis son espace dédié.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="landing-flow">
+    <div class="container">
+        <div class="landing-flow-card">
+            <div>
+                <span class="landing-eyebrow">Une logique simple</span>
+                <h2>Tout part de votre client.</h2>
+                <p>Ouvrez son dossier et retrouvez la relation complète : contacts, documents, devis et factures. Freecrmlance reste volontairement concentré sur ce dont un freelance a besoin au quotidien.</p>
+            </div>
+            <div class="landing-flow-steps" aria-label="Parcours client">
+                <span>Client</span><b aria-hidden="true">→</b><span>Devis</span><b aria-hidden="true">→</b><span>Facture</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="landing-cta">
+    <div class="container">
+        <div class="landing-cta-inner">
+            <div><span class="landing-eyebrow">Freecrmlance</span><h2>Votre gestion client mérite d’être simple.</h2></div>
+            <a class="btn btn-primary btn-lg px-4" asp-controller="Account" asp-action="Login">Accéder à mon espace</a>
+        </div>
+    </div>
+</section>
+
+<footer class="landing-footer">
+    <div class="container d-flex flex-column flex-sm-row justify-content-between gap-2">
+        <strong>Freecrmlance</strong>
+        <span>Un client, un espace, toute la relation.</span>
+    </div>
+</footer>
