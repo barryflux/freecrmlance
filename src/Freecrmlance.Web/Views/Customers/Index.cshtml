@@ -4,7 +4,7 @@
 <div class="page-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
     <div>
         <h1 class="h2 mb-1">Clients</h1>
-        <p class="text-body-secondary mb-0">Gérez vos clients et leurs contacts depuis un seul espace.</p>
+        <p class="text-body-secondary mb-0"><span id="customerCount">@Model.Count</span> client@(Model.Count > 1 ? "s" : "")</p>
     </div>
     <a class="btn btn-primary" asp-action="Create">Ajouter un client</a>
 </div>
@@ -12,126 +12,122 @@
 @if (Model.Count == 0)
 {
     <div class="empty-state">
-        <h2 class="h5">Aucun client pour le moment</h2>
-        <p class="text-body-secondary">Ajoutez votre premier client pour commencer à centraliser la relation.</p>
+        <h2 class="h5">Aucun client</h2>
+        <p class="text-body-secondary">Ajoutez votre premier client pour centraliser ses contacts, documents, devis et factures.</p>
         <a class="btn btn-primary" asp-action="Create">Ajouter un client</a>
     </div>
 }
 else
 {
-    <div class="card shadow-sm border-0">
-        <div class="card-body border-bottom">
-            <div class="d-flex flex-column flex-md-row gap-2 justify-content-between">
-                <div class="input-group" style="max-width: 420px;">
-                    <span class="input-group-text" aria-hidden="true">⌕</span>
-                    <input id="customerSearch" class="form-control" type="search" placeholder="Rechercher un client…" aria-label="Rechercher un client" />
-                </div>
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                        Colonnes
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-end p-3">
-                        <div class="form-check mb-2">
-                            <input class="form-check-input column-toggle" type="checkbox" value="email" id="showEmail" checked />
-                            <label class="form-check-label" for="showEmail">Email</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input column-toggle" type="checkbox" value="phone" id="showTéléphone" checked />
-                            <label class="form-check-label" for="showTéléphone">Téléphone</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="small text-body-secondary mt-2"><span id="customerCount">@Model.Count</span> client(s)</div>
+    <div class="customer-list-toolbar">
+        <label class="visually-hidden" for="customerSearch">Rechercher un client</label>
+        <div class="input-group">
+            <span class="input-group-text" aria-hidden="true">⌕</span>
+            <input id="customerSearch" class="form-control" type="search" placeholder="Nom, email ou téléphone…" autocomplete="off" />
         </div>
+    </div>
+
+    <div class="customer-mobile-list d-md-none" id="customerMobileList">
+        @foreach (var customer in Model)
+        {
+            <article class="customer-mobile-item" data-customer-item>
+                <a class="customer-mobile-main" asp-action="Details" asp-route-id="@customer.Id">
+                    <strong>@customer.Name</strong>
+                    <span>@(customer.Email ?? customer.Phone ?? "Coordonnées non renseignées")</span>
+                </a>
+                <div class="customer-mobile-actions">
+                    <a asp-action="Details" asp-route-id="@customer.Id">Ouvrir</a>
+                    <a asp-action="Edit" asp-route-id="@customer.Id">Modifier</a>
+                </div>
+            </article>
+        }
+    </div>
+
+    <div class="card border-0 d-none d-md-block">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0" id="customersTable">
-                <thead class="table-light">
+                <thead>
                     <tr>
                         <th scope="col"><button class="btn btn-sm p-0 fw-semibold sort-button" type="button" data-sort="name">Nom ↕</button></th>
-                        <th scope="col" data-column="email"><button class="btn btn-sm p-0 fw-semibold sort-button" type="button" data-sort="email">Email ↕</button></th>
-                        <th scope="col" data-column="phone"><button class="btn btn-sm p-0 fw-semibold sort-button" type="button" data-sort="phone">Téléphone ↕</button></th>
+                        <th scope="col"><button class="btn btn-sm p-0 fw-semibold sort-button" type="button" data-sort="email">Email ↕</button></th>
+                        <th scope="col"><button class="btn btn-sm p-0 fw-semibold sort-button" type="button" data-sort="phone">Téléphone ↕</button></th>
                         <th scope="col" class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                 @foreach (var customer in Model)
                 {
-                    <tr data-customer-row>
+                    <tr data-customer-item>
                         <td data-value="name"><a class="fw-semibold text-decoration-none" asp-action="Details" asp-route-id="@customer.Id">@customer.Name</a></td>
-                        <td data-column="email" data-value="email">@(customer.Email ?? "—")</td>
-                        <td data-column="phone" data-value="phone">@(customer.Phone ?? "—")</td>
+                        <td data-value="email">@(customer.Email ?? "—")</td>
+                        <td data-value="phone">@(customer.Phone ?? "—")</td>
                         <td class="text-end text-nowrap">
-                            <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@customer.Id">Voir</a>
-                            <a class="btn btn-sm btn-outline-primary" asp-action="Modifier" asp-route-id="@customer.Id">Modifier</a>
+                            <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@customer.Id">Ouvrir</a>
+                            <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@customer.Id">Modifier</a>
                         </td>
                     </tr>
                 }
                 </tbody>
             </table>
-            <div id="noCustomerResults" class="empty-state m-3 d-none">
-                <h2 class="h5">Aucun client correspondant</h2>
-                <p class="text-body-secondary mb-0">Essayez une autre recherche.</p>
-            </div>
         </div>
+    </div>
+
+    <div id="noCustomerResults" class="empty-state mt-3 d-none">
+        <h2 class="h5">Aucun client correspondant</h2>
+        <p class="text-body-secondary mb-0">Modifiez votre recherche.</p>
     </div>
 }
 
 @section Scripts {
 <script>
-    (() => {
-        const table = document.getElementById("customersTable");
-        if (!table) return;
+(() => {
+    const search = document.getElementById("customerSearch");
+    if (!search) return;
 
-        const tbody = table.querySelector("tbody");
-        const search = document.getElementById("customerSearch");
-        const count = document.getElementById("customerCount");
-        const empty = document.getElementById("noCustomerResults");
-        let sortDirection = 1;
-        let lastSort = "";
+    const count = document.getElementById("customerCount");
+    const empty = document.getElementById("noCustomerResults");
+    const mobileItems = [...document.querySelectorAll("#customerMobileList [data-customer-item]")];
+    const desktopRows = [...document.querySelectorAll("#customersTable [data-customer-item]")];
+    let sortDirection = 1;
+    let lastSort = "";
 
-        const rows = () => [...tbody.querySelectorAll("[data-customer-row]")];
+    const filter = () => {
+        const query = search.value.trim().toLocaleLowerCase();
+        let visible = 0;
 
-        const filterRows = () => {
-            const query = search.value.trim().toLocaleLowerCase();
-            let visible = 0;
-
-            rows().forEach(row => {
-                const matches = row.textContent.toLocaleLowerCase().includes(query);
-                row.classList.toggle("d-none", !matches);
-                if (matches) visible++;
-            });
-
-            count.textContent = visible;
-            empty.classList.toggle("d-none", visible !== 0);
-        };
-
-        search.addEventListener("input", filterRows);
-
-        document.querySelectorAll(".column-toggle").forEach(toggle => {
-            toggle.addEventListener("change", () => {
-                const column = toggle.value;
-                table.querySelectorAll(`[data-column="${column}"]`).forEach(cell => {
-                    cell.classList.toggle("d-none", !toggle.checked);
-                });
-            });
+        desktopRows.forEach(row => {
+            const matches = row.textContent.toLocaleLowerCase().includes(query);
+            row.classList.toggle("d-none", !matches);
+            if (matches) visible++;
         });
 
-        document.querySelectorAll(".sort-button").forEach(button => {
-            button.addEventListener("click", () => {
-                const key = button.dataset.sort;
-                sortDirection = lastSort === key ? sortDirection * -1 : 1;
-                lastSort = key;
+        mobileItems.forEach(item => {
+            const matches = item.textContent.toLocaleLowerCase().includes(query);
+            item.classList.toggle("d-none", !matches);
+        });
 
-                const sorted = rows().sort((a, b) => {
+        count.textContent = visible;
+        empty.classList.toggle("d-none", visible !== 0);
+    };
+
+    search.addEventListener("input", filter);
+
+    document.querySelectorAll(".sort-button").forEach(button => {
+        button.addEventListener("click", () => {
+            const key = button.dataset.sort;
+            sortDirection = lastSort === key ? sortDirection * -1 : 1;
+            lastSort = key;
+
+            const tbody = document.querySelector("#customersTable tbody");
+            [...desktopRows]
+                .sort((a, b) => {
                     const left = a.querySelector(`[data-value="${key}"]`).textContent.trim();
                     const right = b.querySelector(`[data-value="${key}"]`).textContent.trim();
-                    return left.localeCompare(right, undefined, { sensitivity: "base" }) * sortDirection;
-                });
-
-                sorted.forEach(row => tbody.appendChild(row));
-            });
+                    return left.localeCompare(right, "fr", { sensitivity: "base" }) * sortDirection;
+                })
+                .forEach(row => tbody.appendChild(row));
         });
-    })();
+    });
+})();
 </script>
 }
