@@ -5,5 +5,5 @@
     <PackageReference Include="NUnit" Version="4.3.2" />
     <PackageReference Include="NUnit3TestAdapter" Version="5.0.0" />
   </ItemGroup>
-  <ItemGroup><ProjectReference Include="../../src/Freecrmlance.Domain/Freecrmlance.Domain.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../../src/Freecrmlance.Domain/Freecrmlance.Domain.csproj" /><ProjectReference Include="../../src/Freecrmlance.Application/Freecrmlance.Application.csproj" /></ItemGroup>
 </Project>

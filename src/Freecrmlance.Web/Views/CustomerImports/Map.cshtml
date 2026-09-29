@@ -1,0 +1,28 @@
+@using Freecrmlance.Application.Crm
+@model Freecrmlance.Web.Models.Customers.CustomerImportMapViewModel
+@{ ViewData["Title"] = "Correspondance des colonnes"; var fields = Enum.GetValues<CustomerImportField>(); }
+<div class="page-header">
+    <div class="small text-body-secondary mb-2">Étape 2 sur 4 · @Model.FileName</div>
+    <h1 class="h2 mb-1">Correspondance des colonnes</h1>
+    <p class="text-body-secondary mb-0">Nous avons prérempli les correspondances reconnues. Vérifiez-les avant de continuer.</p>
+</div>
+<div asp-validation-summary="All" class="alert alert-danger"></div>
+<form asp-action="Preview" method="post">
+<div class="card shadow-sm border-0"><div class="table-responsive"><table class="table align-middle mb-0">
+<thead><tr><th>Colonne du fichier</th><th>Exemples</th><th>Champ Freecrmlance</th></tr></thead>
+<tbody>
+@foreach (var column in Model.Columns) {
+<tr>
+<td class="fw-semibold">@column.Header</td>
+<td class="small text-body-secondary">@string.Join(" · ", column.Samples)</td>
+<td><select class="form-select" name="mapping_@column.Index">
+@foreach (var field in fields) {
+    var label = field switch { CustomerImportField.Ignore => "Ne pas importer", CustomerImportField.Name => "Nom du client", CustomerImportField.Type => "Type", CustomerImportField.Email => "Email", CustomerImportField.Phone => "Téléphone", CustomerImportField.Siren => "SIREN", CustomerImportField.Siret => "SIRET", CustomerImportField.VatNumber => "N° TVA", CustomerImportField.AddressLine1 => "Adresse", CustomerImportField.AddressLine2 => "Complément", CustomerImportField.PostalCode => "Code postal", CustomerImportField.City => "Ville", CustomerImportField.CountryCode => "Pays (code 2 lettres)", _ => field.ToString() };
+    if (field == column.SuggestedField) { <option value="@field" selected>@label</option> } else { <option value="@field">@label</option> }
+}
+</select></td>
+</tr>
+}
+</tbody></table></div></div>
+<div class="d-flex justify-content-between gap-2 mt-4"><a class="btn btn-outline-secondary" asp-action="Index">Changer de fichier</a><button class="btn btn-primary" type="submit">Vérifier les données</button></div>
+</form>

@@ -1,0 +1,8 @@
+@model Freecrmlance.Web.Models.Customers.CustomerImportResultViewModel
+@{ ViewData["Title"] = "Import terminé"; }
+<div class="page-header"><div class="small text-body-secondary mb-2">Étape 4 sur 4</div><h1 class="h2 mb-1">Import terminé</h1><p class="text-body-secondary mb-0">Votre portefeuille clients a été traité.</p></div>
+<div class="card shadow-sm border-0"><div class="card-body p-4">
+<h2 class="h4">@Model.Result.ImportedCount client@(Model.Result.ImportedCount > 1 ? "s" : "") importé@(Model.Result.ImportedCount > 1 ? "s" : "")</h2>
+<p class="text-body-secondary mb-4">@Model.Result.DuplicateCount doublon@(Model.Result.DuplicateCount > 1 ? "s" : "") ignoré@(Model.Result.DuplicateCount > 1 ? "s" : "") · @Model.Result.RejectedCount ligne@(Model.Result.RejectedCount > 1 ? "s" : "") rejetée@(Model.Result.RejectedCount > 1 ? "s" : "")</p>
+<div class="d-flex gap-2"><a class="btn btn-primary" asp-controller="Customers" asp-action="Index">Voir mes clients</a><a class="btn btn-outline-secondary" asp-action="Index">Faire un autre import</a></div>
+</div></div>

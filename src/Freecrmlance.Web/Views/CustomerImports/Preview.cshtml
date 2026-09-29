@@ -1,0 +1,26 @@
+@model Freecrmlance.Web.Models.Customers.CustomerImportPreviewViewModel
+@{ ViewData["Title"] = "Vérifier l’import"; }
+<div class="page-header">
+    <div class="small text-body-secondary mb-2">Étape 3 sur 4</div>
+    <h1 class="h2 mb-1">Vérifier avant l’import</h1>
+    <p class="text-body-secondary mb-0">Aucune donnée n’a encore été créée.</p>
+</div>
+<div class="row g-3 mb-4">
+<div class="col-6 col-lg-3"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-body-secondary small">Lignes</div><strong class="fs-4">@Model.Preview.Rows.Count</strong></div></div></div>
+<div class="col-6 col-lg-3"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-body-secondary small">Prêtes</div><strong class="fs-4">@Model.Preview.ReadyCount</strong></div></div></div>
+<div class="col-6 col-lg-3"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-body-secondary small">Doublons</div><strong class="fs-4">@Model.Preview.DuplicateCount</strong></div></div></div>
+<div class="col-6 col-lg-3"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-body-secondary small">À corriger</div><strong class="fs-4">@Model.Preview.InvalidCount</strong></div></div></div>
+</div>
+<div class="card shadow-sm border-0"><div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>Ligne</th><th>Client</th><th>Email</th><th>SIRET</th><th>État</th></tr></thead><tbody>
+@foreach (var row in Model.Preview.Rows) {
+<tr><td>@row.RowNumber</td><td class="fw-semibold">@(string.IsNullOrWhiteSpace(row.Name) ? "—" : row.Name)</td><td>@(row.Email ?? "—")</td><td>@(row.Siret ?? "—")</td><td>
+@if (row.IsDuplicate) { <span class="badge text-bg-warning">Doublon</span> }
+else if (row.Errors.Count > 0) { <span class="badge text-bg-danger">À corriger</span><div class="small text-danger mt-1">@string.Join(" · ", row.Errors)</div> }
+else { <span class="badge text-bg-success">Prêt</span> }
+</td></tr>
+}
+</tbody></table></div></div>
+<div class="d-flex flex-column flex-sm-row justify-content-between gap-2 mt-4">
+<a class="btn btn-outline-secondary" asp-action="Map">Modifier la correspondance</a>
+<form asp-action="Confirm" method="post">@if (Model.Preview.ReadyCount == 0) { <button class="btn btn-primary" type="submit" disabled>Aucun client à importer</button> } else { <button class="btn btn-primary" type="submit">Importer @Model.Preview.ReadyCount client@(Model.Preview.ReadyCount > 1 ? "s" : "")</button> }</form>
+</div>

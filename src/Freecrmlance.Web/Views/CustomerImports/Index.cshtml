@@ -1,0 +1,18 @@
+@{ ViewData["Title"] = "Importer des clients"; }
+<div class="page-header">
+    <nav aria-label="Fil d’Ariane"><ol class="breadcrumb small mb-2"><li class="breadcrumb-item"><a asp-controller="Customers" asp-action="Index">Clients</a></li><li class="breadcrumb-item active">Importer</li></ol></nav>
+    <h1 class="h2 mb-1">Importer des clients</h1>
+    <p class="text-body-secondary mb-0">Importez votre portefeuille depuis Excel ou un CSV, puis vérifiez les données avant leur création.</p>
+</div>
+<div class="card form-card shadow-sm border-0"><div class="card-body p-4">
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+    <form asp-action="Upload" method="post" enctype="multipart/form-data">
+        <label class="form-label fw-semibold" for="file">Fichier clients</label>
+        <input class="form-control form-control-lg" id="file" name="file" type="file" accept=".csv,.xlsx" required />
+        <div class="form-text">CSV ou XLSX · 5 Mo maximum · jusqu’à 2 000 lignes par import.</div>
+        <div class="d-flex flex-column flex-sm-row justify-content-between gap-2 mt-4">
+            <a class="btn btn-outline-secondary" asp-action="Template">Télécharger le modèle CSV</a>
+            <button class="btn btn-primary" type="submit">Analyser le fichier</button>
+        </div>
+    </form>
+</div></div>
