@@ -54,7 +54,7 @@
 </section>
 
 <section class="customer-tab-panel d-none" data-customer-panel="contacts">
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="customer-section-header">
     <h2 class="h4 mb-0">Contacts <span class="badge text-bg-secondary">@Model.Contacts.Count</span></h2>
     <a class="btn btn-primary btn-sm" asp-action="CreateContact" asp-route-id="@Model.Customer.Id">Ajouter un contact</a>
 </div>
@@ -69,13 +69,13 @@ else
     @foreach (var contact in Model.Contacts)
     {
         <div class="col-md-6 col-xl-4">
-            <article class="card contact-card shadow-sm border-0">
-                <div class="card-body">
+            <article class="contact-card">
+                <div class="contact-card-body">
                     <div class="d-flex justify-content-between gap-2 mb-3"><div><h3 class="h5 mb-1">@contact.Name</h3><span class="text-body-secondary small">@(contact.Role ?? "Fonction non renseignée")</span></div></div>
                     <div class="small mb-1"><span class="text-body-secondary">Email:</span> @if (contact.Email is not null) { <a href="mailto:@contact.Email">@contact.Email</a> } else { <span>—</span> }</div>
                     <div class="small"><span class="text-body-secondary">Téléphone:</span> @if (contact.Phone is not null) { <a href="tel:@contact.Phone">@contact.Phone</a> } else { <span>—</span> }</div>
                 </div>
-                <div class="card-footer bg-transparent d-flex gap-2">
+                <div class="contact-card-actions">
                     <button class="btn btn-sm btn-outline-secondary"
                             type="button"
                             data-bs-toggle="modal"
@@ -104,7 +104,7 @@ else
 </section>
 
 <section class="customer-tab-panel d-none" data-customer-panel="quotes">
-<div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-3">
+<div class="customer-section-header">
     <div><h2 class="h4 mb-1">Devis <span class="badge text-bg-secondary">@Model.Quotes.Count</span></h2><div class="text-body-secondary small">Brouillons et historique des devis de ce client.</div></div>
     <a class="btn btn-primary btn-sm" asp-controller="Quotes" asp-action="Create" asp-route-customerId="@Model.Customer.Id">Créer un devis</a>
 </div>
@@ -114,12 +114,18 @@ else
 }
 else
 {
-    <div class="list-group shadow-sm mb-4">
+    <div class="customer-record-list">
     @foreach (var quote in Model.Quotes)
     {
-        <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center gap-3" asp-controller="Quotes" asp-action="Details" asp-route-customerId="@Model.Customer.Id" asp-route-quoteId="@quote.Id">
-            <span><strong class="d-block">@quote.Number</strong><span class="text-body-secondary small">@quote.CreatedAtUtc.ToString("dd/MM/yyyy") · @(quote.Status switch { Freecrmlance.Domain.Crm.QuoteStatus.Draft => "Brouillon", Freecrmlance.Domain.Crm.QuoteStatus.Sent => "Envoyé", Freecrmlance.Domain.Crm.QuoteStatus.Accepted => "Accepté", Freecrmlance.Domain.Crm.QuoteStatus.Rejected => "Refusé", _ => quote.Status.ToString() })</span></span>
-            <strong>@quote.Total.ToString("C")</strong>
+        <a class="customer-record-item" asp-controller="Quotes" asp-action="Details" asp-route-customerId="@Model.Customer.Id" asp-route-quoteId="@quote.Id">
+            <span class="customer-record-main">
+                <strong>@quote.Number</strong>
+                <span>@quote.CreatedAtUtc.ToString("dd/MM/yyyy")</span>
+            </span>
+            <span class="customer-record-end">
+                <span class="status-badge status-@quote.Status.ToString().ToLowerInvariant()">@(quote.Status switch { Freecrmlance.Domain.Crm.QuoteStatus.Draft => "Brouillon", Freecrmlance.Domain.Crm.QuoteStatus.Sent => "Envoyé", Freecrmlance.Domain.Crm.QuoteStatus.Accepted => "Accepté", Freecrmlance.Domain.Crm.QuoteStatus.Rejected => "Refusé", _ => quote.Status.ToString() })</span>
+                <strong>@quote.Total.ToString("C")</strong>
+            </span>
         </a>
     }
     </div>
@@ -128,7 +134,7 @@ else
 </section>
 
 <section class="customer-tab-panel d-none" data-customer-panel="invoices">
-<div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-3">
+<div class="customer-section-header">
     <div><h2 class="h4 mb-1">Factures <span class="badge text-bg-secondary">@Model.Invoices.Count</span></h2><div class="text-body-secondary small">Brouillons et historique de facturation de ce client.</div></div>
     <a class="btn btn-primary btn-sm" asp-controller="Invoices" asp-action="Create" asp-route-customerId="@Model.Customer.Id">Créer une facture</a>
 </div>
@@ -138,12 +144,18 @@ else
 }
 else
 {
-    <div class="list-group shadow-sm mb-4">
+    <div class="customer-record-list">
     @foreach (var invoice in Model.Invoices)
     {
-        <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center gap-3" asp-controller="Invoices" asp-action="Details" asp-route-customerId="@Model.Customer.Id" asp-route-invoiceId="@invoice.Id">
-            <span><strong class="d-block">@invoice.Number</strong><span class="text-body-secondary small">@invoice.CreatedAtUtc.ToString("dd/MM/yyyy") · @(invoice.Status == Freecrmlance.Domain.Billing.InvoiceStatus.Draft ? "Brouillon" : "Émise")</span></span>
-            <strong>@invoice.Total.ToString("C")</strong>
+        <a class="customer-record-item" asp-controller="Invoices" asp-action="Details" asp-route-customerId="@Model.Customer.Id" asp-route-invoiceId="@invoice.Id">
+            <span class="customer-record-main">
+                <strong>@(invoice.Number ?? invoice.DraftReference)</strong>
+                <span>@invoice.CreatedAtUtc.ToString("dd/MM/yyyy")</span>
+            </span>
+            <span class="customer-record-end">
+                <span class="status-badge @(invoice.Status == Freecrmlance.Domain.Billing.InvoiceStatus.Draft ? "status-draft" : "status-issued")">@(invoice.Status == Freecrmlance.Domain.Billing.InvoiceStatus.Draft ? "Brouillon" : "Émise")</span>
+                <strong>@invoice.Total.ToString("C")</strong>
+            </span>
         </a>
     }
     </div>
@@ -152,12 +164,12 @@ else
 </section>
 
 <section class="customer-tab-panel d-none" data-customer-panel="documents">
-<div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-3">
+<div class="customer-section-header">
     <div>
         <h2 class="h4 mb-1">Documents <span class="badge text-bg-secondary">@Model.Documents.Count</span></h2>
         <div class="text-body-secondary small">Fichiers associés à ce client.</div>
     </div>
-    <form asp-action="UploadDocument" asp-route-id="@Model.Customer.Id" method="post" enctype="multipart/form-data" class="d-flex gap-2">
+    <form asp-action="UploadDocument" asp-route-id="@Model.Customer.Id" method="post" enctype="multipart/form-data" class="customer-upload-form">
         <input class="form-control form-control-sm" type="file" name="file" required />
         <button class="btn btn-primary btn-sm text-nowrap" type="submit">Importer</button>
     </form>
@@ -172,10 +184,10 @@ else
 }
 else
 {
-    <div class="list-group shadow-sm mb-4">
+    <div class="customer-record-list">
     @foreach (var document in Model.Documents)
     {
-        <div class="list-group-item d-flex justify-content-between align-items-center gap-3">
+        <div class="customer-document-item">
             <span>
                 <strong class="d-block">@document.FileName</strong>
                 <span class="text-body-secondary small">@document.CreatedAtUtc.ToString("dd/MM/yyyy HH:mm") · @((document.Size / 1024d).ToString("0.#")) Ko</span>
@@ -191,7 +203,7 @@ else
                     <span class="d-block small mt-1"><span class="badge text-bg-secondary">Non partagé</span></span>
                 }
             </span>
-            <span class="d-flex gap-2">
+            <span class="customer-document-actions">
                 @if (activeShare is null)
                 {
                     <form asp-action="CreateDocumentShare" asp-route-customerId="@Model.Customer.Id" asp-route-documentId="@document.Id" method="post">
