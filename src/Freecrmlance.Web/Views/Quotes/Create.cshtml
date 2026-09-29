@@ -1,8 +1,15 @@
 @model Freecrmlance.Web.Models.Quotes.QuoteFormViewModel
-@{ ViewData["Title"] = "Créer un devis"; }
+@{ ViewData["Title"] = "Créer un devis"; var customerId = ViewContext.RouteData.Values["customerId"]; }
 <div class="page-header">
-    <a class="text-decoration-none small" asp-controller="Customers" asp-action="Details" asp-route-id="@ViewContext.RouteData.Values["customerId"]">← Client</a>
-    <h1 class="h2 mt-2 mb-1">Créer un devis</h1>
+    <nav aria-label="Fil d’Ariane">
+        <ol class="breadcrumb small mb-2">
+            <li class="breadcrumb-item"><a asp-controller="Customers" asp-action="Index">Clients</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Customers" asp-action="Details" asp-route-id="@customerId" asp-fragment="quotes">Dossier client</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Customers" asp-action="Details" asp-route-id="@customerId" asp-fragment="quotes">Devis</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Créer</li>
+        </ol>
+    </nav>
+    <h1 class="h2 mb-1">Créer un devis</h1>
     <p class="text-body-secondary mb-0">Préparez un nouveau devis brouillon pour ce client.</p>
 </div>
-<div class="card form-card shadow-sm border-0"><div class="card-body p-4"><form method="post"><partial name="_QuoteForm" model="Model" /><div class="d-flex justify-content-end gap-2 mt-4"><a class="btn btn-outline-secondary" asp-controller="Customers" asp-action="Details" asp-route-id="@ViewContext.RouteData.Values["customerId"]">Annuler</a><button class="btn btn-primary" type="submit">Créer le devis</button></div></form></div></div>
+<div class="card form-card shadow-sm border-0"><div class="card-body p-4"><form method="post"><partial name="_QuoteForm" model="Model" /><div class="d-flex justify-content-end gap-2 mt-4"><a class="btn btn-outline-secondary" asp-controller="Customers" asp-action="Details" asp-route-id="@customerId" asp-fragment="quotes">Annuler</a><button class="btn btn-primary" type="submit">Créer le devis</button></div></form></div></div>
