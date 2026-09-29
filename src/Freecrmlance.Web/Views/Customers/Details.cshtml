@@ -1,8 +1,8 @@
 @model Freecrmlance.Web.Models.Customers.CustomerDetailsViewModel
-@{ ViewData["Title"] = Model.Customer.Nom; }
+@{ ViewData["Title"] = Model.Customer.Name; }
 
 <div class="page-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-start gap-3">
-    <div><a class="text-decoration-none small" asp-action="Index">← Clients</a><h1 class="h2 mt-2 mb-0">@Model.Customer.Nom</h1></div>
+    <div><a class="text-decoration-none small" asp-action="Index">← Clients</a><h1 class="h2 mt-2 mb-0">@Model.Customer.Name</h1></div>
     <a class="btn btn-outline-secondary" asp-action="Edit" asp-route-id="@Model.Customer.Id">Modifier le client</a>
 </div>
 
@@ -11,7 +11,7 @@
         <h2 class="h5 mb-3">Informations client</h2>
         <div class="row g-3">
             <div class="col-md-6"><div class="text-body-secondary small">Email</div><div>@(Model.Customer.Email ?? "—")</div></div>
-            <div class="col-md-6"><div class="text-body-secondary small">Téléphone</div><div>@(Model.Customer.Téléphone ?? "—")</div></div>
+            <div class="col-md-6"><div class="text-body-secondary small">Téléphone</div><div>@(Model.Customer.Phone ?? "—")</div></div>
         </div>
     </div>
     @if (Model.Customer.Type is not null)
@@ -26,10 +26,10 @@
                 <div class="col-md-4"><div class="text-body-secondary small">SIRET</div><div>@(Model.Customer.Siret ?? "—")</div></div>
                 <div class="col-md-4"><div class="text-body-secondary small">N° TVA intracommunautaire</div><div>@(Model.Customer.VatNumber ?? "—")</div></div>
             }
-            <div class="col-md-8"><div class="text-body-secondary small">Adresse</div><div>@Model.Customer.AdresseLine1@if (!string.IsNullOrWhiteSpace(Model.Customer.AdresseLine2)) { <text>, @Model.Customer.AdresseLine2</text> }<br />@Model.Customer.PostalCode @Model.Customer.City · @Model.Customer.CountryCode</div></div>
-            @if (!string.IsNullOrWhiteSpace(Model.Customer.BillingAdresseLine1))
+            <div class="col-md-8"><div class="text-body-secondary small">Adresse</div><div>@Model.Customer.AddressLine1@if (!string.IsNullOrWhiteSpace(Model.Customer.AddressLine2)) { <text>, @Model.Customer.AddressLine2</text> }<br />@Model.Customer.PostalCode @Model.Customer.City · @Model.Customer.CountryCode</div></div>
+            @if (!string.IsNullOrWhiteSpace(Model.Customer.BillingAddressLine1))
             {
-                <div class="col-md-8"><div class="text-body-secondary small">Adresse de facturation</div><div>@Model.Customer.BillingAdresseLine1@if (!string.IsNullOrWhiteSpace(Model.Customer.BillingAdresseLine2)) { <text>, @Model.Customer.BillingAdresseLine2</text> }<br />@Model.Customer.BillingPostalCode @Model.Customer.BillingCity · @Model.Customer.BillingCountryCode</div></div>
+                <div class="col-md-8"><div class="text-body-secondary small">Adresse de facturation</div><div>@Model.Customer.BillingAddressLine1@if (!string.IsNullOrWhiteSpace(Model.Customer.BillingAddressLine2)) { <text>, @Model.Customer.BillingAddressLine2</text> }<br />@Model.Customer.BillingPostalCode @Model.Customer.BillingCity · @Model.Customer.BillingCountryCode</div></div>
             }
         </div>
     }
@@ -52,9 +52,9 @@ else
         <div class="col-md-6 col-xl-4">
             <article class="card contact-card shadow-sm border-0">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between gap-2 mb-3"><div><h3 class="h5 mb-1">@contact.Nom</h3><span class="text-body-secondary small">@(contact.Fonction ?? "Fonction non renseignée")</span></div></div>
+                    <div class="d-flex justify-content-between gap-2 mb-3"><div><h3 class="h5 mb-1">@contact.Name</h3><span class="text-body-secondary small">@(contact.Role ?? "Fonction non renseignée")</span></div></div>
                     <div class="small mb-1"><span class="text-body-secondary">Email:</span> @if (contact.Email is not null) { <a href="mailto:@contact.Email">@contact.Email</a> } else { <span>—</span> }</div>
-                    <div class="small"><span class="text-body-secondary">Téléphone:</span> @if (contact.Téléphone is not null) { <a href="tel:@contact.Téléphone">@contact.Téléphone</a> } else { <span>—</span> }</div>
+                    <div class="small"><span class="text-body-secondary">Téléphone:</span> @if (contact.Phone is not null) { <a href="tel:@contact.Phone">@contact.Phone</a> } else { <span>—</span> }</div>
                 </div>
                 <div class="card-footer bg-transparent d-flex gap-2">
                     <button class="btn btn-sm btn-outline-secondary"
@@ -62,16 +62,16 @@ else
                             data-bs-toggle="modal"
                             data-bs-target="#editContactModal"
                             data-contact-id="@contact.Id"
-                            data-contact-name="@contact.Nom"
-                            data-contact-role="@contact.Fonction"
+                            data-contact-name="@contact.Name"
+                            data-contact-role="@contact.Role"
                             data-contact-email="@contact.Email"
-                            data-contact-phone="@contact.Téléphone">Modifier</button>
+                            data-contact-phone="@contact.Phone">Modifier</button>
                     <button class="btn btn-sm btn-outline-danger"
                             type="button"
                             data-bs-toggle="modal"
                             data-bs-target="#deleteContactModal"
                             data-contact-id="@contact.Id"
-                            data-contact-name="@contact.Nom">Supprimer</button>
+                            data-contact-name="@contact.Name">Supprimer</button>
                 </div>
             </article>
         </div>
@@ -83,17 +83,17 @@ else
 
 
 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mt-5 mb-3">
-    <div><h2 class="h4 mb-1">Devis <span class="badge text-bg-secondary">@Model.Devis.Count</span></h2><div class="text-body-secondary small">Brouillons et historique des devis de ce client.</div></div>
+    <div><h2 class="h4 mb-1">Devis <span class="badge text-bg-secondary">@Model.Quotes.Count</span></h2><div class="text-body-secondary small">Brouillons et historique des devis de ce client.</div></div>
     <a class="btn btn-primary btn-sm" asp-controller="Devis" asp-action="Create" asp-route-customerId="@Model.Customer.Id">Créer un devis</a>
 </div>
-@if (Model.Devis.Count == 0)
+@if (Model.Quotes.Count == 0)
 {
     <div class="empty-state"><h3 class="h5">Aucun devis</h3><p class="text-body-secondary mb-3">Créez le premier brouillon de devis pour ce client.</p><a class="btn btn-primary" asp-controller="Devis" asp-action="Create" asp-route-customerId="@Model.Customer.Id">Créer un devis</a></div>
 }
 else
 {
     <div class="list-group shadow-sm mb-4">
-    @foreach (var quote in Model.Devis)
+    @foreach (var quote in Model.Quotes)
     {
         <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center gap-3" asp-controller="Devis" asp-action="Details" asp-route-customerId="@Model.Customer.Id" asp-route-quoteId="@quote.Id">
             <span><strong class="d-block">@quote.Number</strong><span class="text-body-secondary small">@quote.CreatedAtUtc.ToString("dd/MM/yyyy") · @(quote.Status switch { Freecrmlance.Domain.Crm.QuoteStatus.Draft => "Brouillon", Freecrmlance.Domain.Crm.QuoteStatus.Sent => "Envoyé", Freecrmlance.Domain.Crm.QuoteStatus.Accepted => "Accepté", Freecrmlance.Domain.Crm.QuoteStatus.Rejected => "Refusé", _ => quote.Status.ToString() })</span></span>
@@ -104,17 +104,17 @@ else
 }
 
 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mt-5 mb-3">
-    <div><h2 class="h4 mb-1">Factures <span class="badge text-bg-secondary">@Model.Factures.Count</span></h2><div class="text-body-secondary small">Brouillons et historique de facturation de ce client.</div></div>
+    <div><h2 class="h4 mb-1">Factures <span class="badge text-bg-secondary">@Model.Invoices.Count</span></h2><div class="text-body-secondary small">Brouillons et historique de facturation de ce client.</div></div>
     <a class="btn btn-primary btn-sm" asp-controller="Factures" asp-action="Create" asp-route-customerId="@Model.Customer.Id">Créer une facture</a>
 </div>
-@if (Model.Factures.Count == 0)
+@if (Model.Invoices.Count == 0)
 {
     <div class="empty-state"><h3 class="h5">Aucune facture</h3><p class="text-body-secondary mb-3">Créez la première facture brouillon pour ce client.</p><a class="btn btn-primary" asp-controller="Factures" asp-action="Create" asp-route-customerId="@Model.Customer.Id">Créer une facture</a></div>
 }
 else
 {
     <div class="list-group shadow-sm mb-4">
-    @foreach (var invoice in Model.Factures)
+    @foreach (var invoice in Model.Invoices)
     {
         <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center gap-3" asp-controller="Factures" asp-action="Details" asp-route-customerId="@Model.Customer.Id" asp-route-invoiceId="@invoice.Id">
             <span><strong class="d-block">@invoice.Number</strong><span class="text-body-secondary small">@invoice.CreatedAtUtc.ToString("dd/MM/yyyy") · @(invoice.Status == Freecrmlance.Domain.Billing.InvoiceStatus.Draft ? "Brouillon" : "Émise")</span></span>
@@ -149,10 +149,10 @@ else
     {
         <div class="list-group-item d-flex justify-content-between align-items-center gap-3">
             <span>
-                <strong class="d-block">@document.FileNom</strong>
+                <strong class="d-block">@document.FileName</strong>
                 <span class="text-body-secondary small">@document.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm") UTC · @((document.Size / 1024d).ToString("0.#")) KB</span>
                 @{
-                    var activePartager = Model.DocumentPartagers.FirstOrDefault(share => share.DocumentId == document.Id);
+                    var activePartager = Model.DocumentShares.FirstOrDefault(share => share.DocumentId == document.Id);
                 }
                 @if (activePartager is not null)
                 {
@@ -178,7 +178,7 @@ else
                             data-bs-target="#revokePartagerModal"
                             data-document-id="@document.Id"
                             data-share-id="@activePartager.Id"
-                            data-document-name="@document.FileNom">Révoquer le partage</button>
+                            data-document-name="@document.FileName">Révoquer le partage</button>
                 }
                 <a class="btn btn-sm btn-outline-secondary"
                    asp-action="TéléchargerDocument"
@@ -189,7 +189,7 @@ else
                         data-bs-toggle="modal"
                         data-bs-target="#deleteDocumentModal"
                         data-document-id="@document.Id"
-                        data-document-name="@document.FileNom">Supprimer</button>
+                        data-document-name="@document.FileName">Supprimer</button>
             </span>
         </div>
     }
