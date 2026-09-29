@@ -23,7 +23,7 @@ public sealed record CustomerImportPreview(IReadOnlyList<CustomerImportRowPrevie
     public int DuplicateCount => Rows.Count(x => x.IsDuplicate);
     public int InvalidCount => Rows.Count(x => x.Errors.Count > 0);
 }
-public sealed record CustomerImportResult(int ImportedCount, int DuplicateCount, int RejectedCount);
+public sealed record CustomerImportResult(int ImportedCount, int DuplicateCount, int RejectedCount, IReadOnlyList<CustomerImportRowPreview> SkippedRows);
 
 public interface ICustomerImportFileReader
 {
@@ -106,7 +106,7 @@ public sealed class CustomerImportService(ICustomerService customerService)
             imported++;
         }
 
-        return new CustomerImportResult(imported, preview.DuplicateCount, preview.InvalidCount);
+        return new CustomerImportResult(imported, preview.DuplicateCount, preview.InvalidCount, preview.Rows.Where(x => !x.IsReady).ToArray());
     }
 
     private static void ValidateMappings(IReadOnlyList<CustomerImportMapping> mappings)
