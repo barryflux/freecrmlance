@@ -86,8 +86,8 @@ public sealed class Invoice
         if (recoveryCostIndemnity < 0) throw new ArgumentOutOfRangeException(nameof(recoveryCostIndemnity));
 
         DraftReference = draftReference.Trim();
-        ServiceDate = serviceDate;
-        DueDate = dueDate;
+        ServiceDate = NormalizeUtcDate(serviceDate);
+        DueDate = NormalizeUtcDate(dueDate);
         PurchaseOrderReference = Normalize(purchaseOrderReference);
         VatExemptionMention = Normalize(vatExemptionMention);
         PaymentTerms = Normalize(paymentTerms);
@@ -117,7 +117,7 @@ public sealed class Invoice
     {
         EnsureDraft();
         if (recoveryCostIndemnity < 0) throw new ArgumentOutOfRangeException(nameof(recoveryCostIndemnity));
-        ServiceDate = serviceDate; DueDate = dueDate; PurchaseOrderReference = Normalize(purchaseOrderReference);
+        ServiceDate = NormalizeUtcDate(serviceDate); DueDate = NormalizeUtcDate(dueDate); PurchaseOrderReference = Normalize(purchaseOrderReference);
         VatExemptionMention = Normalize(vatExemptionMention); PaymentTerms = Normalize(paymentTerms);
         EarlyPaymentDiscountTerms = Normalize(earlyPaymentDiscountTerms); LatePaymentPenaltyTerms = Normalize(latePaymentPenaltyTerms);
         RecoveryCostIndemnity = recoveryCostIndemnity; UpdatedAtUtc = DateTime.UtcNow;
@@ -159,6 +159,17 @@ public sealed class Invoice
     private void EnsureDraft()
     {
         if (Status != InvoiceStatus.Draft) throw new InvalidOperationException("Issued invoices cannot be modified.");
+    }
+
+    private static DateTime? NormalizeUtcDate(DateTime? value)
+    {
+        if (value is null) return null;
+        return value.Value.Kind switch
+        {
+            DateTimeKind.Utc => value.Value,
+            DateTimeKind.Local => value.Value.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)
+        };
     }
 
     private static string? Normalize(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
