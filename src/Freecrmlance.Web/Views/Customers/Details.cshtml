@@ -56,12 +56,12 @@
 <section class="customer-tab-panel d-none" data-customer-panel="contacts">
 <div class="customer-section-header">
     <h2 class="h4 mb-0">Contacts <span class="badge text-bg-secondary">@Model.Contacts.Count</span></h2>
-    <a class="btn btn-primary btn-sm" asp-action="CreateContact" asp-route-id="@Model.Customer.Id">Ajouter un contact</a>
+    <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#createContactModal">Ajouter un contact</button>
 </div>
 
 @if (Model.Contacts.Count == 0)
 {
-    <div class="empty-state"><h3 class="h5">Aucun contact</h3><p class="text-body-secondary mb-3">Ajoutez la première personne associée à ce client.</p><a class="btn btn-primary" asp-action="CreateContact" asp-route-id="@Model.Customer.Id">Ajouter un contact</a></div>
+    <div class="empty-state"><h3 class="h5">Aucun contact</h3><p class="text-body-secondary mb-3">Ajoutez la première personne associée à ce client.</p><button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#createContactModal">Ajouter un contact</button></div>
 }
 else
 {
@@ -287,6 +287,30 @@ else
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
                     <button type="submit" class="btn btn-danger">Supprimer document</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="createContactModal" tabindex="-1" aria-labelledby="createContactModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-action="CreateContact" asp-route-id="@Model.Customer.Id" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="createContactModalLabel">Ajouter un contact</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label" for="createContactName">Nom</label><input class="form-control" id="createContactName" name="Name" required maxlength="200" /></div>
+                    <div class="mb-3"><label class="form-label" for="createContactRole">Fonction</label><input class="form-control" id="createContactRole" name="Role" maxlength="100" /></div>
+                    <div class="mb-3"><label class="form-label" for="createContactEmail">Email</label><input class="form-control" id="createContactEmail" name="Email" type="email" maxlength="320" /></div>
+                    <div><label class="form-label" for="createContactPhone">Téléphone</label><input class="form-control" id="createContactPhone" name="Phone" maxlength="50" /></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Ajouter</button>
                 </div>
             </form>
         </div>
