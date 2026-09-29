@@ -3,58 +3,58 @@
 
 <div class="page-header d-flex justify-content-between align-items-start gap-3">
     <div>
-        <a class="text-decoration-none small" asp-controller="Customers" asp-action="Details" asp-route-id="@customerId">← Customer</a>
+        <a class="text-decoration-none small" asp-controller="Customers" asp-action="Details" asp-route-id="@customerId">← Client</a>
         <h1 class="h2 mt-2 mb-1">@displayReference</h1>
-        @if (Model.Number is null) { <div class="text-body-secondary small">Draft reference: @Model.DraftReference</div> }
-        <span class="badge text-bg-secondary">@Model.Status</span>
+        @if (Model.Number is null) { <div class="text-body-secondary small">Référence brouillon : @Model.DraftReference</div> }
+        <span class="badge text-bg-secondary">@(Model.Status == Freecrmlance.Domain.Billing.InvoiceStatus.Draft ? "Brouillon" : "Émise")</span>
     </div>
     <div class="d-flex gap-2">
     @if (Model.Status == Freecrmlance.Domain.Billing.InvoiceStatus.Draft)
     {
-        <a class="btn btn-outline-primary" asp-action="Edit" asp-route-customerId="@customerId" asp-route-invoiceId="@Model.Id">Edit draft</a>
+        <a class="btn btn-outline-primary" asp-action="Edit" asp-route-customerId="@customerId" asp-route-invoiceId="@Model.Id">Modifier le brouillon</a>
         <form method="post" asp-action="Issue" asp-route-customerId="@customerId" asp-route-invoiceId="@Model.Id">
-            <button class="btn btn-primary" type="submit">Issue invoice</button>
+            <button class="btn btn-primary" type="submit">Émettre la facture</button>
         </form>
     }
     @if (Model.SourceQuoteId is not null)
     {
-        <a class="btn btn-outline-secondary" asp-controller="Quotes" asp-action="Details" asp-route-customerId="@customerId" asp-route-quoteId="@Model.SourceQuoteId">Source quote</a>
+        <a class="btn btn-outline-secondary" asp-controller="Quotes" asp-action="Details" asp-route-customerId="@customerId" asp-route-quoteId="@Model.SourceQuoteId">Devis source</a>
     }
     </div>
 </div>
 
 @if (Context.Request.Query["issuanceError"] == "true")
 {
-    <div class="alert alert-danger">This invoice is incomplete and cannot be issued yet. Check legal identities, addresses, service date, payment terms and VAT treatment.</div>
+    <div class="alert alert-danger">Cette facture est incomplète et ne peut pas encore être émise. Vérifiez les identités légales, les adresses, la date de prestation, les conditions de paiement et la TVA.</div>
 }
 
 <div class="card shadow-sm border-0"><div class="card-body p-4">
     <div class="table-responsive"><table class="table align-middle">
-        <thead><tr><th>Description</th><th class="text-end">Quantity</th><th class="text-end">Unit price HT</th><th class="text-end">VAT</th><th class="text-end">TTC</th></tr></thead>
+        <thead><tr><th>Description</th><th class="text-end">Quantité</th><th class="text-end">Prix unitaire HT</th><th class="text-end">TVA</th><th class="text-end">TTC</th></tr></thead>
         <tbody>
         @foreach (var line in Model.Lines)
         {
-            <tr><td>@line.Description</td><td class="text-end">@line.Quantity</td><td class="text-end">@line.UnitPrice.ToString("0.00")</td><td class="text-end">@line.VatRate.ToString("0.##")% (@line.VatAmount.ToString("0.00"))</td><td class="text-end">@line.TotalIncludingTax.ToString("0.00")</td></tr>
+            <tr><td>@line.Description</td><td class="text-end">@line.Quantity</td><td class="text-end">@line.UnitPrice.ToString("C")</td><td class="text-end">@line.VatRate.ToString("0.##")% (@line.VatAmount.ToString("C"))</td><td class="text-end">@line.TotalIncludingTax.ToString("C")</td></tr>
         }
         </tbody>
-        <tfoot><tr><th colspan="4" class="text-end">Total HT</th><th class="text-end">@Model.TotalExcludingTax.ToString("0.00")</th></tr><tr><th colspan="4" class="text-end">VAT</th><th class="text-end">@Model.TotalVat.ToString("0.00")</th></tr><tr><th colspan="4" class="text-end">Total TTC</th><th class="text-end">@Model.TotalIncludingTax.ToString("0.00")</th></tr></tfoot>
+        <tfoot><tr><th colspan="4" class="text-end">Total HT</th><th class="text-end">@Model.TotalExcludingTax.ToString("C")</th></tr><tr><th colspan="4" class="text-end">TVA</th><th class="text-end">@Model.TotalVat.ToString("C")</th></tr><tr><th colspan="4" class="text-end">Total TTC</th><th class="text-end">@Model.TotalIncludingTax.ToString("C")</th></tr></tfoot>
     </table></div>
     @if (Model.IssueDate is not null)
     {
-        <div class="mb-2"><strong>Issued:</strong> @Model.IssueDate.Value.ToString("yyyy-MM-dd HH:mm") UTC</div>
+        <div class="mb-2"><strong>Émise le :</strong> @Model.IssueDate.Value.ToString("yyyy-MM-dd HH:mm") UTC</div>
     }
     <hr />
     <div class="row g-3 mb-3">
-        <div class="col-md-6"><strong>Service date:</strong> @(Model.ServiceDate?.ToString("yyyy-MM-dd") ?? "—")</div>
-        <div class="col-md-6"><strong>Due date:</strong> @(Model.DueDate?.ToString("yyyy-MM-dd") ?? "—")</div>
-        <div class="col-md-6"><strong>Payment terms:</strong> @(Model.PaymentTerms ?? "—")</div>
-        <div class="col-md-6"><strong>PO / reference:</strong> @(Model.PurchaseOrderReference ?? "—")</div>
-        <div class="col-md-6"><strong>VAT exemption:</strong> @(Model.VatExemptionMention ?? "—")</div>
-        <div class="col-md-6"><strong>Recovery indemnity:</strong> @(Model.RecoveryCostIndemnity?.ToString("0.00") ?? "—")</div>
+        <div class="col-md-6"><strong>Date de prestation :</strong> @(Model.ServiceDate?.ToString("yyyy-MM-dd") ?? "—")</div>
+        <div class="col-md-6"><strong>Date d’échéance :</strong> @(Model.DueDate?.ToString("yyyy-MM-dd") ?? "—")</div>
+        <div class="col-md-6"><strong>Conditions de paiement :</strong> @(Model.PaymentTerms ?? "—")</div>
+        <div class="col-md-6"><strong>Commande / référence :</strong> @(Model.PurchaseOrderReference ?? "—")</div>
+        <div class="col-md-6"><strong>Exonération de TVA :</strong> @(Model.VatExemptionMention ?? "—")</div>
+        <div class="col-md-6"><strong>Indemnité de recouvrement :</strong> @(Model.RecoveryCostIndemnity?.ToString("0.00") ?? "—")</div>
     </div>
     <div class="row g-3 mb-3">
-        <div class="col-md-6"><strong>Seller snapshot:</strong><br />@Model.SellerLegalName<br />@Model.SellerAddressLine1 @Model.SellerAddressLine2<br />@Model.SellerPostalCode @Model.SellerCity @Model.SellerCountryCode</div>
-        <div class="col-md-6"><strong>Customer snapshot:</strong><br />@Model.CustomerLegalName<br />@Model.CustomerAddressLine1 @Model.CustomerAddressLine2<br />@Model.CustomerPostalCode @Model.CustomerCity @Model.CustomerCountryCode</div>
+        <div class="col-md-6"><strong>Identité vendeur enregistrée :</strong><br />@Model.SellerLegalName<br />@Model.SellerAddressLine1 @Model.SellerAddressLine2<br />@Model.SellerPostalCode @Model.SellerCity @Model.SellerCountryCode</div>
+        <div class="col-md-6"><strong>Identité client enregistrée :</strong><br />@Model.CustomerLegalName<br />@Model.CustomerAddressLine1 @Model.CustomerAddressLine2<br />@Model.CustomerPostalCode @Model.CustomerCity @Model.CustomerCountryCode</div>
     </div>
-    <div class="text-body-secondary small">Created @Model.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm") UTC · Updated @Model.UpdatedAtUtc.ToString("yyyy-MM-dd HH:mm") UTC</div>
+    <div class="text-body-secondary small">Créée le @Model.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm") UTC · Modifiée le @Model.UpdatedAtUtc.ToString("yyyy-MM-dd HH:mm") UTC</div>
 </div></div>
