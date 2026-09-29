@@ -1,8 +1,13 @@
 using Freecrmlance.Application.Platform;
 using Freecrmlance.Infrastructure;
 using Freecrmlance.Web.Services;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var frenchCulture = CultureInfo.GetCultureInfo("fr-FR");
+CultureInfo.DefaultThreadCurrentCulture = frenchCulture;
+CultureInfo.DefaultThreadCurrentUICulture = frenchCulture;
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
