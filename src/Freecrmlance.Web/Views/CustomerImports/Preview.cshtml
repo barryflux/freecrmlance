@@ -22,5 +22,5 @@ else { <span class="badge text-bg-success">Prêt</span> }
 </tbody></table></div></div>
 <div class="d-flex flex-column flex-sm-row justify-content-between gap-2 mt-4">
 <a class="btn btn-outline-secondary" asp-action="Map">Modifier la correspondance</a>
-<form asp-action="Confirm" method="post"><button class="btn btn-primary" type="submit" @(Model.Preview.ReadyCount == 0 ? "disabled" : null)>Importer @Model.Preview.ReadyCount client@(Model.Preview.ReadyCount > 1 ? "s" : "")</button></form>
+<form asp-action="Confirm" method="post">@if (Model.Preview.ReadyCount == 0) { <button class="btn btn-primary" type="submit" disabled>Aucun client à importer</button> } else { <button class="btn btn-primary" type="submit">Importer @Model.Preview.ReadyCount client@(Model.Preview.ReadyCount > 1 ? "s" : "")</button> }</form>
 </div>
