@@ -43,7 +43,7 @@ else
         }
     </div>
 
-    <div class="card border-0 d-none d-md-block">
+    <div class="customer-table-wrap d-none d-md-block">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0" id="customersTable">
                 <thead>
@@ -62,7 +62,6 @@ else
                         <td data-value="email">@(customer.Email ?? "—")</td>
                         <td data-value="phone">@(customer.Phone ?? "—")</td>
                         <td class="text-end text-nowrap">
-                            <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@customer.Id">Ouvrir</a>
                             <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@customer.Id">Modifier</a>
                         </td>
                     </tr>
