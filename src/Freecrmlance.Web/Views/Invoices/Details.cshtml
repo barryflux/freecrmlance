@@ -11,6 +11,7 @@
     <div class="d-flex gap-2">
     @if (Model.Status == Freecrmlance.Domain.Billing.InvoiceStatus.Draft)
     {
+        <a class="btn btn-outline-primary" asp-action="Edit" asp-route-customerId="@customerId" asp-route-invoiceId="@Model.Id">Edit draft</a>
         <form method="post" asp-action="Issue" asp-route-customerId="@customerId" asp-route-invoiceId="@Model.Id">
             <button class="btn btn-primary" type="submit">Issue invoice</button>
         </form>
@@ -42,5 +43,18 @@
     {
         <div class="mb-2"><strong>Issued:</strong> @Model.IssueDate.Value.ToString("yyyy-MM-dd HH:mm") UTC</div>
     }
+    <hr />
+    <div class="row g-3 mb-3">
+        <div class="col-md-6"><strong>Service date:</strong> @(Model.ServiceDate?.ToString("yyyy-MM-dd") ?? "—")</div>
+        <div class="col-md-6"><strong>Due date:</strong> @(Model.DueDate?.ToString("yyyy-MM-dd") ?? "—")</div>
+        <div class="col-md-6"><strong>Payment terms:</strong> @(Model.PaymentTerms ?? "—")</div>
+        <div class="col-md-6"><strong>PO / reference:</strong> @(Model.PurchaseOrderReference ?? "—")</div>
+        <div class="col-md-6"><strong>VAT exemption:</strong> @(Model.VatExemptionMention ?? "—")</div>
+        <div class="col-md-6"><strong>Recovery indemnity:</strong> @(Model.RecoveryCostIndemnity?.ToString("0.00") ?? "—")</div>
+    </div>
+    <div class="row g-3 mb-3">
+        <div class="col-md-6"><strong>Seller snapshot:</strong><br />@Model.SellerLegalName<br />@Model.SellerAddressLine1 @Model.SellerAddressLine2<br />@Model.SellerPostalCode @Model.SellerCity @Model.SellerCountryCode</div>
+        <div class="col-md-6"><strong>Customer snapshot:</strong><br />@Model.CustomerLegalName<br />@Model.CustomerAddressLine1 @Model.CustomerAddressLine2<br />@Model.CustomerPostalCode @Model.CustomerCity @Model.CustomerCountryCode</div>
+    </div>
     <div class="text-body-secondary small">Created @Model.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm") UTC · Updated @Model.UpdatedAtUtc.ToString("yyyy-MM-dd HH:mm") UTC</div>
 </div></div>
