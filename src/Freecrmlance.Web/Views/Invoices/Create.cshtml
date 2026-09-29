@@ -2,7 +2,14 @@
 @{ ViewData["Title"] = "Créer une facture"; var customerId = ViewContext.RouteData.Values["customerId"]; }
 
 <div class="page-header">
-    <nav aria-label="Fil d’Ariane">\n        <ol class="breadcrumb small mb-2">\n            <li class="breadcrumb-item"><a asp-controller="Customers" asp-action="Index">Clients</a></li>\n            <li class="breadcrumb-item"><a asp-controller="Customers" asp-action="Details" asp-route-id="@customerId" asp-fragment="invoices">Dossier client</a></li>\n            <li class="breadcrumb-item"><a asp-controller="Customers" asp-action="Details" asp-route-id="@customerId" asp-fragment="invoices">Factures</a></li>\n            <li class="breadcrumb-item active" aria-current="page">Créer</li>\n        </ol>\n    </nav>
+    <nav aria-label="Fil d’Ariane">
+        <ol class="breadcrumb small mb-2">
+            <li class="breadcrumb-item"><a asp-controller="Customers" asp-action="Index">Clients</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Customers" asp-action="Details" asp-route-id="@customerId" asp-fragment="invoices">Dossier client</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Customers" asp-action="Details" asp-route-id="@customerId" asp-fragment="invoices">Factures</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Créer</li>
+        </ol>
+    </nav>
     <h1 class="h2 mt-2">Créer une facture</h1>
 </div>
 
