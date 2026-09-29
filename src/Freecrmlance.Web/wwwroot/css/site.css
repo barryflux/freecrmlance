@@ -42,3 +42,24 @@ body { background: var(--freecrmlance-bg); }
     .app-content { padding: 1.5rem 1rem; }
     .app-footer { padding: 0 1rem 1.5rem; }
 }
+
+
+/* Customers index — mobile first */
+.customer-list-toolbar { margin-bottom: 1rem; }
+.customer-list-toolbar .input-group { max-width: 32rem; }
+.customer-mobile-list { overflow: hidden; border: 1px solid var(--bs-border-color); border-radius: .75rem; background: var(--freecrmlance-surface); }
+.customer-mobile-item + .customer-mobile-item { border-top: 1px solid var(--bs-border-color); }
+.customer-mobile-main { display: block; padding: 1rem; color: var(--bs-body-color); text-decoration: none; }
+.customer-mobile-main strong { display: block; margin-bottom: .2rem; }
+.customer-mobile-main span { display: block; overflow: hidden; color: var(--bs-secondary-color); font-size: .875rem; text-overflow: ellipsis; white-space: nowrap; }
+.customer-mobile-actions { display: flex; border-top: 1px solid var(--bs-border-color); }
+.customer-mobile-actions a { flex: 1; min-height: 44px; display: grid; place-items: center; color: var(--bs-secondary-color); font-size: .875rem; font-weight: 500; text-decoration: none; }
+.customer-mobile-actions a + a { border-left: 1px solid var(--bs-border-color); }
+.customer-mobile-actions a:focus-visible,
+.customer-mobile-actions a:hover { color: var(--bs-primary); background: var(--bs-primary-bg-subtle); }
+
+@media (max-width: 575.98px) {
+    .page-header .btn-primary { width: 100%; min-height: 44px; }
+    .customer-list-toolbar .form-control,
+    .customer-list-toolbar .input-group-text { min-height: 44px; }
+}
