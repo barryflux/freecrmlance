@@ -1,10 +1,10 @@
 @model Freecrmlance.Web.Models.Invoices.EditInvoiceViewModel
-@{ ViewData["Title"] = "Edit draft invoice"; }
+@{ ViewData["Title"] = "Modifier la facture brouillon"; }
 
 <div class="page-header mb-4">
-    <a class="text-decoration-none small" asp-action="Details" asp-route-customerId="@ViewContext.RouteData.Values["customerId"]" asp-route-invoiceId="@ViewContext.RouteData.Values["invoiceId"]">← Invoice</a>
-    <h1 class="h2 mt-2 mb-1">Edit draft invoice</h1>
-    <p class="text-body-secondary mb-0">Prepare commercial and compliance data before issuance.</p>
+    <a class="text-decoration-none small" asp-action="Details" asp-route-customerId="@ViewContext.RouteData.Values["customerId"]" asp-route-invoiceId="@ViewContext.RouteData.Values["invoiceId"]">← Facture</a>
+    <h1 class="h2 mt-2 mb-1">Modifier la facture brouillon</h1>
+    <p class="text-body-secondary mb-0">Complétez les informations commerciales et légales avant l’émission définitive.</p>
 </div>
 
 <form method="post">
@@ -25,23 +25,23 @@
     </div></div>
 
     <div class="card shadow-sm border-0 mb-4"><div class="card-body p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="h5 mb-0">Lines</h2><button type="button" class="btn btn-outline-secondary btn-sm" id="add-line">Add line</button></div>
+        <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="h5 mb-0">Prestations</h2><button type="button" class="btn btn-outline-secondary btn-sm" id="add-line">Ajouter une ligne</button></div>
         <span asp-validation-for="Lines" class="text-danger"></span>
         <div id="invoice-lines">
         @for (var i = 0; i < Model.Lines.Count; i++)
         {
             <div class="invoice-line row g-2 align-items-end mb-3">
                 <div class="col-md-5"><label class="form-label">Description</label><input asp-for="Lines[i].Description" class="form-control" /><span asp-validation-for="Lines[i].Description" class="text-danger"></span></div>
-                <div class="col-md-2"><label class="form-label">Quantity</label><input asp-for="Lines[i].Quantity" class="form-control" /><span asp-validation-for="Lines[i].Quantity" class="text-danger"></span></div>
-                <div class="col-md-2"><label class="form-label">Unit price HT</label><input asp-for="Lines[i].UnitPrice" class="form-control" /><span asp-validation-for="Lines[i].UnitPrice" class="text-danger"></span></div>
-                <div class="col-md-2"><label class="form-label">VAT %</label><input asp-for="Lines[i].VatRate" class="form-control" /><span asp-validation-for="Lines[i].VatRate" class="text-danger"></span></div>
+                <div class="col-md-2"><label class="form-label">Quantité</label><input asp-for="Lines[i].Quantity" class="form-control" /><span asp-validation-for="Lines[i].Quantity" class="text-danger"></span></div>
+                <div class="col-md-2"><label class="form-label">Prix unitaire HT</label><input asp-for="Lines[i].UnitPrice" class="form-control" /><span asp-validation-for="Lines[i].UnitPrice" class="text-danger"></span></div>
+                <div class="col-md-2"><label class="form-label">TVA %</label><input asp-for="Lines[i].VatRate" class="form-control" /><span asp-validation-for="Lines[i].VatRate" class="text-danger"></span></div>
                 <div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-line">×</button></div>
             </div>
         }
         </div>
     </div></div>
 
-    <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Save draft</button><a class="btn btn-outline-secondary" asp-action="Details" asp-route-customerId="@ViewContext.RouteData.Values["customerId"]" asp-route-invoiceId="@ViewContext.RouteData.Values["invoiceId"]">Cancel</a></div>
+    <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Enregistrer le brouillon</button><a class="btn btn-outline-secondary" asp-action="Details" asp-route-customerId="@ViewContext.RouteData.Values["customerId"]" asp-route-invoiceId="@ViewContext.RouteData.Values["invoiceId"]">Annuler</a></div>
 </form>
 
 @section Scripts {
@@ -62,9 +62,9 @@
         const row = document.createElement('div');
         row.className = 'invoice-line row g-2 align-items-end mb-3';
         row.innerHTML = `<div class="col-md-5"><label class="form-label">Description</label><input name="Lines[${index}].Description" class="form-control" /></div>
-<div class="col-md-2"><label class="form-label">Quantity</label><input name="Lines[${index}].Quantity" value="1" class="form-control" /></div>
-<div class="col-md-2"><label class="form-label">Unit price HT</label><input name="Lines[${index}].UnitPrice" value="0" class="form-control" /></div>
-<div class="col-md-2"><label class="form-label">VAT %</label><input name="Lines[${index}].VatRate" value="20" class="form-control" /></div>
+<div class="col-md-2"><label class="form-label">Quantité</label><input name="Lines[${index}].Quantity" value="1" class="form-control" /></div>
+<div class="col-md-2"><label class="form-label">Prix unitaire HT</label><input name="Lines[${index}].UnitPrice" value="0" class="form-control" /></div>
+<div class="col-md-2"><label class="form-label">TVA %</label><input name="Lines[${index}].VatRate" value="20" class="form-control" /></div>
 <div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-line">×</button></div>`;
         container.appendChild(row);
     });
