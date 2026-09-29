@@ -113,6 +113,46 @@ public sealed class InvoiceTests
         Assert.Throws<InvalidOperationException>(() => invoice.Issue("2026-0001", DateTime.UtcNow));
     }
 
+    [Test]
+    public void Draft_update_replaces_lines_and_compliance_data_atomically()
+    {
+        var invoice = CompleteInvoice();
+        invoice.UpdateDraft("DRAFT-EDITED", new DateTime(2026, 9, 29), new DateTime(2026, 10, 29), "PO-42",
+            null, "30 days", "No discount", "Legal rate", 40m,
+            [("Consulting", 2m, 200m, 20m), ("Expenses", 1m, 50m, 10m)]);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(invoice.DraftReference, Is.EqualTo("DRAFT-EDITED"));
+            Assert.That(invoice.Lines, Has.Count.EqualTo(2));
+            Assert.That(invoice.TotalExcludingTax, Is.EqualTo(450m));
+            Assert.That(invoice.TotalVat, Is.EqualTo(85m));
+            Assert.That(invoice.TotalIncludingTax, Is.EqualTo(535m));
+            Assert.That(invoice.PurchaseOrderReference, Is.EqualTo("PO-42"));
+            Assert.That(invoice.RecoveryCostIndemnity, Is.EqualTo(40m));
+        });
+    }
+
+    [Test]
+    public void Invalid_draft_update_does_not_replace_existing_lines()
+    {
+        var invoice = CompleteInvoice();
+        Assert.Throws<ArgumentException>(() => invoice.UpdateDraft("EDITED", DateTime.UtcNow.Date, DateTime.UtcNow.Date.AddDays(30),
+            null, null, "30 days", null, null, null, [(" ", 1m, 100m, 20m)]));
+
+        Assert.That(invoice.Lines.Single().Description, Is.EqualTo("Work"));
+    }
+
+    [Test]
+    public void Issued_invoice_cannot_be_updated()
+    {
+        var invoice = CompleteInvoice();
+        invoice.Issue("2026-0001", DateTime.UtcNow);
+
+        Assert.Throws<InvalidOperationException>(() => invoice.UpdateDraft("EDITED", DateTime.UtcNow.Date, DateTime.UtcNow.Date.AddDays(30),
+            null, null, "30 days", null, null, null, [("Work", 1m, 100m, 20m)]));
+    }
+
     private static Invoice CompleteInvoice(decimal vatRate = 20m, string? vatExemptionMention = null)
     {
         var invoice = new Invoice(Guid.NewGuid(), Guid.NewGuid(), "DRAFT-001");
