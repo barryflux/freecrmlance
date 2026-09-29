@@ -79,10 +79,17 @@ public sealed class InvoiceService(FreecrmlanceDbContext dbContext, IWorkspaceCo
         if (invoice is null) return UpdateInvoiceResult.NotFound;
         if (invoice.Status != InvoiceStatus.Draft) return UpdateInvoiceResult.InvalidStatus;
 
+        var previousLines = invoice.Lines.ToList();
+
         invoice.UpdateDraft(command.DraftReference, command.ServiceDate, command.DueDate, command.PurchaseOrderReference,
             command.VatExemptionMention, command.PaymentTerms, command.EarlyPaymentDiscountTerms, command.LatePaymentPenaltyTerms,
             command.RecoveryCostIndemnity,
             command.Lines.Select(line => (line.Description, line.Quantity, line.UnitPrice, line.VatRate)));
+
+        foreach (var previousLine in previousLines)
+            dbContext.Entry(previousLine).State = EntityState.Deleted;
+        foreach (var replacementLine in invoice.Lines)
+            dbContext.Entry(replacementLine).State = EntityState.Added;
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return UpdateInvoiceResult.Success;
