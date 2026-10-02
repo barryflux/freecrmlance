@@ -29,7 +29,9 @@ public sealed class AuditTemplateService(FreecrmlanceDbContext db, IWorkspaceCon
  {
   var x=await GetEntityAsync(id,true,ct); if(x is null)return false;
   x.Update(command.Name,command.Description);
-  db.AuditTemplateSections.RemoveRange(x.Sections);
+  // Clearing the tracked aggregate is enough: EF marks required children as orphans
+  // and deletes them in dependency order. Explicit RemoveRange here caused the same
+  // rows to be scheduled twice and produced DbUpdateConcurrencyException.
   x.ClearSections();
   foreach(var s in command.Sections){var section=x.AddSection(s.Title,s.Description);foreach(var i in s.Items)section.AddItem(i.Label,i.ResponseType,i.IsRequired,i.Description,i.Options);}
   await db.SaveChangesAsync(ct); return true;
