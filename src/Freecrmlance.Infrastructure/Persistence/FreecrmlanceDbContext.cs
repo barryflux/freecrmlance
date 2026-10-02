@@ -7,6 +7,10 @@ using Microsoft.EntityFrameworkCore;
 namespace Freecrmlance.Infrastructure.Persistence;
 public sealed class FreecrmlanceDbContext(DbContextOptions<FreecrmlanceDbContext> options):IdentityDbContext(options)
 {
+ public DbSet<Audit> Audits=>Set<Audit>();
+ public DbSet<AuditSection> AuditSections=>Set<AuditSection>();
+ public DbSet<AuditItem> AuditItems=>Set<AuditItem>();
+ public DbSet<AuditNumberSequence> AuditNumberSequences=>Set<AuditNumberSequence>();
  public DbSet<AuditTemplate> AuditTemplates=>Set<AuditTemplate>();
  public DbSet<AuditTemplateSection> AuditTemplateSections=>Set<AuditTemplateSection>();
  public DbSet<AuditTemplateItem> AuditTemplateItems=>Set<AuditTemplateItem>();
