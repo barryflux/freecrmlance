@@ -23,6 +23,15 @@ namespace Freecrmlance.Infrastructure.Persistence.Migrations
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
 
+            modelBuilder.Entity("Freecrmlance.Domain.Audits.Audit", b =>
+                { b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid"); b.Property<DateTime?>("CompletedAtUtc").HasColumnType("timestamp with time zone"); b.Property<DateTime>("CreatedAtUtc").HasColumnType("timestamp with time zone"); b.Property<Guid>("CustomerId").HasColumnType("uuid"); b.Property<string>("Description").HasMaxLength(2000).HasColumnType("character varying(2000)"); b.Property<string>("Reference").IsRequired().HasMaxLength(32).HasColumnType("character varying(32)"); b.Property<DateTime?>("StartedAtUtc").HasColumnType("timestamp with time zone"); b.Property<string>("Status").IsRequired().HasMaxLength(32).HasColumnType("character varying(32)"); b.Property<Guid>("TemplateId").HasColumnType("uuid"); b.Property<string>("Title").IsRequired().HasMaxLength(200).HasColumnType("character varying(200)"); b.Property<Guid>("WorkspaceId").HasColumnType("uuid"); b.HasKey("Id"); b.HasIndex("WorkspaceId","CustomerId"); b.HasIndex("WorkspaceId","Reference").IsUnique(); b.ToTable("Audits","audit"); });
+            modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditSection", b =>
+                { b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid"); b.Property<Guid>("AuditId").HasColumnType("uuid"); b.Property<string>("Description").HasMaxLength(2000).HasColumnType("character varying(2000)"); b.Property<int>("Position").HasColumnType("integer"); b.Property<string>("Title").IsRequired().HasMaxLength(200).HasColumnType("character varying(200)"); b.HasKey("Id"); b.HasIndex("AuditId","Position").IsUnique(); b.ToTable("AuditSections","audit"); });
+            modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditItem", b =>
+                { b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid"); b.Property<Guid>("AuditSectionId").HasColumnType("uuid"); b.Property<string>("Description").HasMaxLength(2000).HasColumnType("character varying(2000)"); b.Property<bool>("IsRequired").HasColumnType("boolean"); b.Property<string>("Label").IsRequired().HasMaxLength(500).HasColumnType("character varying(500)"); b.Property<string>("Options").HasMaxLength(4000).HasColumnType("character varying(4000)"); b.Property<int>("Position").HasColumnType("integer"); b.Property<string>("ResponseType").IsRequired().HasMaxLength(32).HasColumnType("character varying(32)"); b.HasKey("Id"); b.HasIndex("AuditSectionId","Position").IsUnique(); b.ToTable("AuditItems","audit"); });
+            modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditNumberSequence", b =>
+                { b.Property<Guid>("WorkspaceId").HasColumnType("uuid"); b.Property<int>("Year").HasColumnType("integer"); b.Property<int>("LastNumber").HasColumnType("integer"); b.HasKey("WorkspaceId","Year"); b.ToTable("AuditNumberSequences","audit"); });
+
             modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditTemplate", b =>
                 {
                     b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
@@ -34,6 +43,11 @@ namespace Freecrmlance.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("WorkspaceId").HasColumnType("uuid");
                     b.HasKey("Id"); b.HasIndex("WorkspaceId", "IsArchived"); b.ToTable("AuditTemplates", "audit");
                 });
+            modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditSection", b =>
+                { b.HasOne("Freecrmlance.Domain.Audits.Audit", null).WithMany("Sections").HasForeignKey("AuditId").OnDelete(DeleteBehavior.Cascade).IsRequired(); });
+            modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditItem", b =>
+                { b.HasOne("Freecrmlance.Domain.Audits.AuditSection", null).WithMany("Items").HasForeignKey("AuditSectionId").OnDelete(DeleteBehavior.Cascade).IsRequired(); });
+
             modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditTemplateSection", b =>
                 {
                     b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
@@ -984,6 +998,8 @@ namespace Freecrmlance.Infrastructure.Persistence.Migrations
                 });
 
 
+            modelBuilder.Entity("Freecrmlance.Domain.Audits.Audit", b => { b.Navigation("Sections"); });
+            modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditSection", b => { b.Navigation("Items"); });
             modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditTemplate", b => { b.Navigation("Sections"); });
             modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditTemplateSection", b => { b.Navigation("Items"); });
 
