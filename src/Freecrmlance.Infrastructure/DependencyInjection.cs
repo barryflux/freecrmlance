@@ -20,7 +20,7 @@ public static class DependencyInjection
   var cs=configuration.GetConnectionString("PostgreSQL")??throw new InvalidOperationException("Connection string 'PostgreSQL' is not configured.");
   services.AddDbContext<FreecrmlanceDbContext>(o=>o.UseNpgsql(cs));
   services.AddScoped<IWorkspaceContext,WorkspaceContext>(); services.AddScoped<IWorkspaceSettingsService,WorkspaceSettingsService>();
-  services.AddScoped<IAuditTemplateService,AuditTemplateService>(); services.AddScoped<IInvoiceService,InvoiceService>(); services.AddScoped<ICustomerService,CustomerService>();
+  services.AddScoped<IAuditService,AuditService>(); services.AddScoped<IAuditTemplateService,AuditTemplateService>(); services.AddScoped<IInvoiceService,InvoiceService>(); services.AddScoped<ICustomerService,CustomerService>();
   services.AddScoped<ICustomerImportFileReader,CustomerImportFileReader>(); services.AddScoped<CustomerImportService>(); services.AddScoped<IContactService,ContactService>();
   services.AddScoped<IDocumentService,DocumentService>(); services.AddScoped<IDocumentShareService,DocumentShareService>(); services.AddScoped<IQuoteService,QuoteService>();
   services.AddScoped<IQuoteShareService,QuoteShareService>(); services.AddScoped<IQuotePdfService,QuotePdfService>(); services.AddSingleton<IPdfGenerator,MigraDocPdfGenerator>(); services.AddSingleton<IFileStorage,LocalFileStorage>();
