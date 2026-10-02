@@ -1,0 +1,5 @@
+@model Freecrmlance.Web.Models.Audits.AuditTemplateFormViewModel
+@{ViewData["Title"]="Nouveau modèle d'audit";}
+<h1 class="h2">Nouveau modèle d'audit</h1>
+<form method="post"><partial name="_Form" model="Model"/><div class="mt-4 d-flex gap-2"><button class="btn btn-primary">Créer le modèle</button><a class="btn btn-outline-secondary" asp-action="Index">Annuler</a></div></form>
+@section Scripts{<partial name="_ValidationScriptsPartial"/><partial name="_FormScripts"/>}

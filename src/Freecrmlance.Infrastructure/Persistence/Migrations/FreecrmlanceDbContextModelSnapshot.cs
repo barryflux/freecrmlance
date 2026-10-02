@@ -22,6 +22,40 @@ namespace Freecrmlance.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+
+            modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditTemplate", b =>
+                {
+                    b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
+                    b.Property<DateTime>("CreatedAtUtc").HasColumnType("timestamp with time zone");
+                    b.Property<string>("Description").HasMaxLength(2000).HasColumnType("character varying(2000)");
+                    b.Property<bool>("IsArchived").HasColumnType("boolean");
+                    b.Property<string>("Name").IsRequired().HasMaxLength(200).HasColumnType("character varying(200)");
+                    b.Property<DateTime>("UpdatedAtUtc").HasColumnType("timestamp with time zone");
+                    b.Property<Guid>("WorkspaceId").HasColumnType("uuid");
+                    b.HasKey("Id"); b.HasIndex("WorkspaceId", "IsArchived"); b.ToTable("AuditTemplates", "audit");
+                });
+            modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditTemplateSection", b =>
+                {
+                    b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
+                    b.Property<Guid>("AuditTemplateId").HasColumnType("uuid");
+                    b.Property<string>("Description").HasMaxLength(2000).HasColumnType("character varying(2000)");
+                    b.Property<int>("Position").HasColumnType("integer");
+                    b.Property<string>("Title").IsRequired().HasMaxLength(200).HasColumnType("character varying(200)");
+                    b.HasKey("Id"); b.HasIndex("AuditTemplateId", "Position").IsUnique(); b.ToTable("AuditTemplateSections", "audit");
+                });
+            modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditTemplateItem", b =>
+                {
+                    b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
+                    b.Property<string>("Description").HasMaxLength(2000).HasColumnType("character varying(2000)");
+                    b.Property<bool>("IsRequired").HasColumnType("boolean");
+                    b.Property<string>("Label").IsRequired().HasMaxLength(500).HasColumnType("character varying(500)");
+                    b.Property<string>("Options").HasMaxLength(4000).HasColumnType("character varying(4000)");
+                    b.Property<int>("Position").HasColumnType("integer");
+                    b.Property<string>("ResponseType").IsRequired().HasMaxLength(32).HasColumnType("character varying(32)");
+                    b.Property<Guid>("SectionId").HasColumnType("uuid");
+                    b.HasKey("Id"); b.HasIndex("SectionId", "Position").IsUnique(); b.ToTable("AuditTemplateItems", "audit");
+                });
+
             modelBuilder.Entity("Freecrmlance.Domain.Billing.Invoice", b =>
                 {
                     b.Property<Guid>("Id")
@@ -827,6 +861,12 @@ namespace Freecrmlance.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+
+            modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditTemplateSection", b =>
+                { b.HasOne("Freecrmlance.Domain.Audits.AuditTemplate", null).WithMany("Sections").HasForeignKey("AuditTemplateId").OnDelete(DeleteBehavior.Cascade).IsRequired(); });
+            modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditTemplateItem", b =>
+                { b.HasOne("Freecrmlance.Domain.Audits.AuditTemplateSection", null).WithMany("Items").HasForeignKey("SectionId").OnDelete(DeleteBehavior.Cascade).IsRequired(); });
+
             modelBuilder.Entity("Freecrmlance.Domain.Billing.InvoiceLine", b =>
                 {
                     b.HasOne("Freecrmlance.Domain.Billing.Invoice", null)
@@ -942,6 +982,10 @@ namespace Freecrmlance.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
+
+
+            modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditTemplate", b => { b.Navigation("Sections"); });
+            modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditTemplateSection", b => { b.Navigation("Items"); });
 
             modelBuilder.Entity("Freecrmlance.Domain.Billing.Invoice", b =>
                 {

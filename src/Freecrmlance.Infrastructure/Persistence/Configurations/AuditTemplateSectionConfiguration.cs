@@ -1,0 +1,15 @@
+using Freecrmlance.Domain.Audits;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+namespace Freecrmlance.Infrastructure.Persistence.Configurations;
+public sealed class AuditTemplateSectionConfiguration : IEntityTypeConfiguration<AuditTemplateSection>
+{
+ public void Configure(EntityTypeBuilder<AuditTemplateSection> b)
+ {
+  b.ToTable("AuditTemplateSections","audit"); b.HasKey(x=>x.Id);
+  b.Property(x=>x.Title).HasMaxLength(200).IsRequired(); b.Property(x=>x.Description).HasMaxLength(2000);
+  b.HasIndex(x=>new{x.AuditTemplateId,x.Position}).IsUnique();
+  b.HasMany(x=>x.Items).WithOne().HasForeignKey(x=>x.SectionId).OnDelete(DeleteBehavior.Cascade);
+  b.Navigation(x=>x.Items).UsePropertyAccessMode(PropertyAccessMode.Field);
+ }
+}
