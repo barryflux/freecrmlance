@@ -2,7 +2,7 @@
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
     var customersActive = currentController is "Customers" or "Contacts" or "Documents" or "Quotes" or "Invoices";
     var settingsActive = currentController == "WorkspaceSettings";
-    var auditsActive = currentController == "AuditTemplates";
+    var auditsActive = currentController is "Audits" or "AuditTemplates";
     var isLanding = currentController == "Home";
 }
 <!DOCTYPE html>
@@ -27,7 +27,7 @@
                        asp-controller="Customers" asp-action="Index">
                         Clients
                     </a>
-                    <a class="app-nav-link @(auditsActive ? "active" : null)" aria-current="@(auditsActive ? "page" : null)" asp-controller="AuditTemplates" asp-action="Index">Audits</a>
+                    <a class="app-nav-link @(auditsActive ? "active" : null)" aria-current="@(auditsActive ? "page" : null)" asp-controller="Audits" asp-action="Index">Audits</a>
                     <a class="app-nav-link @(settingsActive ? "active" : null)"
                        aria-current="@(settingsActive ? "page" : null)"
                        asp-controller="WorkspaceSettings" asp-action="LegalIdentity">
@@ -75,7 +75,7 @@
                    asp-controller="Customers" asp-action="Index">
                     Clients
                 </a>
-                <a class="app-nav-link @(auditsActive ? "active" : null)" aria-current="@(auditsActive ? "page" : null)" asp-controller="AuditTemplates" asp-action="Index">Audits</a>
+                <a class="app-nav-link @(auditsActive ? "active" : null)" aria-current="@(auditsActive ? "page" : null)" asp-controller="Audits" asp-action="Index">Audits</a>
                 <a class="app-nav-link @(settingsActive ? "active" : null)"
                    aria-current="@(settingsActive ? "page" : null)"
                    asp-controller="WorkspaceSettings" asp-action="LegalIdentity">
