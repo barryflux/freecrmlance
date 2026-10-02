@@ -52,16 +52,16 @@ public sealed class AuditTemplateService(FreecrmlanceDbContext db, IWorkspaceCon
     .SetProperty(t=>t.Description,Normalize(command.Description))
     .SetProperty(t=>t.UpdatedAtUtc,DateTime.UtcNow),ct);
 
-  foreach(var s in command.Sections)
+  for(var sectionPosition=0;sectionPosition<command.Sections.Count;sectionPosition++)
   {
-   var section=new AuditTemplateSection(id,s.Title,0,s.Description);
-   // Position is assigned below from the submitted order.
-   section.SetPosition(Array.IndexOf(command.Sections.ToArray(),s));
+   var s=command.Sections[sectionPosition];
+   var section=new AuditTemplateSection(id,s.Title,sectionPosition,s.Description);
    db.AuditTemplateSections.Add(section);
-   foreach(var i in s.Items)
+   for(var itemPosition=0;itemPosition<s.Items.Count;itemPosition++)
    {
+    var i=s.Items[itemPosition];
     var item=section.AddItem(i.Label,i.ResponseType,i.IsRequired,i.Description,i.Options);
-    item.SetPosition(Array.IndexOf(s.Items.ToArray(),i));
+    item.SetPosition(itemPosition);
    }
   }
 
