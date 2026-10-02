@@ -3,4 +3,5 @@ namespace Freecrmlance.Web.Models.Audits;
 public sealed class AuditWorkspaceViewModel
 {
  public required AuditDto Audit{get;init;}
+ public required IReadOnlyList<AuditEvidenceDto> Evidence{get;init;}
 }
