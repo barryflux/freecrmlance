@@ -29,7 +29,7 @@ public sealed class AuditTemplatesController(IAuditTemplateService service):Cont
  {return await service.SetArchivedAsync(id,archived,ct)?RedirectToAction(nameof(Index),new{archived}):NotFound();}
  private void ValidateChoices(AuditTemplateFormViewModel m)
  {
-  for(var s=0;s<m.Sections.Count;s++)for(var i=0;i<m.Sections[s].Items.Count;i++){var x=m.Sections[s].Items[i];if(x.ResponseType is Domain.Audits.AuditResponseType.SingleChoice or Domain.Audits.AuditResponseType.MultipleChoice&&string.IsNullOrWhiteSpace(x.Options))ModelState.AddModelError($"Sections[{s}].Items[{i}].Options","Renseignez au moins une option.");}
+  for(var s=0;s<m.Sections.Count;s++)for(var i=0;i<m.Sections[s].Items.Count;i++){var x=m.Sections[s].Items[i];if(x.ResponseType is Freecrmlance.Domain.Audits.AuditResponseType.SingleChoice or Freecrmlance.Domain.Audits.AuditResponseType.MultipleChoice&&string.IsNullOrWhiteSpace(x.Options))ModelState.AddModelError($"Sections[{s}].Items[{i}].Options","Renseignez au moins une option.");}
  }
  private static SaveAuditTemplateCommand ToCommand(AuditTemplateFormViewModel m)=>new(m.Name,m.Description,m.Sections.Select(s=>new AuditTemplateSectionInput(s.Title,s.Description,s.Items.Select(i=>new AuditTemplateItemInput(i.Label,i.ResponseType,i.IsRequired,i.Description,i.Options)).ToArray())).ToArray());
 }
