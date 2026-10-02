@@ -27,14 +27,33 @@ public sealed class AuditTemplateService(FreecrmlanceDbContext db, IWorkspaceCon
  }
  public async Task<bool> UpdateAsync(Guid id,SaveAuditTemplateCommand command,CancellationToken ct=default)
  {
-  var x=await GetEntityAsync(id,true,ct); if(x is null)return false;
+  var x=await GetEntityAsync(id,false,ct); if(x is null)return false;
+  await using var transaction=await db.Database.BeginTransactionAsync(ct);
+
   x.Update(command.Name,command.Description);
-  // Clearing the tracked aggregate is enough: EF marks required children as orphans
-  // and deletes them in dependency order. Explicit RemoveRange here caused the same
-  // rows to be scheduled twice and produced DbUpdateConcurrencyException.
-  x.ClearSections();
-  foreach(var s in command.Sections){var section=x.AddSection(s.Title,s.Description);foreach(var i in s.Items)section.AddItem(i.Label,i.ResponseType,i.IsRequired,i.Description,i.Options);}
-  await db.SaveChangesAsync(ct); return true;
+  await db.SaveChangesAsync(ct);
+
+  var sectionIds=await db.AuditTemplateSections
+   .Where(s=>s.AuditTemplateId==x.Id)
+   .Select(s=>s.Id)
+   .ToArrayAsync(ct);
+
+  if(sectionIds.Length>0)
+  {
+   await db.AuditTemplateItems.Where(i=>sectionIds.Contains(i.SectionId)).ExecuteDeleteAsync(ct);
+   await db.AuditTemplateSections.Where(s=>s.AuditTemplateId==x.Id).ExecuteDeleteAsync(ct);
+  }
+
+  foreach(var s in command.Sections)
+  {
+   var section=x.AddSection(s.Title,s.Description);
+   foreach(var i in s.Items)
+    section.AddItem(i.Label,i.ResponseType,i.IsRequired,i.Description,i.Options);
+  }
+
+  await db.SaveChangesAsync(ct);
+  await transaction.CommitAsync(ct);
+  return true;
  }
  public async Task<Guid?> DuplicateAsync(Guid id,CancellationToken ct=default)
  {
