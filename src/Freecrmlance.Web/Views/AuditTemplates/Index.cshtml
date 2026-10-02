@@ -1,0 +1,14 @@
+@model IReadOnlyList<Freecrmlance.Application.Audits.AuditTemplateDto>
+@{ViewData["Title"]="Modèles d'audit";var showingArchived=Context.Request.Query["archived"]=="true";}
+<div class="page-header d-flex justify-content-between align-items-center gap-3">
+ <div><h1 class="h2 mb-1">Modèles d'audit</h1><p class="text-body-secondary mb-0">Créez des trames réutilisables pour vos audits.</p></div>
+ <a class="btn btn-primary" asp-action="Create">Nouveau modèle</a>
+</div>
+<div class="mb-3"><a asp-action="Index" asp-route-archived="@(!showingArchived)">@(showingArchived?"Voir les modèles actifs":"Voir aussi les archives")</a></div>
+@if(Model.Count==0){<div class="empty-state"><h2 class="h5">Aucun modèle</h2><p class="text-body-secondary">Créez votre premier modèle d'audit personnalisé.</p></div>}
+else{<div class="table-responsive"><table class="table align-middle"><thead><tr><th>Nom</th><th>Dernière modification</th><th class="text-end">Actions</th></tr></thead><tbody>
+@foreach(var x in Model){<tr><td><strong>@x.Name</strong>@if(x.IsArchived){<span class="badge text-bg-secondary ms-2">Archivé</span>}<div class="small text-body-secondary">@x.Description</div></td><td>@x.UpdatedAtUtc.ToLocalTime().ToString("g")</td><td class="text-end text-nowrap">
+<a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@x.Id">Modifier</a>
+<form class="d-inline" asp-action="Duplicate" asp-route-id="@x.Id" method="post"><button class="btn btn-sm btn-outline-secondary">Dupliquer</button></form>
+<form class="d-inline" asp-action="Archive" asp-route-id="@x.Id" asp-route-archived="@(!x.IsArchived)" method="post"><button class="btn btn-sm btn-outline-secondary">@(x.IsArchived?"Restaurer":"Archiver")</button></form>
+</td></tr>}</tbody></table></div>}
