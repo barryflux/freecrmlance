@@ -10,7 +10,16 @@ public sealed class AuditService(FreecrmlanceDbContext db,IWorkspaceContext work
   var customerExists=await db.Customers.AsNoTracking().AnyAsync(c=>c.Id==command.CustomerId&&c.WorkspaceId==wid,ct);if(!customerExists)return null;
   var template=await db.AuditTemplates.AsNoTracking().Include(t=>t.Sections).ThenInclude(s=>s.Items).SingleOrDefaultAsync(t=>t.Id==command.TemplateId&&t.WorkspaceId==wid&&!t.IsArchived,ct);if(template is null)return null;
   await using var transaction=await db.Database.BeginTransactionAsync(ct);var now=DateTime.UtcNow;
-  await using var sql=db.Database.GetDbConnection().CreateCommand();sql.Transaction=transaction.GetDbTransaction();sql.CommandText="""INSERT INTO audit."AuditNumberSequences" ("WorkspaceId","Year","LastNumber") VALUES (@workspaceId,@year,1) ON CONFLICT ("WorkspaceId","Year") DO UPDATE SET "LastNumber"=audit."AuditNumberSequences"."LastNumber"+1 RETURNING "LastNumber""";
+  await using var sql=db.Database.GetDbConnection().CreateCommand();
+  sql.Transaction=transaction.GetDbTransaction();
+  sql.CommandText =
+   """
+   INSERT INTO audit."AuditNumberSequences" ("WorkspaceId", "Year", "LastNumber")
+   VALUES (@workspaceId, @year, 1)
+   ON CONFLICT ("WorkspaceId", "Year")
+   DO UPDATE SET "LastNumber" = audit."AuditNumberSequences"."LastNumber" + 1
+   RETURNING "LastNumber"
+   """;
   var wp=sql.CreateParameter();wp.ParameterName="workspaceId";wp.Value=wid;sql.Parameters.Add(wp);var yp=sql.CreateParameter();yp.ParameterName="year";yp.Value=now.Year;sql.Parameters.Add(yp);var next=Convert.ToInt32(await sql.ExecuteScalarAsync(ct));
   var audit=new Audit(wid,command.CustomerId,template.Id,$"AUD-{now.Year}-{next:D4}",string.IsNullOrWhiteSpace(command.Title)?template.Name:command.Title!,command.Description??template.Description);
   foreach(var s in template.Sections.OrderBy(s=>s.Position)){var snapshot=audit.AddSection(s.Title,s.Position,s.Description);foreach(var i in s.Items.OrderBy(i=>i.Position))snapshot.AddItem(i.Label,i.ResponseType,i.IsRequired,i.Position,i.Description,i.Options);}
