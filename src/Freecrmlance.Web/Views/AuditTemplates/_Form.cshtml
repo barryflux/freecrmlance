@@ -1,0 +1,27 @@
+@model Freecrmlance.Web.Models.Audits.AuditTemplateFormViewModel
+@using Freecrmlance.Domain.Audits
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<div class="mb-3"><label asp-for="Name" class="form-label">Nom</label><input asp-for="Name" class="form-control"/><span asp-validation-for="Name" class="text-danger"></span></div>
+<div class="mb-4"><label asp-for="Description" class="form-label">Description</label><textarea asp-for="Description" class="form-control" rows="2"></textarea></div>
+<div id="sections">
+@for(var s=0;s<Model.Sections.Count;s++){
+ <section class="card mb-3 audit-section" data-section>
+  <div class="card-body">
+   <div class="d-flex justify-content-between"><h2 class="h5">Section <span data-section-number>@(s+1)</span></h2><button type="button" class="btn btn-sm btn-outline-danger" data-remove-section>Retirer</button></div>
+   <div class="mb-2"><label class="form-label">Titre</label><input class="form-control" asp-for="Sections[s].Title"/></div>
+   <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" asp-for="Sections[s].Description" rows="2"></textarea></div>
+   <div data-items>
+   @for(var i=0;i<Model.Sections[s].Items.Count;i++){
+    <div class="border rounded p-3 mb-2" data-item>
+     <div class="d-flex justify-content-between"><strong>Critère</strong><button type="button" class="btn btn-sm btn-link text-danger" data-remove-item>Retirer</button></div>
+     <div class="mb-2"><label class="form-label">Question / critère</label><input class="form-control" asp-for="Sections[s].Items[i].Label"/></div>
+     <div class="row g-2"><div class="col-md-5"><label class="form-label">Type de réponse</label><select class="form-select" asp-for="Sections[s].Items[i].ResponseType" asp-items="Html.GetEnumSelectList<AuditResponseType>()" data-response-type></select></div>
+     <div class="col-md-5"><label class="form-label">Options <span class="text-body-secondary">(une par ligne)</span></label><textarea class="form-control" asp-for="Sections[s].Items[i].Options" rows="2" data-options></textarea></div>
+     <div class="col-md-2 d-flex align-items-end"><div class="form-check mb-2"><input class="form-check-input" asp-for="Sections[s].Items[i].IsRequired"/><label class="form-check-label" asp-for="Sections[s].Items[i].IsRequired">Obligatoire</label></div></div></div>
+     <div class="mt-2"><label class="form-label">Aide / consigne</label><textarea class="form-control" asp-for="Sections[s].Items[i].Description" rows="2"></textarea></div>
+    </div>}
+   </div><button type="button" class="btn btn-sm btn-outline-primary" data-add-item>+ Ajouter un critère</button>
+  </div>
+ </section>}
+</div>
+<button type="button" class="btn btn-outline-primary" id="addSection">+ Ajouter une section</button>
