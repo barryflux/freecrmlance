@@ -43,7 +43,9 @@ public sealed class AuditServiceTests
   var templateA=await new AuditTemplateService(db,new StubWorkspaceContext(a)).CreateAsync(Template("A","S","I"));
   var templateB=await new AuditTemplateService(db,new StubWorkspaceContext(b)).CreateAsync(Template("B","S","I"));
   var service=new AuditService(db,new StubWorkspaceContext(a));
-  Assert.Multiple(async()=>{Assert.That(await service.CreateAsync(new CreateAuditCommand(customerB,templateA)),Is.Null);Assert.That(await service.CreateAsync(new CreateAuditCommand(customerA,templateB)),Is.Null);});
+  var foreignCustomer=await service.CreateAsync(new CreateAuditCommand(customerB,templateA));
+  var foreignTemplate=await service.CreateAsync(new CreateAuditCommand(customerA,templateB));
+  Assert.Multiple(()=>{Assert.That(foreignCustomer,Is.Null);Assert.That(foreignTemplate,Is.Null);});
  }
  private static async Task<Guid> SeedCustomer(FreecrmlanceDbContext db,Guid wid){var c=new Customer(wid,"Client test");db.Customers.Add(c);await db.SaveChangesAsync();return c.Id;}
  private static SaveAuditTemplateCommand Template(string name,string section,string item)=>new(name,"Description",[new AuditTemplateSectionInput(section,"Section",[new AuditTemplateItemInput(item,AuditResponseType.YesNo,true,"Critère",null)])]);
