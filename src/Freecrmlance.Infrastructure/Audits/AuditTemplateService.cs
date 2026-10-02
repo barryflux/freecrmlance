@@ -27,43 +27,42 @@ public sealed class AuditTemplateService(FreecrmlanceDbContext db, IWorkspaceCon
  }
  public async Task<bool> UpdateAsync(Guid id,SaveAuditTemplateCommand command,CancellationToken ct=default)
  {
-  var x=await GetEntityAsync(id,true,ct); if(x is null)return false;
-  if(IsUnchanged(x,command))return true;
+  var wid=await workspaceContext.RequireCurrentWorkspaceIdAsync(ct);
+  var current=await db.AuditTemplates.AsNoTracking()
+   .Include(t=>t.Sections).ThenInclude(s=>s.Items)
+   .SingleOrDefaultAsync(t=>t.Id==id&&t.WorkspaceId==wid,ct);
+  if(current is null)return false;
+  if(IsUnchanged(current,command))return true;
 
-  // From here on the submitted template actually changed.
-  db.ChangeTracker.Clear();
-  x=await GetEntityAsync(id,false,ct); if(x is null)return false;
   await using var transaction=await db.Database.BeginTransactionAsync(ct);
 
-  x.Update(command.Name,command.Description);
-  await db.SaveChangesAsync(ct);
-
-  var sectionIds=await db.AuditTemplateSections
-   .Where(s=>s.AuditTemplateId==x.Id)
-   .Select(s=>s.Id)
-   .ToArrayAsync(ct);
-
+  // Do the replacement entirely with set-based SQL for existing rows. Mixing
+  // ExecuteDelete with a tracked aggregate made EF later issue stale commands.
+  var sectionIds=await db.AuditTemplateSections.AsNoTracking()
+   .Where(s=>s.AuditTemplateId==id).Select(s=>s.Id).ToArrayAsync(ct);
   if(sectionIds.Length>0)
   {
    await db.AuditTemplateItems.Where(i=>sectionIds.Contains(i.SectionId)).ExecuteDeleteAsync(ct);
-   await db.AuditTemplateSections.Where(s=>s.AuditTemplateId==x.Id).ExecuteDeleteAsync(ct);
+   await db.AuditTemplateSections.Where(s=>s.AuditTemplateId==id).ExecuteDeleteAsync(ct);
   }
 
-  // ExecuteDeleteAsync bypasses EF's change tracker. Clear it, then reload
-  // only the root so the replacement children are the only tracked dependants.
-  db.ChangeTracker.Clear();
-  x=await GetEntityAsync(id,false,ct);
-  if(x is null)
-  {
-   await transaction.RollbackAsync(ct);
-   return false;
-  }
+  await db.AuditTemplates.Where(t=>t.Id==id&&t.WorkspaceId==wid)
+   .ExecuteUpdateAsync(setters=>setters
+    .SetProperty(t=>t.Name,command.Name.Trim())
+    .SetProperty(t=>t.Description,Normalize(command.Description))
+    .SetProperty(t=>t.UpdatedAtUtc,DateTime.UtcNow),ct);
 
   foreach(var s in command.Sections)
   {
-   var section=x.AddSection(s.Title,s.Description);
+   var section=new AuditTemplateSection(id,s.Title,0,s.Description);
+   // Position is assigned below from the submitted order.
+   section.SetPosition(Array.IndexOf(command.Sections.ToArray(),s));
+   db.AuditTemplateSections.Add(section);
    foreach(var i in s.Items)
-    section.AddItem(i.Label,i.ResponseType,i.IsRequired,i.Description,i.Options);
+   {
+    var item=section.AddItem(i.Label,i.ResponseType,i.IsRequired,i.Description,i.Options);
+    item.SetPosition(Array.IndexOf(s.Items.ToArray(),i));
+   }
   }
 
   await db.SaveChangesAsync(ct);
