@@ -27,12 +27,47 @@ public sealed class AuditTemplateService(FreecrmlanceDbContext db, IWorkspaceCon
  }
  public async Task<bool> UpdateAsync(Guid id,SaveAuditTemplateCommand command,CancellationToken ct=default)
  {
-  var x=await GetEntityAsync(id,true,ct); if(x is null)return false;
-  x.Update(command.Name,command.Description);
-  db.AuditTemplateSections.RemoveRange(x.Sections);
-  x.ClearSections();
-  foreach(var s in command.Sections){var section=x.AddSection(s.Title,s.Description);foreach(var i in s.Items)section.AddItem(i.Label,i.ResponseType,i.IsRequired,i.Description,i.Options);}
-  await db.SaveChangesAsync(ct); return true;
+  var wid=await workspaceContext.RequireCurrentWorkspaceIdAsync(ct);
+  var current=await db.AuditTemplates.AsNoTracking()
+   .Include(t=>t.Sections).ThenInclude(s=>s.Items)
+   .SingleOrDefaultAsync(t=>t.Id==id&&t.WorkspaceId==wid,ct);
+  if(current is null)return false;
+  if(IsUnchanged(current,command))return true;
+
+  await using var transaction=await db.Database.BeginTransactionAsync(ct);
+
+  // Do the replacement entirely with set-based SQL for existing rows. Mixing
+  // ExecuteDelete with a tracked aggregate made EF later issue stale commands.
+  var sectionIds=await db.AuditTemplateSections.AsNoTracking()
+   .Where(s=>s.AuditTemplateId==id).Select(s=>s.Id).ToArrayAsync(ct);
+  if(sectionIds.Length>0)
+  {
+   await db.AuditTemplateItems.Where(i=>sectionIds.Contains(i.SectionId)).ExecuteDeleteAsync(ct);
+   await db.AuditTemplateSections.Where(s=>s.AuditTemplateId==id).ExecuteDeleteAsync(ct);
+  }
+
+  await db.AuditTemplates.Where(t=>t.Id==id&&t.WorkspaceId==wid)
+   .ExecuteUpdateAsync(setters=>setters
+    .SetProperty(t=>t.Name,command.Name.Trim())
+    .SetProperty(t=>t.Description,Normalize(command.Description))
+    .SetProperty(t=>t.UpdatedAtUtc,DateTime.UtcNow),ct);
+
+  for(var sectionPosition=0;sectionPosition<command.Sections.Count;sectionPosition++)
+  {
+   var s=command.Sections[sectionPosition];
+   var section=new AuditTemplateSection(id,s.Title,sectionPosition,s.Description);
+   db.AuditTemplateSections.Add(section);
+   for(var itemPosition=0;itemPosition<s.Items.Count;itemPosition++)
+   {
+    var i=s.Items[itemPosition];
+    var item=section.AddItem(i.Label,i.ResponseType,i.IsRequired,i.Description,i.Options);
+    item.SetPosition(itemPosition);
+   }
+  }
+
+  await db.SaveChangesAsync(ct);
+  await transaction.CommitAsync(ct);
+  return true;
  }
  public async Task<Guid?> DuplicateAsync(Guid id,CancellationToken ct=default)
  {
@@ -53,6 +88,39 @@ public sealed class AuditTemplateService(FreecrmlanceDbContext db, IWorkspaceCon
   if(graph)q=q.Include(x=>x.Sections).ThenInclude(x=>x.Items);
   return await q.SingleOrDefaultAsync(x=>x.Id==id&&x.WorkspaceId==wid,ct);
  }
+ private static bool IsUnchanged(AuditTemplate template,SaveAuditTemplateCommand command)
+ {
+  if(!string.Equals(template.Name,command.Name.Trim(),StringComparison.Ordinal))return false;
+  if(!string.Equals(Normalize(template.Description),Normalize(command.Description),StringComparison.Ordinal))return false;
+
+  var sections=template.Sections.OrderBy(s=>s.Position).ToArray();
+  if(sections.Length!=command.Sections.Count)return false;
+
+  for(var s=0;s<sections.Length;s++)
+  {
+   var existingSection=sections[s];
+   var submittedSection=command.Sections[s];
+   if(!string.Equals(existingSection.Title,submittedSection.Title.Trim(),StringComparison.Ordinal))return false;
+   if(!string.Equals(Normalize(existingSection.Description),Normalize(submittedSection.Description),StringComparison.Ordinal))return false;
+
+   var items=existingSection.Items.OrderBy(i=>i.Position).ToArray();
+   if(items.Length!=submittedSection.Items.Count)return false;
+   for(var i=0;i<items.Length;i++)
+   {
+    var existingItem=items[i];
+    var submittedItem=submittedSection.Items[i];
+    if(!string.Equals(existingItem.Label,submittedItem.Label.Trim(),StringComparison.Ordinal)
+       || existingItem.ResponseType!=submittedItem.ResponseType
+       || existingItem.IsRequired!=submittedItem.IsRequired
+       || !string.Equals(Normalize(existingItem.Description),Normalize(submittedItem.Description),StringComparison.Ordinal)
+       || !string.Equals(Normalize(existingItem.Options),Normalize(submittedItem.Options),StringComparison.Ordinal))
+     return false;
+   }
+  }
+  return true;
+ }
+ private static string? Normalize(string? value)=>string.IsNullOrWhiteSpace(value)?null:value.Trim();
+
  private static AuditTemplate Build(Guid wid,SaveAuditTemplateCommand c)
  {
   var x=new AuditTemplate(wid,c.Name,c.Description);
