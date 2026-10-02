@@ -1,0 +1,65 @@
+using Freecrmlance.Application.Audits;
+using Freecrmlance.Application.Platform;
+using Freecrmlance.Domain.Audits;
+using Freecrmlance.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+
+namespace Freecrmlance.Infrastructure.Audits;
+
+public sealed class AuditTemplateService(FreecrmlanceDbContext db, IWorkspaceContext workspaceContext) : IAuditTemplateService
+{
+ public async Task<IReadOnlyList<AuditTemplateDto>> ListAsync(bool includeArchived=false,CancellationToken ct=default)
+ {
+  var wid=await workspaceContext.RequireCurrentWorkspaceIdAsync(ct);
+  var q=db.AuditTemplates.AsNoTracking().Where(x=>x.WorkspaceId==wid);
+  if(!includeArchived) q=q.Where(x=>!x.IsArchived);
+  var rows=await q.OrderBy(x=>x.Name).ToListAsync(ct);
+  return rows.Select(MapSummary).ToArray();
+ }
+ public async Task<AuditTemplateDto?> GetAsync(Guid id,CancellationToken ct=default)
+ {
+  var x=await GetEntityAsync(id,true,ct); return x is null?null:Map(x);
+ }
+ public async Task<Guid> CreateAsync(SaveAuditTemplateCommand command,CancellationToken ct=default)
+ {
+  var wid=await workspaceContext.RequireCurrentWorkspaceIdAsync(ct); var x=Build(wid,command);
+  db.AuditTemplates.Add(x); await db.SaveChangesAsync(ct); return x.Id;
+ }
+ public async Task<bool> UpdateAsync(Guid id,SaveAuditTemplateCommand command,CancellationToken ct=default)
+ {
+  var x=await GetEntityAsync(id,true,ct); if(x is null)return false;
+  x.Update(command.Name,command.Description);
+  db.AuditTemplateSections.RemoveRange(x.Sections);
+  foreach(var s in command.Sections){var section=x.AddSection(s.Title,s.Description);foreach(var i in s.Items)section.AddItem(i.Label,i.ResponseType,i.IsRequired,i.Description,i.Options);}
+  await db.SaveChangesAsync(ct); return true;
+ }
+ public async Task<Guid?> DuplicateAsync(Guid id,CancellationToken ct=default)
+ {
+  var source=await GetEntityAsync(id,true,ct); if(source is null)return null;
+  var copy=new AuditTemplate(source.WorkspaceId,source.Name+" — copie",source.Description);
+  foreach(var s in source.Sections.OrderBy(x=>x.Position)){var ns=copy.AddSection(s.Title,s.Description);foreach(var i in s.Items.OrderBy(x=>x.Position))ns.AddItem(i.Label,i.ResponseType,i.IsRequired,i.Description,i.Options);}
+  db.AuditTemplates.Add(copy); await db.SaveChangesAsync(ct); return copy.Id;
+ }
+ public async Task<bool> SetArchivedAsync(Guid id,bool archived,CancellationToken ct=default)
+ {
+  var x=await GetEntityAsync(id,false,ct); if(x is null)return false;
+  if(archived)x.Archive();else x.Restore(); await db.SaveChangesAsync(ct); return true;
+ }
+ private async Task<AuditTemplate?> GetEntityAsync(Guid id,bool graph,CancellationToken ct)
+ {
+  var wid=await workspaceContext.RequireCurrentWorkspaceIdAsync(ct);
+  IQueryable<AuditTemplate> q=db.AuditTemplates;
+  if(graph)q=q.Include(x=>x.Sections).ThenInclude(x=>x.Items);
+  return await q.SingleOrDefaultAsync(x=>x.Id==id&&x.WorkspaceId==wid,ct);
+ }
+ private static AuditTemplate Build(Guid wid,SaveAuditTemplateCommand c)
+ {
+  var x=new AuditTemplate(wid,c.Name,c.Description);
+  foreach(var s in c.Sections){var section=x.AddSection(s.Title,s.Description);foreach(var i in s.Items)section.AddItem(i.Label,i.ResponseType,i.IsRequired,i.Description,i.Options);}
+  return x;
+ }
+ private static AuditTemplateDto MapSummary(AuditTemplate x)=>new(x.Id,x.Name,x.Description,x.IsArchived,x.UpdatedAtUtc,[]);
+ private static AuditTemplateDto Map(AuditTemplate x)=>new(x.Id,x.Name,x.Description,x.IsArchived,x.UpdatedAtUtc,
+  x.Sections.OrderBy(s=>s.Position).Select(s=>new AuditTemplateSectionDto(s.Id,s.Title,s.Description,s.Position,
+   s.Items.OrderBy(i=>i.Position).Select(i=>new AuditTemplateItemDto(i.Id,i.Label,i.Description,i.ResponseType,i.IsRequired,i.Position,i.Options)).ToArray())).ToArray());
+}
