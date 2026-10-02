@@ -44,19 +44,21 @@ public sealed class AuditTemplateService(FreecrmlanceDbContext db, IWorkspaceCon
    await db.AuditTemplateSections.Where(s=>s.AuditTemplateId==x.Id).ExecuteDeleteAsync(ct);
   }
 
-  // ExecuteDeleteAsync bypasses EF's change tracker. Detach the root before
-  // rebuilding the graph so SaveChanges only sees the new sections/items.
+  // ExecuteDeleteAsync bypasses EF's change tracker. Clear it, then reload
+  // only the root so the replacement children are the only tracked dependants.
   db.ChangeTracker.Clear();
-
-  var replacement=Build(x.WorkspaceId,command);
-  db.Entry(replacement).Property(t=>t.Id).CurrentValue=id;
-  db.Entry(replacement).Property(t=>t.Id).IsModified=false;
-  db.Entry(replacement).State=EntityState.Unchanged;
-  foreach(var section in replacement.Sections)
+  x=await GetEntityAsync(id,false,ct);
+  if(x is null)
   {
-   db.Entry(section).State=EntityState.Added;
-   foreach(var item in section.Items)
-    db.Entry(item).State=EntityState.Added;
+   await transaction.RollbackAsync(ct);
+   return false;
+  }
+
+  foreach(var s in command.Sections)
+  {
+   var section=x.AddSection(s.Title,s.Description);
+   foreach(var i in s.Items)
+    section.AddItem(i.Label,i.ResponseType,i.IsRequired,i.Description,i.Options);
   }
 
   await db.SaveChangesAsync(ct);
