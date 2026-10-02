@@ -5,7 +5,7 @@ public sealed class AuditTemplateSection
     private readonly List<AuditTemplateItem> _items = [];
     private AuditTemplateSection() { }
 
-    internal AuditTemplateSection(Guid auditTemplateId, string title, int position, string? description)
+    public AuditTemplateSection(Guid auditTemplateId, string title, int position, string? description)
     {
         if (auditTemplateId == Guid.Empty) throw new ArgumentException("Template id is required.", nameof(auditTemplateId));
         Id = Guid.NewGuid(); AuditTemplateId = auditTemplateId; Position = position;
