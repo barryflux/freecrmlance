@@ -1,0 +1,52 @@
+@using System.Text.Json
+@using Freecrmlance.Domain.Audits
+@model Freecrmlance.Web.Models.Audits.AuditWorkspaceViewModel
+@{ViewData["Title"]="Réaliser "+Model.Audit.Reference;}
+<div class="page-header d-flex justify-content-between align-items-start gap-3">
+ <div><div class="text-body-secondary">@Model.Audit.Reference · @Model.Audit.Status</div><h1 class="h2 mb-1">@Model.Audit.Title</h1><p class="mb-0">Progression : <strong>@Model.Audit.ProgressPercent %</strong> (@Model.Audit.AnsweredItems/@Model.Audit.TotalItems)</p></div>
+ <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@Model.Audit.Id">Voir le détail</a>
+</div>
+<div class="progress mb-4" role="progressbar" aria-valuenow="@Model.Audit.ProgressPercent" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar" style="width:@Model.Audit.ProgressPercent%">@Model.Audit.ProgressPercent%</div></div>
+@foreach(var auditSection in Model.Audit.Sections){
+<section class="card mb-4"><div class="card-body"><h2 class="h5">@auditSection.Title</h2>@if(auditSection.Description is not null){<p class="text-body-secondary">@auditSection.Description</p>}
+@foreach(var item in auditSection.Items){
+ var response=item.Response;
+ <form method="post" asp-action="SaveResponse" class="border-top pt-3 mt-3">
+  @Html.AntiForgeryToken()<input type="hidden" name="AuditId" value="@Model.Audit.Id"/><input type="hidden" name="AuditItemId" value="@item.Id"/>
+  <div class="mb-2"><strong>@item.Label</strong>@if(item.IsRequired){<span class="text-danger ms-1">obligatoire</span>}@if(item.Description is not null){<div class="small text-body-secondary">@item.Description</div>}</div>
+  <div class="mb-3">
+  @switch(item.ResponseType){
+   case AuditResponseType.YesNo:
+    <select name="Value" class="form-select"><option value="">— Non renseigné —</option><option value="Yes" selected="@(response?.Value=="Yes")">Oui</option><option value="No" selected="@(response?.Value=="No")">Non</option></select>
+    break;
+   case AuditResponseType.CompliantNonCompliant:
+    <select name="Value" class="form-select"><option value="">— Non renseigné —</option><option value="Compliant" selected="@(response?.Value=="Compliant")">Conforme</option><option value="NonCompliant" selected="@(response?.Value=="NonCompliant")">Non conforme</option></select>
+    break;
+   case AuditResponseType.LongText:
+    <textarea name="Value" class="form-control" rows="4">@response?.Value</textarea>
+    break;
+   case AuditResponseType.Number:
+    <input name="Value" value="@response?.Value" type="number" step="any" class="form-control"/>
+    break;
+   case AuditResponseType.Rating:
+    <select name="Value" class="form-select"><option value="">— Non renseigné —</option>@for(var n=1;n<=5;n++){<option value="@n" selected="@(response?.Value==n.ToString())">@n / 5</option>}</select>
+    break;
+   case AuditResponseType.SingleChoice:
+    var options=(item.Options??"").Split(new[]{'\r','\n',',',';'},StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries);
+    <select name="Value" class="form-select"><option value="">— Non renseigné —</option>@foreach(var option in options){<option value="@option" selected="@(response?.Value==option)">@option</option>}</select>
+    break;
+   case AuditResponseType.MultipleChoice:
+    var choices=(item.Options??"").Split(new[]{'\r','\n',',',';'},StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries);
+    string[] selected=[];if(response?.Value is not null){try{selected=JsonSerializer.Deserialize<string[]>(response.Value)??[];}catch(JsonException){}}
+    @foreach(var option in choices){<div class="form-check"><input class="form-check-input" type="checkbox" name="SelectedValues" value="@option" checked="@selected.Contains(option)"/><label class="form-check-label">@option</label></div>}
+    break;
+   default:
+    <input name="Value" value="@response?.Value" class="form-control"/>
+    break;
+  }
+  </div>
+  <div class="row g-3"><div class="col-md-6"><label class="form-label">Observation</label><textarea name="Observation" class="form-control" rows="2">@response?.Observation</textarea></div><div class="col-md-6"><label class="form-label">Recommandation</label><textarea name="Recommendation" class="form-control" rows="2">@response?.Recommendation</textarea></div></div>
+  <button class="btn btn-primary btn-sm mt-3">Enregistrer ce critère</button>
+ </form>
+}</div></section>
+}
