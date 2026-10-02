@@ -10,6 +10,7 @@ public sealed class FreecrmlanceDbContext(DbContextOptions<FreecrmlanceDbContext
  public DbSet<Audit> Audits=>Set<Audit>();
  public DbSet<AuditSection> AuditSections=>Set<AuditSection>();
  public DbSet<AuditItem> AuditItems=>Set<AuditItem>();
+ public DbSet<AuditItemResponse> AuditItemResponses=>Set<AuditItemResponse>();
  public DbSet<AuditNumberSequence> AuditNumberSequences=>Set<AuditNumberSequence>();
  public DbSet<AuditTemplate> AuditTemplates=>Set<AuditTemplate>();
  public DbSet<AuditTemplateSection> AuditTemplateSections=>Set<AuditTemplateSection>();

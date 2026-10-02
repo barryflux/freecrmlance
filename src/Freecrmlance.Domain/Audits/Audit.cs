@@ -18,5 +18,6 @@ public sealed class Audit
  public AuditStatus Status{get;private set;} public DateTime? StartedAtUtc{get;private set;} public DateTime? CompletedAtUtc{get;private set;} public DateTime CreatedAtUtc{get;private set;}
  public IReadOnlyCollection<AuditSection> Sections=>_sections;
  public AuditSection AddSection(string title,int position,string? description=null){var x=new AuditSection(Id,title,position,description);_sections.Add(x);return x;}
+ public void Start(){if(Status==AuditStatus.Draft){Status=AuditStatus.InProgress;StartedAtUtc=DateTime.UtcNow;}}
  private static string? Normalize(string? value)=>string.IsNullOrWhiteSpace(value)?null:value.Trim();
 }

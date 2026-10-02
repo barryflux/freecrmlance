@@ -30,7 +30,7 @@ Invoice may be direct or from accepted Quote. A finalized Invoice cannot be free
 Owns regulatory rules, validation, electronic formats, e-invoicing and regulatory traceability.
 
 ## Audit
-Future: AuditTemplate, Audit, AuditSection, AuditControl, AuditEvidence, Finding, Recommendation. Reuse Customer, Document and Platform.
+AuditTemplate defines reusable ordered sections and criteria. Audit snapshots a template for one Customer so later template changes never alter existing work. AuditItemResponse stores the progressive response, observation and recommendation for one snapshotted criterion, with update timestamp and user identity. Audit starts in Draft and moves to InProgress when work is first saved. Future report versions will freeze finalized audit content. Evidence reuses Documents/Platform.
 
 ## Ownership
 | Concept | Owner |
