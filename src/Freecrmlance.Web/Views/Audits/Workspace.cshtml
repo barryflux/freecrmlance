@@ -6,6 +6,8 @@
  <div><div class="text-body-secondary">@Model.Audit.Reference · @Model.Audit.Status</div><h1 class="h2 mb-1">@Model.Audit.Title</h1><p class="mb-0">Progression : <strong>@Model.Audit.ProgressPercent %</strong> (@Model.Audit.AnsweredItems/@Model.Audit.TotalItems)</p></div>
  <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@Model.Audit.Id">Voir le détail</a>
 </div>
+@if(TempData["AuditError"] is string auditError){<div class="alert alert-danger">@auditError</div>}
+@if(TempData["AuditSuccess"] is string auditSuccess){<div class="alert alert-success">@auditSuccess</div>}
 <div class="progress mb-4" role="progressbar" aria-valuenow="@Model.Audit.ProgressPercent" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar" style="width:@Model.Audit.ProgressPercent%">@Model.Audit.ProgressPercent%</div></div>
 @foreach(var auditSection in Model.Audit.Sections){
 <section class="card mb-4"><div class="card-body"><h2 class="h5">@auditSection.Title</h2>@if(auditSection.Description is not null){<p class="text-body-secondary">@auditSection.Description</p>}
@@ -48,5 +50,12 @@
   <div class="row g-3"><div class="col-md-6"><label class="form-label">Observation</label><textarea name="Observation" class="form-control" rows="2">@response?.Observation</textarea></div><div class="col-md-6"><label class="form-label">Recommandation</label><textarea name="Recommendation" class="form-control" rows="2">@response?.Recommendation</textarea></div></div>
   <button class="btn btn-primary btn-sm mt-3">Enregistrer ce critère</button>
  </form>
+ <div class="mt-3">
+  <div class="small fw-semibold mb-2">Preuves</div>
+  @foreach(var proof in Model.Evidence.Where(x=>x.AuditItemId==item.Id)){
+   <div class="d-flex align-items-center gap-2 mb-1"><a asp-action="DownloadEvidence" asp-route-auditId="@Model.Audit.Id" asp-route-evidenceId="@proof.Id">@proof.FileName</a><span class="small text-body-secondary">(@(Math.Ceiling(proof.Size/1024d)) Ko)</span><form method="post" asp-action="DeleteEvidence" class="d-inline">@Html.AntiForgeryToken()<input type="hidden" name="auditId" value="@Model.Audit.Id"/><input type="hidden" name="evidenceId" value="@proof.Id"/><button class="btn btn-link btn-sm text-danger p-0" type="submit">Supprimer</button></form></div>
+  }
+  <form method="post" enctype="multipart/form-data" asp-action="UploadEvidence" class="d-flex gap-2 align-items-center mt-2">@Html.AntiForgeryToken()<input type="hidden" name="auditId" value="@Model.Audit.Id"/><input type="hidden" name="auditItemId" value="@item.Id"/><input type="file" name="file" class="form-control form-control-sm" required/><button class="btn btn-outline-secondary btn-sm" type="submit">Ajouter une preuve</button></form>
+ </div>
 }</div></section>
 }
