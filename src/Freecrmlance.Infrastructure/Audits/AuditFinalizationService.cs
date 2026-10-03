@@ -77,6 +77,7 @@ public sealed class AuditFinalizationService(FreecrmlanceDbContext db, IWorkspac
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
         {
             db.Entry(version).State = EntityState.Detached;
+            await db.Entry(audit).ReloadAsync(ct);
             return new(null, "L'audit a été finalisé simultanément. Rechargez la page.");
         }
         return new(version.Id, null);
