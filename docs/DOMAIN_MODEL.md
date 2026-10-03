@@ -53,3 +53,8 @@ AuditTemplate defines reusable ordered sections and criteria. Audit snapshots a 
 7. Audit reuses existing concepts.
 
 Before a new entity, agents check existing concepts, owner module, Workspace boundary and dependencies. If a Story changes the model, update this document in the same PR.
+
+
+### Audit report versions
+
+Finalizing an audit creates an immutable `AuditReportVersion`. Each version stores a canonical JSON snapshot of the audit stored as text so its exact hashed representation is preserved, its sequential version number, finalization timestamp/user and a SHA-256 integrity hash. Existing versions are never updated. A finalized audit can be explicitly reopened for correction; finalizing it again creates the next version while preserving all previous snapshots. The integrity hash is a technical consistency check, not a legal certification. US-039 must generate reports from a report-version snapshot rather than mutable current audit data.

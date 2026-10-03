@@ -19,5 +19,7 @@ public sealed class Audit
  public IReadOnlyCollection<AuditSection> Sections=>_sections;
  public AuditSection AddSection(string title,int position,string? description=null){var x=new AuditSection(Id,title,position,description);_sections.Add(x);return x;}
  public void Start(){if(Status==AuditStatus.Draft){Status=AuditStatus.InProgress;StartedAtUtc=DateTime.UtcNow;}}
+ public void FinalizeAudit(DateTime finalizedAtUtc){if(Status is not (AuditStatus.Draft or AuditStatus.InProgress))throw new InvalidOperationException("Audit cannot be finalized.");Status=AuditStatus.Finalized;CompletedAtUtc=finalizedAtUtc;StartedAtUtc??=finalizedAtUtc;}
+ public void Reopen(){if(Status!=AuditStatus.Finalized)throw new InvalidOperationException("Only a finalized audit can be reopened.");Status=AuditStatus.InProgress;CompletedAtUtc=null;}
  private static string? Normalize(string? value)=>string.IsNullOrWhiteSpace(value)?null:value.Trim();
 }
