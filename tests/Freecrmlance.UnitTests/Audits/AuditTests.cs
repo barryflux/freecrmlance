@@ -9,4 +9,17 @@ public sealed class AuditTests
   audit.Start();var started=audit.StartedAtUtc;audit.Start();
   Assert.Multiple(()=>{Assert.That(audit.Status,Is.EqualTo(AuditStatus.InProgress));Assert.That(started,Is.Not.Null);Assert.That(audit.StartedAtUtc,Is.EqualTo(started));});
  }
+
+    [Test]
+    public void Finalize_and_reopen_follow_explicit_lifecycle()
+    {
+        var audit = new Audit(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "AUD-1", "Audit", null);
+        var at = DateTime.UtcNow;
+        audit.FinalizeAudit(at);
+        Assert.That(audit.Status, Is.EqualTo(AuditStatus.Finalized));
+        Assert.That(audit.CompletedAtUtc, Is.EqualTo(at));
+        audit.Reopen();
+        Assert.That(audit.Status, Is.EqualTo(AuditStatus.InProgress));
+        Assert.That(audit.CompletedAtUtc, Is.Null);
+    }
 }
