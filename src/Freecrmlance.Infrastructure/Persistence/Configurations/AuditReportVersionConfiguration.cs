@@ -12,7 +12,7 @@ public sealed class AuditReportVersionConfiguration : IEntityTypeConfiguration<A
         builder.ToTable("AuditReportVersions", "audit");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.FinalizedByUserId).HasMaxLength(450).IsRequired();
-        builder.Property(x => x.Snapshot).HasColumnType("jsonb").IsRequired();
+        builder.Property(x => x.Snapshot).HasColumnType("text").IsRequired();
         builder.Property(x => x.Hash).HasMaxLength(64).IsRequired();
         builder.HasIndex(x => new { x.AuditId, x.VersionNumber }).IsUnique();
         builder.HasOne<Audit>().WithMany().HasForeignKey(x => x.AuditId).OnDelete(DeleteBehavior.Cascade);
