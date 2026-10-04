@@ -63,3 +63,8 @@ Finalizing an audit creates an immutable `AuditReportVersion`. Each version stor
 ### Audit PDF reports
 
 A generated audit PDF belongs to one immutable `AuditReportVersion` and is rendered exclusively from that version's snapshot. The generated binary is stored through `IFileStorage`, represented by the existing `Document` entity and referenced by `GeneratedDocumentId`. Regeneration may replace the generated document, but never changes the report-version snapshot or SHA-256 hash. Transmission remains the responsibility of US-040.
+
+
+### Audit report transmissions
+
+An `AuditReportTransmission` records the delivery of one exact immutable `AuditReportVersion`. It references the secure `DocumentShare` created for that version's generated PDF and records the recipient, initiating user and timestamp. Later audit corrections or report versions never retarget an existing transmission.
