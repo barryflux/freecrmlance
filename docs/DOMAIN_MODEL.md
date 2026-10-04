@@ -58,3 +58,8 @@ Before a new entity, agents check existing concepts, owner module, Workspace bou
 ### Audit report versions
 
 Finalizing an audit creates an immutable `AuditReportVersion`. Each version stores a canonical JSON snapshot of the audit stored as text so its exact hashed representation is preserved, its sequential version number, finalization timestamp/user and a SHA-256 integrity hash. Existing versions are never updated. A finalized audit can be explicitly reopened for correction; finalizing it again creates the next version while preserving all previous snapshots. The integrity hash is a technical consistency check, not a legal certification. US-039 must generate reports from a report-version snapshot rather than mutable current audit data.
+
+
+### Audit PDF reports
+
+A generated audit PDF belongs to one immutable `AuditReportVersion` and is rendered exclusively from that version's snapshot. The generated binary is stored through `IFileStorage`, represented by the existing `Document` entity and referenced by `GeneratedDocumentId`. Regeneration may replace the generated document, but never changes the report-version snapshot or SHA-256 hash. Transmission remains the responsibility of US-040.
