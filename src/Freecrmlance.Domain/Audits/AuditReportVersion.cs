@@ -23,4 +23,5 @@ public sealed class AuditReportVersion
     public string Snapshot { get; private set; } = string.Empty;
     public string Hash { get; private set; } = string.Empty;
     public Guid? GeneratedDocumentId { get; private set; }
+    public void SetGeneratedDocument(Guid documentId) { if (documentId == Guid.Empty) throw new ArgumentException("Document id is required.", nameof(documentId)); GeneratedDocumentId = documentId; }
 }
