@@ -40,6 +40,7 @@
   }
  </div>
 </div>
+<div class="card mb-4"><div class="card-body p-4"><h2 class="h5 mb-3">Historique</h2><div class="d-grid gap-0">@foreach(var entry in Model.History){<div class="d-flex gap-3 py-2 border-top"><div class="text-body-secondary small flex-shrink-0" style="width:9rem">@entry.OccurredAtUtc.ToLocalTime().ToString("g")</div><div><div class="fw-semibold">@entry.Label</div>@if(entry.Recipient is not null){<div class="small text-body-secondary">Destinataire : @entry.Recipient</div>}@if(entry.UserId is not null){<div class="small text-body-secondary">Utilisateur : @entry.UserId</div>}</div></div>}</div></div></div>
 @if(TempData["AuditShareUrl"] is string shareUrl){<div class="alert alert-info"><strong>Lien à transmettre :</strong> <a href="@shareUrl" target="_blank">@shareUrl</a></div>}
 @if(TempData["AuditError"] is string auditError){<div class="alert alert-danger">@auditError</div>}
 @if(TempData["AuditSuccess"] is string auditSuccess){<div class="alert alert-success">@auditSuccess</div>}
