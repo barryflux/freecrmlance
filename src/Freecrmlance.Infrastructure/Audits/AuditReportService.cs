@@ -26,7 +26,10 @@ public sealed class AuditReportService(FreecrmlanceDbContext db,IWorkspaceContex
   var document=new Document(wid,row.Audit.CustomerId,FileName(row.Audit.Reference,row.Version.VersionNumber),"application/pdf",bytes.LongLength,key);
   db.Documents.Add(document);row.Version.SetGeneratedDocument(document.Id);db.AuditHistoryEvents.Add(new Freecrmlance.Domain.Audits.AuditHistoryEvent(wid,auditId,old is null?Freecrmlance.Domain.Audits.AuditHistoryEventType.ReportGenerated:Freecrmlance.Domain.Audits.AuditHistoryEventType.ReportRegenerated,DateTime.UtcNow,generatedByUserId,versionId));if(old is not null)db.Documents.Remove(old);
   try{await db.SaveChangesAsync(ct);}catch{await storage.DeleteAsync(key,ct);throw;}
-  if(old is not null)await storage.DeleteAsync(old.StorageKey,ct);
+  if(old is not null)
+  {
+   try{await storage.DeleteAsync(old.StorageKey,ct);}catch(IOException){/* DB already points to the new report; stale binary can be cleaned separately. */}
+  }
   return new(document.Id,null);
  }
  public async Task<AuditReportDownload?> DownloadAsync(Guid auditId,Guid versionId,CancellationToken ct=default)
