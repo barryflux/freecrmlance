@@ -69,6 +69,20 @@ public sealed class AuditEvidenceTests
         Assert.That(await service.ListAsync(auditB.Id), Is.Null);
     }
 
+
+    [Test]
+    public async Task Evidence_rejects_oversized_file_before_storage()
+    {
+        await using var postgres = new PostgreSqlBuilder().WithImage("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        var options = new DbContextOptionsBuilder<FreecrmlanceDbContext>().UseNpgsql(postgres.GetConnectionString()).Options;
+        var wid = Guid.NewGuid(); await using var db = new FreecrmlanceDbContext(options); await db.Database.MigrateAsync();
+        var customer = new Customer(wid, "Client"); db.Customers.Add(customer); var audit = NewAudit(wid, customer.Id); db.Audits.Add(audit); await db.SaveChangesAsync();
+        var storage = new MemoryStorage(); var service = new AuditEvidenceService(db, new Stub(wid), storage); await using var content = new MemoryStream([1]);
+        var error = await service.UploadAsync(audit.Id, audit.Sections.Single().Items.Single().Id, "big.bin", "application/octet-stream", AuditEvidenceService.MaxFileSize + 1, content, "user");
+        Assert.That(error, Does.Contain("10 Mo")); Assert.That(storage.Count, Is.Zero); Assert.That(await db.Documents.CountAsync(), Is.Zero);
+    }
+
     private static Audit NewAudit(Guid wid, Guid customerId)
     {
         var audit = new Audit(wid, customerId, Guid.NewGuid(), Guid.NewGuid().ToString("N"), "Audit", null);
@@ -85,6 +99,7 @@ public sealed class AuditEvidenceTests
     private sealed class MemoryStorage : IFileStorage
     {
         private readonly Dictionary<string, byte[]> files = [];
+        public int Count => files.Count;
         public async Task<string> SaveAsync(Stream content, CancellationToken cancellationToken = default)
         {
             using var ms = new MemoryStream(); await content.CopyToAsync(ms, cancellationToken); var key = Guid.NewGuid().ToString("N"); files[key] = ms.ToArray(); return key;
