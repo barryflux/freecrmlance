@@ -13,7 +13,7 @@ namespace Freecrmlance.Web.Controllers;
   var userId=User.FindFirstValue(ClaimTypes.NameIdentifier);if(string.IsNullOrWhiteSpace(userId))return Challenge();
   var error=await audits.SaveResponseAsync(new SaveAuditResponseCommand(auditId,auditItemId,value,observation,recommendation,userId),ct);
   if(error is not null)TempData["AuditError"]=error;else TempData["AuditSuccess"]="Critère enregistré.";
-  return RedirectToAction(nameof(Workspace),new{id=auditId});
+  return WorkspaceRedirect(auditId,"work");
  }
  [HttpPost,ValidateAntiForgeryToken,RequestSizeLimit(10 * 1024 * 1024)]public async Task<IActionResult> UploadEvidence(Guid auditId,Guid auditItemId,IFormFile file,CancellationToken ct)
  {
@@ -31,5 +31,6 @@ namespace Freecrmlance.Web.Controllers;
  [HttpPost,ValidateAntiForgeryToken]public async Task<IActionResult> GenerateReport(Guid auditId,Guid versionId,CancellationToken ct){var result=await reports.GenerateAsync(auditId,versionId,ct);if(!result.Succeeded)TempData["AuditError"]=result.Error;else TempData["AuditSuccess"]="Rapport PDF généré.";return RedirectToAction(nameof(Workspace),new{id=auditId});}
  [HttpGet]public async Task<IActionResult> DownloadReport(Guid auditId,Guid versionId,CancellationToken ct){var report=await reports.DownloadAsync(auditId,versionId,ct);return report is null?NotFound():File(report.Content,report.ContentType,report.FileName);}
  [HttpPost,ValidateAntiForgeryToken]public async Task<IActionResult> TransmitReport(Guid auditId,Guid versionId,string recipient,CancellationToken ct){var userId=User.FindFirstValue(ClaimTypes.NameIdentifier);if(string.IsNullOrWhiteSpace(userId))return Challenge();var result=await transmissions.CreateAsync(auditId,versionId,recipient,userId,ct);if(!result.Succeeded)TempData["AuditError"]=result.Error;else{TempData["AuditSuccess"]="Lien de transmission créé.";TempData["AuditShareUrl"]=Url.Action("Download","SharedDocuments",new{token=result.Token},Request.Scheme);}return RedirectToAction(nameof(Workspace),new{id=auditId});}
+ private IActionResult WorkspaceRedirect(Guid auditId,string tab)=>RedirectToAction(nameof(Workspace),new{id=auditId,tab});
  private async Task Populate(CreateAuditViewModel m,CancellationToken ct){m.Customers=(await customers.ListAsync(ct)).Select(x=>new SelectListItem(x.Name,x.Id.ToString())).ToArray();m.Templates=(await templates.ListAsync(false,ct)).Where(x=>!x.IsArchived).Select(x=>new SelectListItem(x.Name,x.Id.ToString())).ToArray();}
 }
