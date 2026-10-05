@@ -73,3 +73,8 @@ An `AuditReportTransmission` records the delivery of one exact immutable `AuditR
 ### Audit history
 
 The audit timeline combines immutable business facts already carried by the audit, report versions and transmissions with append-only `AuditHistoryEvent` records for transitions that would otherwise be lost, such as reopening an audit and generating or regenerating a report PDF. History is Workspace-scoped and never stores share tokens or storage keys.
+
+
+### Audit V1 hardening invariants
+
+US-042 does not change the core `AuditTemplate -> Audit snapshot -> AuditReportVersion` architecture. It hardens these invariants: a recorded transmission and its secure share are created atomically; database state and `IFileStorage` must not knowingly diverge on evidence/report operations; file validation is enforced below the HTTP layer; multiple deliveries of one immutable version remain independently traceable; PDF generation/regeneration records its initiating user; new finalized snapshots use a versioned schema that freezes the customer identity required by the report while legacy snapshots remain byte-for-byte unchanged; all audit resources remain Workspace-scoped and resistant to direct-ID access across tenants.
