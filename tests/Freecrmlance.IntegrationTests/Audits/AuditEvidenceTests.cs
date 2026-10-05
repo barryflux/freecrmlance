@@ -67,6 +67,8 @@ public sealed class AuditEvidenceTests
         var foreignItem = auditB.Sections.Single().Items.Single().Id;
         Assert.That(await service.UploadAsync(auditA.Id, foreignItem, "x.bin", "application/octet-stream", 3, content, "user"), Is.EqualTo("Critère d'audit introuvable."));
         Assert.That(await service.ListAsync(auditB.Id), Is.Null);
+        Assert.That(await service.DownloadAsync(auditB.Id, Guid.NewGuid()), Is.Null);
+        Assert.That(await service.DeleteAsync(auditB.Id, Guid.NewGuid()), Is.EqualTo("Audit introuvable."));
     }
 
 
