@@ -68,3 +68,8 @@ A generated audit PDF belongs to one immutable `AuditReportVersion` and is rende
 ### Audit report transmissions
 
 An `AuditReportTransmission` records the delivery of one exact immutable `AuditReportVersion`. It references the secure `DocumentShare` created for that version's generated PDF and records the recipient, initiating user and timestamp. Later audit corrections or report versions never retarget an existing transmission.
+
+
+### Audit history
+
+The audit timeline combines immutable business facts already carried by the audit, report versions and transmissions with append-only `AuditHistoryEvent` records for transitions that would otherwise be lost, such as reopening an audit and generating or regenerating a report PDF. History is Workspace-scoped and never stores share tokens or storage keys.
