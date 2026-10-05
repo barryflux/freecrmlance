@@ -21,7 +21,7 @@ public sealed class AccountController(
         if (!ModelState.IsValid) return View(model);
 
         var result = await signInManager.PasswordSignInAsync(
-            model.Email, model.Password, isPersistent: false, lockoutOnFailure: false);
+            model.Email, model.Password, isPersistent: false, lockoutOnFailure: true);
 
         if (!result.Succeeded)
         {
