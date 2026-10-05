@@ -6,6 +6,7 @@ using Freecrmlance.Infrastructure.Audits;
 using Freecrmlance.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
+using System.Text.Json;
 using Testcontainers.PostgreSql;
 
 namespace Freecrmlance.IntegrationTests.Audits;
@@ -60,6 +61,30 @@ public sealed class AuditFinalizationTests
         Assert.That(versions[0].Hash, Is.EqualTo(hash));
         Assert.That(versions[1].Snapshot, Is.Not.EqualTo(snapshot));
         Assert.That(await service.VerifyHashAsync(audit.Id, versions[1].Id), Is.True);
+    }
+
+
+    [Test]
+    public async Task New_finalization_uses_schema_v2_and_freezes_customer_identity()
+    {
+        await using var pg = new PostgreSqlBuilder().WithImage("postgres:17-alpine").Build(); await pg.StartAsync();
+        var options = new DbContextOptionsBuilder<FreecrmlanceDbContext>().UseNpgsql(pg.GetConnectionString()).Options;
+        var wid = Guid.NewGuid(); await using var db = new FreecrmlanceDbContext(options); await db.Database.MigrateAsync();
+        var customer = new Customer(wid, "Client figé", "client@example.test", "0102030405"); db.Customers.Add(customer);
+        var audit = NewAudit(wid, customer.Id, false); db.Audits.Add(audit); await db.SaveChangesAsync();
+        var service = new AuditFinalizationService(db, new Stub(wid)); var result = await service.FinalizeAsync(audit.Id, "user");
+        Assert.That(result.Succeeded, Is.True);
+        var version = await db.AuditReportVersions.AsNoTracking().SingleAsync(x => x.Id == result.VersionId);
+        using var json = JsonDocument.Parse(version.Snapshot);
+        Assert.Multiple(() => {
+            Assert.That(json.RootElement.GetProperty("schemaVersion").GetInt32(), Is.EqualTo(2));
+            Assert.That(json.RootElement.GetProperty("customer").GetProperty("name").GetString(), Is.EqualTo("Client figé"));
+            Assert.That(json.RootElement.GetProperty("customer").GetProperty("email").GetString(), Is.EqualTo("client@example.test"));
+        });
+        customer.Update("Client modifié", "changed@example.test", null); await db.SaveChangesAsync();
+        using var frozen = JsonDocument.Parse(version.Snapshot);
+        Assert.That(frozen.RootElement.GetProperty("customer").GetProperty("name").GetString(), Is.EqualTo("Client figé"));
+        Assert.That(await service.VerifyHashAsync(audit.Id, version.Id), Is.True);
     }
 
     [Test]

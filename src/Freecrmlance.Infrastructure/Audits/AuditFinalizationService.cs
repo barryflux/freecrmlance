@@ -40,6 +40,8 @@ public sealed class AuditFinalizationService(FreecrmlanceDbContext db, IWorkspac
         if (audit is null) return new(null, "Audit introuvable.");
         if (audit.Status is AuditStatus.Finalized or AuditStatus.Completed) return new(null, "Cet audit est déjà finalisé.");
 
+        var customer = await db.Customers.AsNoTracking().SingleOrDefaultAsync(c => c.Id == audit.CustomerId && c.WorkspaceId == wid, ct);
+        if (customer is null) return new(null, "Client introuvable.");
         var items = audit.Sections.SelectMany(s => s.Items).ToArray();
         var itemIds = items.Select(x => x.Id).ToArray();
         var responses = await db.AuditItemResponses.AsNoTracking().Where(x => itemIds.Contains(x.AuditItemId)).ToDictionaryAsync(x => x.AuditItemId, ct);
@@ -54,8 +56,9 @@ public sealed class AuditFinalizationService(FreecrmlanceDbContext db, IWorkspac
         var finalizedAt = DateTime.UtcNow;
         var snapshotObject = new
         {
-            schemaVersion = 1,
+            schemaVersion = 2,
             audit = new { audit.Id, audit.WorkspaceId, audit.CustomerId, audit.TemplateId, audit.Reference, audit.Title, audit.Description, audit.CreatedAtUtc },
+            customer = new { customer.Id, customer.Name, customer.Email, customer.Phone, customer.Type, customer.Siren, customer.Siret, customer.VatNumber, customer.AddressLine1, customer.AddressLine2, customer.PostalCode, customer.City, customer.CountryCode },
             sections = audit.Sections.OrderBy(s => s.Position).Select(s => new
             {
                 s.Id, s.Title, s.Description, s.Position,

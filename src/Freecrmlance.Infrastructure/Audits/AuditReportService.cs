@@ -10,7 +10,7 @@ namespace Freecrmlance.Infrastructure.Audits;
 
 public sealed class AuditReportService(FreecrmlanceDbContext db,IWorkspaceContext workspaceContext,IFileStorage storage,IAuditReportPdfGenerator pdf):IAuditReportService
 {
- public async Task<GenerateAuditReportResult> GenerateAsync(Guid auditId,Guid versionId,CancellationToken ct=default)
+ public async Task<GenerateAuditReportResult> GenerateAsync(Guid auditId,Guid versionId,string generatedByUserId,CancellationToken ct=default)
  {
   var wid=await workspaceContext.RequireCurrentWorkspaceIdAsync(ct);
   var row=await (from v in db.AuditReportVersions join a in db.Audits on v.AuditId equals a.Id where v.Id==versionId&&a.Id==auditId&&a.WorkspaceId==wid select new{Version=v,Audit=a}).SingleOrDefaultAsync(ct);
@@ -24,9 +24,12 @@ public sealed class AuditReportService(FreecrmlanceDbContext db,IWorkspaceContex
   var oldDocumentId=row.Version.GeneratedDocumentId;
   var old=oldDocumentId.HasValue?await db.Documents.SingleOrDefaultAsync(x=>x.Id==oldDocumentId&&x.WorkspaceId==wid,ct):null;
   var document=new Document(wid,row.Audit.CustomerId,FileName(row.Audit.Reference,row.Version.VersionNumber),"application/pdf",bytes.LongLength,key);
-  db.Documents.Add(document);row.Version.SetGeneratedDocument(document.Id);db.AuditHistoryEvents.Add(new Freecrmlance.Domain.Audits.AuditHistoryEvent(wid,auditId,old is null?Freecrmlance.Domain.Audits.AuditHistoryEventType.ReportGenerated:Freecrmlance.Domain.Audits.AuditHistoryEventType.ReportRegenerated,DateTime.UtcNow,null,versionId));if(old is not null)db.Documents.Remove(old);
+  db.Documents.Add(document);row.Version.SetGeneratedDocument(document.Id);db.AuditHistoryEvents.Add(new Freecrmlance.Domain.Audits.AuditHistoryEvent(wid,auditId,old is null?Freecrmlance.Domain.Audits.AuditHistoryEventType.ReportGenerated:Freecrmlance.Domain.Audits.AuditHistoryEventType.ReportRegenerated,DateTime.UtcNow,generatedByUserId,versionId));if(old is not null)db.Documents.Remove(old);
   try{await db.SaveChangesAsync(ct);}catch{await storage.DeleteAsync(key,ct);throw;}
-  if(old is not null)await storage.DeleteAsync(old.StorageKey,ct);
+  if(old is not null)
+  {
+   try{await storage.DeleteAsync(old.StorageKey,ct);}catch(IOException){/* DB already points to the new report; stale binary can be cleaned separately. */}
+  }
   return new(document.Id,null);
  }
  public async Task<AuditReportDownload?> DownloadAsync(Guid auditId,Guid versionId,CancellationToken ct=default)

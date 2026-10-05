@@ -7,7 +7,7 @@ public sealed record GenerateAuditReportResult(Guid? DocumentId, string? Error)
 }
 public interface IAuditReportService
 {
-    Task<GenerateAuditReportResult> GenerateAsync(Guid auditId, Guid versionId, CancellationToken ct = default);
+    Task<GenerateAuditReportResult> GenerateAsync(Guid auditId, Guid versionId, string generatedByUserId, CancellationToken ct = default);
     Task<AuditReportDownload?> DownloadAsync(Guid auditId, Guid versionId, CancellationToken ct = default);
 }
 public interface IAuditReportPdfGenerator

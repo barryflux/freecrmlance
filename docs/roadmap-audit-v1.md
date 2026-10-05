@@ -229,19 +229,71 @@ Cette piste métier est distincte des logs techniques de l'application.
 
 ### Objectif
 
-Rendre le module prêt pour une exposition production.
+Durcir le module Audit V1 déjà fonctionnel avant exposition bêta/production, sans refondre son architecture ni ajouter de capacité métier majeure.
 
-### Contrôles
+### Audit pré-hardening figé
 
-- Tests systématiques d'isolation Workspace.
-- Contrôles d'accès aux fichiers et rapports.
-- Impossible de modifier une version finalisée via endpoints forgés.
-- Vérification des hashes.
-- Limites de taille et types de pièces jointes.
-- Pas de secrets ou données sensibles inutiles dans les snapshots.
-- Tests d'autorisation sur toutes les routes.
-- Revue des risques de référence directe par ID (IDOR).
-- Vérification de la conservation et du stockage persistant des rapports/preuves.
+Le parcours `AuditTemplate -> Audit snapshot -> AuditReportVersion` est conservé. Les modèles, la réalisation progressive, le versionnement immuable, le hash SHA-256, les PDF, la transmission et l'historique sont fonctionnels. Le hardening porte sur les risques résiduels suivants.
+
+#### Lot A — Intégrité critique
+
+- Rendre atomiques la création du partage sécurisé et la trace `AuditReportTransmission`.
+- Garantir la cohérence entre PostgreSQL et `IFileStorage` lors de l'ajout/suppression de preuves et de la régénération des rapports.
+- Définir une stratégie explicite pour les fichiers devenus orphelins après une défaillance de nettoyage.
+- Ajouter des tests de panne et de régression sur ces chemins.
+
+#### Lot B — Sécurité des fichiers
+
+- Porter la limite de taille des preuves dans le service métier, pas uniquement dans le contrôleur HTTP.
+- Valider nom, taille et type de fichier selon une politique explicite.
+- Tester les accès croisés Workspace et les tentatives IDOR sur preuves, rapports et transmissions.
+- Gérer explicitement les fichiers absents ou illisibles.
+
+#### Lot C — Transmission professionnelle
+
+- Autoriser plusieurs transmissions indépendantes d'une même version lorsque le métier l'exige.
+- Une transmission possède son propre partage/token et reste liée à une version exacte.
+- Une V2 ne modifie ni le partage ni la trace d'une V1.
+- Préserver une révocation maîtrisée des partages.
+
+#### Lot D — Traçabilité
+
+- Conserver l'auteur de la génération et de la régénération d'un PDF.
+- Afficher une identité utilisateur lisible plutôt qu'un identifiant Identity brut lorsque disponible.
+- Tester la chronologie complète création -> finalisation V1 -> PDF -> transmission -> réouverture -> V2.
+
+#### Lot E — Immutabilité métier
+
+- Introduire un snapshot `schemaVersion = 2` pour les nouvelles finalisations avec l'identité client nécessaire au rapport.
+- Lire les snapshots schema v1 et v2.
+- Ne jamais modifier, enrichir ou recalculer le hash d'une version historique existante.
+
+#### Lot F — UX et sécurité applicative
+
+- Conserver l'onglet `Versions & rapports` après finalisation, réouverture, vérification, génération et transmission.
+- Activer une politique de verrouillage des connexions après échecs répétés.
+- Compléter les tests d'autorisation et de régression.
+
+### Hardening d'exploitation avant déploiement bêta
+
+À traiter après le code US-042 et avant le déploiement de la version durcie :
+
+- stockage des preuves/rapports persistant hors dossier de publication ;
+- clés ASP.NET Core Data Protection persistantes ;
+- `ForwardedHeaders` correctement configuré derrière Nginx ;
+- présence de `fonts-liberation2` pour les PDF Linux ;
+- renouvellement Certbot avec reload Nginx ;
+- sauvegarde et restauration testables de PostgreSQL et des fichiers.
+
+### Definition of Done
+
+- build vert ;
+- migrations appliquées et testées sur PostgreSQL ;
+- tests unitaires, intégration et architecture verts ;
+- isolation Workspace / IDOR vérifiée ;
+- scénario fonctionnel complet V1 -> correction -> V2 validé ;
+- CI verte ;
+- validation humaine avant merge.
 
 ---
 
@@ -267,4 +319,4 @@ La V1 ne promet pas une certification réglementaire ou juridique d'inaltérabil
 
 ## Prochaine étape
 
-Avant l'implémentation de US-034, détailler les invariants et contrats du triptyque `AuditTemplate -> Audit snapshot -> AuditReportVersion`, puis implémenter US-034 par branche dédiée avec migration et tests.
+Implémenter US-042 par lots A -> F sur une branche dédiée, valider le scénario complet et la CI, puis effectuer le hardening d'exploitation du VPS avant déploiement bêta.
