@@ -83,10 +83,17 @@ public sealed class AuditEvidenceService(FreecrmlanceDbContext db, IWorkspaceCon
                          select new { Evidence = evidence, Document = document }).SingleOrDefaultAsync(ct);
         if (row is null) return "Preuve introuvable.";
 
-        await fileStorage.DeleteAsync(row.Document.StorageKey, ct);
         db.AuditEvidence.Remove(row.Evidence);
         db.Documents.Remove(row.Document);
         await db.SaveChangesAsync(ct);
+        try
+        {
+            await fileStorage.DeleteAsync(row.Document.StorageKey, ct);
+        }
+        catch (IOException)
+        {
+            // The database is the source of authorization/truth. A failed physical cleanup must not restore a deleted evidence record.
+        }
         return null;
     }
 }
