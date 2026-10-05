@@ -23,6 +23,8 @@ namespace Freecrmlance.Infrastructure.Persistence.Migrations
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
 
+            modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditHistoryEvent", b =>
+                { b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid"); b.Property<Guid>("WorkspaceId").HasColumnType("uuid"); b.Property<Guid>("AuditId").HasColumnType("uuid"); b.Property<string>("Type").IsRequired().HasMaxLength(32).HasColumnType("character varying(32)"); b.Property<DateTime>("OccurredAtUtc").HasColumnType("timestamp with time zone"); b.Property<string>("UserId").HasMaxLength(450).HasColumnType("character varying(450)"); b.Property<Guid?>("ReportVersionId").HasColumnType("uuid"); b.HasKey("Id"); b.HasIndex("AuditId"); b.HasIndex("ReportVersionId"); b.HasIndex("WorkspaceId","AuditId","OccurredAtUtc"); b.ToTable("AuditHistoryEvents","audit"); });
             modelBuilder.Entity("Freecrmlance.Domain.Audits.Audit", b =>
                 { b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid"); b.Property<DateTime?>("CompletedAtUtc").HasColumnType("timestamp with time zone"); b.Property<DateTime>("CreatedAtUtc").HasColumnType("timestamp with time zone"); b.Property<Guid>("CustomerId").HasColumnType("uuid"); b.Property<string>("Description").HasMaxLength(2000).HasColumnType("character varying(2000)"); b.Property<string>("Reference").IsRequired().HasMaxLength(32).HasColumnType("character varying(32)"); b.Property<DateTime?>("StartedAtUtc").HasColumnType("timestamp with time zone"); b.Property<string>("Status").IsRequired().HasMaxLength(32).HasColumnType("character varying(32)"); b.Property<Guid>("TemplateId").HasColumnType("uuid"); b.Property<string>("Title").IsRequired().HasMaxLength(200).HasColumnType("character varying(200)"); b.Property<Guid>("WorkspaceId").HasColumnType("uuid"); b.HasKey("Id"); b.HasIndex("WorkspaceId","CustomerId"); b.HasIndex("WorkspaceId","Reference").IsUnique(); b.ToTable("Audits","audit"); });
             modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditReportTransmission", b =>
@@ -51,6 +53,8 @@ namespace Freecrmlance.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("WorkspaceId").HasColumnType("uuid");
                     b.HasKey("Id"); b.HasIndex("WorkspaceId", "IsArchived"); b.ToTable("AuditTemplates", "audit");
                 });
+            modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditHistoryEvent", b =>
+                { b.HasOne("Freecrmlance.Domain.Audits.Audit", null).WithMany().HasForeignKey("AuditId").OnDelete(DeleteBehavior.Cascade).IsRequired(); b.HasOne("Freecrmlance.Domain.Audits.AuditReportVersion", null).WithMany().HasForeignKey("ReportVersionId").OnDelete(DeleteBehavior.Cascade); });
             modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditReportTransmission", b =>
                 { b.HasOne("Freecrmlance.Domain.Audits.Audit", null).WithMany().HasForeignKey("AuditId").OnDelete(DeleteBehavior.Cascade).IsRequired(); b.HasOne("Freecrmlance.Domain.Audits.AuditReportVersion", null).WithMany().HasForeignKey("ReportVersionId").OnDelete(DeleteBehavior.Cascade).IsRequired(); b.HasOne("Freecrmlance.Domain.Crm.DocumentShare", null).WithMany().HasForeignKey("DocumentShareId").OnDelete(DeleteBehavior.Restrict).IsRequired(); });
             modelBuilder.Entity("Freecrmlance.Domain.Audits.AuditReportVersion", b =>

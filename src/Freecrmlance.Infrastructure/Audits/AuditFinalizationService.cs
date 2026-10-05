@@ -83,13 +83,13 @@ public sealed class AuditFinalizationService(FreecrmlanceDbContext db, IWorkspac
         return new(version.Id, null);
     }
 
-    public async Task<string?> ReopenAsync(Guid auditId, CancellationToken ct = default)
+    public async Task<string?> ReopenAsync(Guid auditId, string reopenedByUserId, CancellationToken ct = default)
     {
         var wid = await workspaceContext.RequireCurrentWorkspaceIdAsync(ct);
         var audit = await db.Audits.SingleOrDefaultAsync(x => x.Id == auditId && x.WorkspaceId == wid, ct);
         if (audit is null) return "Audit introuvable.";
         if (audit.Status != AuditStatus.Finalized) return "Seul un audit finalisé peut être rouvert.";
-        audit.Reopen(); await db.SaveChangesAsync(ct); return null;
+        audit.Reopen(); db.AuditHistoryEvents.Add(new AuditHistoryEvent(wid,auditId,AuditHistoryEventType.Reopened,DateTime.UtcNow,reopenedByUserId)); await db.SaveChangesAsync(ct); return null;
     }
 
     public async Task<bool> VerifyHashAsync(Guid auditId, Guid versionId, CancellationToken ct = default)

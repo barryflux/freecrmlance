@@ -48,7 +48,7 @@ public sealed class AuditFinalizationTests
         var snapshot = v1.Snapshot; var hash = v1.Hash;
         Assert.That(await service.VerifyHashAsync(audit.Id, v1.Id), Is.True);
 
-        Assert.That(await service.ReopenAsync(audit.Id), Is.Null);
+        Assert.That(await service.ReopenAsync(audit.Id, "user"), Is.Null);
         var response = await db.AuditItemResponses.SingleAsync(x => x.AuditItemId == item.Id);
         response.Update("deuxième", "obs 2", "reco 2", "user"); await db.SaveChangesAsync();
         var second = await service.FinalizeAsync(audit.Id, "user");
