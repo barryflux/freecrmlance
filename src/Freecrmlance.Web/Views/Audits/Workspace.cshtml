@@ -6,44 +6,15 @@
  <div><div class="text-body-secondary">@Model.Audit.Reference · @Model.Audit.Status</div><h1 class="h2 mb-1">@Model.Audit.Title</h1><p class="mb-0">Progression : <strong>@Model.Audit.ProgressPercent %</strong> (@Model.Audit.AnsweredItems/@Model.Audit.TotalItems)</p></div>
  <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@Model.Audit.Id">Voir le détail</a>
 </div>
-<div class="card mb-4">
- <div class="card-body p-4">
-  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-   <div><h2 class="h5 mb-1">Finalisation</h2><div class="text-body-secondary small">@Model.Audit.RequiredAnsweredItems/@Model.Audit.RequiredItems critères obligatoires renseignés</div></div>
-   @if(Model.Audit.Status==AuditStatus.Finalized){<form method="post" asp-action="ReopenAudit">@Html.AntiForgeryToken()<input type="hidden" name="auditId" value="@Model.Audit.Id"/><button class="btn btn-outline-primary">Rouvrir pour correction</button></form>}else{<form method="post" asp-action="FinalizeAudit">@Html.AntiForgeryToken()<input type="hidden" name="auditId" value="@Model.Audit.Id"/><button class="btn btn-success" disabled="@(!Model.Audit.RequiredItemsComplete)">Finaliser l'audit</button></form>}
-  </div>
-  @if(Model.Versions.Count>0){
-   <hr class="my-4"/>
-   <h3 class="h6 mb-3">Versions immuables</h3>
-   <div class="d-grid gap-3">
-   @foreach(var version in Model.Versions){
-    <div class="border rounded-3 p-3">
-     <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
-      <div><div class="fw-semibold">Version @version.VersionNumber</div><div class="small text-body-secondary">Finalisée le @version.FinalizedAtUtc.ToLocalTime().ToString("g")</div><div class="small mt-1"><span class="text-body-secondary">SHA-256 :</span> <code>@version.Hash[..12]…</code> · <a asp-action="VerifyVersion" asp-route-auditId="@Model.Audit.Id" asp-route-versionId="@version.Id">Vérifier</a></div></div>
-      <div class="d-flex flex-wrap gap-2">
-       @if(version.GeneratedDocumentId.HasValue){<a class="btn btn-sm btn-outline-secondary" asp-action="DownloadReport" asp-route-auditId="@Model.Audit.Id" asp-route-versionId="@version.Id">Télécharger PDF</a>}
-       <form method="post" asp-action="GenerateReport">@Html.AntiForgeryToken()<input type="hidden" name="auditId" value="@Model.Audit.Id"/><input type="hidden" name="versionId" value="@version.Id"/><button class="btn btn-sm btn-outline-primary">@(version.GeneratedDocumentId.HasValue?"Régénérer PDF":"Générer PDF")</button></form>
-      </div>
-     </div>
-     @if(version.GeneratedDocumentId.HasValue){
-      <div class="border-top mt-3 pt-3"><div class="small fw-semibold mb-2">Transmettre cette version</div><form method="post" asp-action="TransmitReport" class="row g-2 align-items-center">@Html.AntiForgeryToken()<input type="hidden" name="auditId" value="@Model.Audit.Id"/><input type="hidden" name="versionId" value="@version.Id"/><div class="col-md"><input class="form-control form-control-sm" name="recipient" placeholder="Email ou nom du destinataire" required/></div><div class="col-md-auto"><button class="btn btn-sm btn-success w-100">Créer le lien de transmission</button></div></form></div>
-     }else{
-      <div class="border-top mt-3 pt-3 small text-body-secondary">Générez d’abord le PDF de cette version pour pouvoir la transmettre.</div>
-     }
-    </div>
-   }
-   </div>
-  }
-  @if(Model.Transmissions.Count>0){
-   <hr class="my-4"/><h3 class="h6 mb-3">Transmissions</h3>
-   <div class="table-responsive"><table class="table table-sm align-middle mb-0"><thead><tr><th>Version</th><th>Destinataire</th><th>Date</th></tr></thead><tbody>@foreach(var sent in Model.Transmissions){<tr><td>V@(sent.VersionNumber)</td><td>@sent.Recipient</td><td>@sent.SentAtUtc.ToLocalTime().ToString("g")</td></tr>}</tbody></table></div>
-  }
- </div>
-</div>
-<div class="card mb-4"><div class="card-body p-4"><h2 class="h5 mb-3">Historique</h2><div class="d-grid gap-0">@foreach(var entry in Model.History){<div class="d-flex gap-3 py-2 border-top"><div class="text-body-secondary small flex-shrink-0" style="width:9rem">@entry.OccurredAtUtc.ToLocalTime().ToString("g")</div><div><div class="fw-semibold">@entry.Label</div>@if(entry.Recipient is not null){<div class="small text-body-secondary">Destinataire : @entry.Recipient</div>}@if(entry.UserId is not null){<div class="small text-body-secondary">Utilisateur : @entry.UserId</div>}</div></div>}</div></div></div>
-@if(TempData["AuditShareUrl"] is string shareUrl){<div class="alert alert-info"><strong>Lien à transmettre :</strong> <a href="@shareUrl" target="_blank">@shareUrl</a></div>}
+@{var activeTab=(Context.Request.Query["tab"].FirstOrDefault()??"work").ToLowerInvariant();if(activeTab is not ("work" or "reports" or "history"))activeTab="work";}
 @if(TempData["AuditError"] is string auditError){<div class="alert alert-danger">@auditError</div>}
 @if(TempData["AuditSuccess"] is string auditSuccess){<div class="alert alert-success">@auditSuccess</div>}
+<ul class="nav nav-tabs mb-4" role="tablist">
+ <li class="nav-item"><a class="nav-link @(activeTab=="work"?"active":null)" asp-action="Workspace" asp-route-id="@Model.Audit.Id" asp-route-tab="work">Réalisation <span class="badge text-bg-light ms-1">@Model.Audit.ProgressPercent%</span></a></li>
+ <li class="nav-item"><a class="nav-link @(activeTab=="reports"?"active":null)" asp-action="Workspace" asp-route-id="@Model.Audit.Id" asp-route-tab="reports">Versions &amp; rapports @if(Model.Versions.Count>0){<span class="badge text-bg-light ms-1">@Model.Versions.Count</span>}</a></li>
+ <li class="nav-item"><a class="nav-link @(activeTab=="history"?"active":null)" asp-action="Workspace" asp-route-id="@Model.Audit.Id" asp-route-tab="history">Historique @if(Model.History.Count>0){<span class="badge text-bg-light ms-1">@Model.History.Count</span>}</a></li>
+</ul>
+@if(activeTab=="work"){
 <div class="progress mb-4" role="progressbar" aria-valuenow="@Model.Audit.ProgressPercent" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar" style="width:@Model.Audit.ProgressPercent%">@Model.Audit.ProgressPercent%</div></div>
 @foreach(var auditSection in Model.Audit.Sections){
 <section class="card mb-4"><div class="card-body"><h2 class="h5">@auditSection.Title</h2>@if(auditSection.Description is not null){<p class="text-body-secondary">@auditSection.Description</p>}
@@ -94,4 +65,46 @@
   <form method="post" enctype="multipart/form-data" asp-action="UploadEvidence" class="d-flex gap-2 align-items-center mt-2">@Html.AntiForgeryToken()<input type="hidden" name="auditId" value="@Model.Audit.Id"/><input type="hidden" name="auditItemId" value="@item.Id"/><input type="file" name="file" class="form-control form-control-sm" required/><button class="btn btn-outline-secondary btn-sm" type="submit">Ajouter une preuve</button></form>
  </div>
 }</div></section>
+}
+
+}else if(activeTab=="reports"){
+@if(TempData["AuditShareUrl"] is string shareUrl){<div class="alert alert-info"><strong>Lien à transmettre :</strong> <a href="@shareUrl" target="_blank">@shareUrl</a></div>}
+<div class="card mb-4">
+ <div class="card-body p-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+   <div><h2 class="h5 mb-1">Finalisation</h2><div class="text-body-secondary small">@Model.Audit.RequiredAnsweredItems/@Model.Audit.RequiredItems critères obligatoires renseignés</div></div>
+   @if(Model.Audit.Status==AuditStatus.Finalized){<form method="post" asp-action="ReopenAudit">@Html.AntiForgeryToken()<input type="hidden" name="auditId" value="@Model.Audit.Id"/><button class="btn btn-outline-primary">Rouvrir pour correction</button></form>}else{<form method="post" asp-action="FinalizeAudit">@Html.AntiForgeryToken()<input type="hidden" name="auditId" value="@Model.Audit.Id"/><button class="btn btn-success" disabled="@(!Model.Audit.RequiredItemsComplete)">Finaliser l'audit</button></form>}
+  </div>
+  @if(Model.Versions.Count>0){
+   <hr class="my-4"/>
+   <h3 class="h6 mb-3">Versions immuables</h3>
+   <div class="d-grid gap-3">
+   @foreach(var version in Model.Versions){
+    <div class="border rounded-3 p-3">
+     <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+      <div><div class="fw-semibold">Version @version.VersionNumber</div><div class="small text-body-secondary">Finalisée le @version.FinalizedAtUtc.ToLocalTime().ToString("g")</div><div class="small mt-1"><span class="text-body-secondary">SHA-256 :</span> <code>@version.Hash[..12]…</code> · <a asp-action="VerifyVersion" asp-route-auditId="@Model.Audit.Id" asp-route-versionId="@version.Id">Vérifier</a></div></div>
+      <div class="d-flex flex-wrap gap-2">
+       @if(version.GeneratedDocumentId.HasValue){<a class="btn btn-sm btn-outline-secondary" asp-action="DownloadReport" asp-route-auditId="@Model.Audit.Id" asp-route-versionId="@version.Id">Télécharger PDF</a>}
+       <form method="post" asp-action="GenerateReport">@Html.AntiForgeryToken()<input type="hidden" name="auditId" value="@Model.Audit.Id"/><input type="hidden" name="versionId" value="@version.Id"/><button class="btn btn-sm btn-outline-primary">@(version.GeneratedDocumentId.HasValue?"Régénérer PDF":"Générer PDF")</button></form>
+      </div>
+     </div>
+     @if(version.GeneratedDocumentId.HasValue){
+      <div class="border-top mt-3 pt-3"><div class="small fw-semibold mb-2">Transmettre cette version</div><form method="post" asp-action="TransmitReport" class="row g-2 align-items-center">@Html.AntiForgeryToken()<input type="hidden" name="auditId" value="@Model.Audit.Id"/><input type="hidden" name="versionId" value="@version.Id"/><div class="col-md"><input class="form-control form-control-sm" name="recipient" placeholder="Email ou nom du destinataire" required/></div><div class="col-md-auto"><button class="btn btn-sm btn-success w-100">Créer le lien de transmission</button></div></form></div>
+     }else{
+      <div class="border-top mt-3 pt-3 small text-body-secondary">Générez d’abord le PDF de cette version pour pouvoir la transmettre.</div>
+     }
+    </div>
+   }
+   </div>
+  }
+  @if(Model.Transmissions.Count>0){
+   <hr class="my-4"/><h3 class="h6 mb-3">Transmissions</h3>
+   <div class="table-responsive"><table class="table table-sm align-middle mb-0"><thead><tr><th>Version</th><th>Destinataire</th><th>Date</th></tr></thead><tbody>@foreach(var sent in Model.Transmissions){<tr><td>V@(sent.VersionNumber)</td><td>@sent.Recipient</td><td>@sent.SentAtUtc.ToLocalTime().ToString("g")</td></tr>}</tbody></table></div>
+  }
+ </div>
+</div>
+
+}else{
+<div class="card mb-4"><div class="card-body p-4"><h2 class="h5 mb-3">Historique</h2><div class="d-grid gap-0">@foreach(var entry in Model.History){<div class="d-flex gap-3 py-2 border-top"><div class="text-body-secondary small flex-shrink-0" style="width:9rem">@entry.OccurredAtUtc.ToLocalTime().ToString("g")</div><div><div class="fw-semibold">@entry.Label</div>@if(entry.Recipient is not null){<div class="small text-body-secondary">Destinataire : @entry.Recipient</div>}@if(entry.UserId is not null){<div class="small text-body-secondary">Utilisateur : @entry.UserId</div>}</div></div>}</div></div></div>
+
 }
