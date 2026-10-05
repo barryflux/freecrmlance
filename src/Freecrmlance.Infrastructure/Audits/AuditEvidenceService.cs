@@ -10,6 +10,7 @@ namespace Freecrmlance.Infrastructure.Audits;
 
 public sealed class AuditEvidenceService(FreecrmlanceDbContext db, IWorkspaceContext workspaceContext, IFileStorage fileStorage) : IAuditEvidenceService
 {
+    public const long MaxFileSize = 10 * 1024 * 1024;
     public async Task<IReadOnlyList<AuditEvidenceDto>?> ListAsync(Guid auditId, CancellationToken ct = default)
     {
         var wid = await workspaceContext.RequireCurrentWorkspaceIdAsync(ct);
@@ -33,6 +34,8 @@ public sealed class AuditEvidenceService(FreecrmlanceDbContext db, IWorkspaceCon
         if (audit.Status is AuditStatus.Completed or AuditStatus.Finalized) return "Cet audit n'est plus modifiable.";
         if (!audit.Sections.SelectMany(s => s.Items).Any(i => i.Id == auditItemId)) return "Critère d'audit introuvable.";
         if (size <= 0) return "Le fichier est vide.";
+        if (size > MaxFileSize) return "Le fichier dépasse la taille maximale autorisée de 10 Mo.";
+        if (string.IsNullOrWhiteSpace(contentType)) return "Type de fichier invalide.";
 
         var safeFileName = Path.GetFileName(fileName);
         if (string.IsNullOrWhiteSpace(safeFileName)) return "Nom de fichier invalide.";
