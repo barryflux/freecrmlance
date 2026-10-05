@@ -1,0 +1,8 @@
+using Microsoft.EntityFrameworkCore.Migrations;
+#nullable disable
+namespace Freecrmlance.Infrastructure.Persistence.Migrations;
+public partial class AddAuditHistoryEvents:Migration
+{
+ protected override void Up(MigrationBuilder m){m.CreateTable(name:"AuditHistoryEvents",schema:"audit",columns:t=>new{Id=t.Column<Guid>(type:"uuid",nullable:false),WorkspaceId=t.Column<Guid>(type:"uuid",nullable:false),AuditId=t.Column<Guid>(type:"uuid",nullable:false),Type=t.Column<string>(type:"character varying(32)",maxLength:32,nullable:false),OccurredAtUtc=t.Column<DateTime>(type:"timestamp with time zone",nullable:false),UserId=t.Column<string>(type:"character varying(450)",maxLength:450,nullable:true),ReportVersionId=t.Column<Guid>(type:"uuid",nullable:true)},constraints:t=>{t.PrimaryKey("PK_AuditHistoryEvents",x=>x.Id);t.ForeignKey("FK_AuditHistoryEvents_Audits_AuditId",x=>x.AuditId,principalSchema:"audit",principalTable:"Audits",principalColumn:"Id",onDelete:ReferentialAction.Cascade);t.ForeignKey("FK_AuditHistoryEvents_AuditReportVersions_ReportVersionId",x=>x.ReportVersionId,principalSchema:"audit",principalTable:"AuditReportVersions",principalColumn:"Id",onDelete:ReferentialAction.Cascade);});m.CreateIndex(name:"IX_AuditHistoryEvents_AuditId",schema:"audit",table:"AuditHistoryEvents",column:"AuditId");m.CreateIndex(name:"IX_AuditHistoryEvents_ReportVersionId",schema:"audit",table:"AuditHistoryEvents",column:"ReportVersionId");m.CreateIndex(name:"IX_AuditHistoryEvents_WorkspaceId_AuditId_OccurredAtUtc",schema:"audit",table:"AuditHistoryEvents",columns:new[]{"WorkspaceId","AuditId","OccurredAtUtc"});}
+ protected override void Down(MigrationBuilder m)=>m.DropTable(name:"AuditHistoryEvents",schema:"audit");
+}
