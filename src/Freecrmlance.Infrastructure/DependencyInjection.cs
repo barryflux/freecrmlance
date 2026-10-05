@@ -24,6 +24,6 @@ public static class DependencyInjection
   services.AddScoped<ICustomerImportFileReader,CustomerImportFileReader>(); services.AddScoped<CustomerImportService>(); services.AddScoped<IContactService,ContactService>();
   services.AddScoped<IDocumentService,DocumentService>(); services.AddScoped<IDocumentShareService,DocumentShareService>(); services.AddScoped<IQuoteService,QuoteService>();
   services.AddScoped<IQuoteShareService,QuoteShareService>(); services.AddScoped<IQuotePdfService,QuotePdfService>(); services.AddSingleton<IPdfGenerator,MigraDocPdfGenerator>(); services.AddSingleton<IFileStorage,LocalFileStorage>();
-  services.AddIdentity<IdentityUser,IdentityRole>().AddEntityFrameworkStores<FreecrmlanceDbContext>().AddDefaultTokenProviders(); return services;
+  services.AddIdentity<IdentityUser,IdentityRole>(options=>{options.Lockout.AllowedForNewUsers=true;options.Lockout.MaxFailedAccessAttempts=5;options.Lockout.DefaultLockoutTimeSpan=TimeSpan.FromMinutes(15);}).AddEntityFrameworkStores<FreecrmlanceDbContext>().AddDefaultTokenProviders(); return services;
  }
 }
