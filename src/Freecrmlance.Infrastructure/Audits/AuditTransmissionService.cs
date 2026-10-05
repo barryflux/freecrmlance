@@ -7,7 +7,7 @@ public sealed class AuditTransmissionService(FreecrmlanceDbContext db,IWorkspace
  {
   if(string.IsNullOrWhiteSpace(recipient))return new(null,null,"Le destinataire est obligatoire.");if(string.IsNullOrWhiteSpace(sentByUserId))return new(null,null,"Utilisateur introuvable.");
   var wid=await workspace.RequireCurrentWorkspaceIdAsync(ct);var row=await(from v in db.AuditReportVersions.AsNoTracking() join a in db.Audits.AsNoTracking() on v.AuditId equals a.Id where v.Id==versionId&&a.Id==auditId&&a.WorkspaceId==wid select new{Version=v,Audit=a}).SingleOrDefaultAsync(ct);if(row is null)return new(null,null,"Version d'audit introuvable.");if(!row.Version.GeneratedDocumentId.HasValue)return new(null,null,"Générez le PDF de cette version avant de la transmettre.");
-  var share=await shares.CreateAsync(row.Audit.CustomerId,row.Version.GeneratedDocumentId.Value,ct);if(share is null)return new(null,null,"Ce rapport possède déjà un lien de partage actif.");
-  var transmission=new AuditReportTransmission(wid,auditId,versionId,share.Id,recipient,sentByUserId);db.AuditReportTransmissions.Add(transmission);await db.SaveChangesAsync(ct);return new(transmission.Id,share.Token,null);
+  await using var transaction=await db.Database.BeginTransactionAsync(ct);var share=await shares.CreateAsync(row.Audit.CustomerId,row.Version.GeneratedDocumentId.Value,ct);if(share is null){await transaction.RollbackAsync(ct);return new(null,null,"Impossible de créer le lien de partage.");}
+  var transmission=new AuditReportTransmission(wid,auditId,versionId,share.Id,recipient,sentByUserId);db.AuditReportTransmissions.Add(transmission);await db.SaveChangesAsync(ct);await transaction.CommitAsync(ct);return new(transmission.Id,share.Token,null);
  }
 }
