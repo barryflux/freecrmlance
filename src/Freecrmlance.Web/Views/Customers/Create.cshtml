@@ -5,7 +5,7 @@
 
 <div class="page-header">
     <h1 class="h2 mb-1">Ajouter un client</h1>
-    <p class="text-body-secondary mb-0">Créez la fiche client puis complétez ses informations.</p>
+    <p class="text-body-secondary mb-0">Renseignez les informations du client et, si besoin, ses interlocuteurs.</p>
 </div>
 
 <div class="card shadow-sm border-0">
@@ -39,10 +39,32 @@
             </section>
 
             <section class="d-none" data-form-panel="contacts">
-                <h2 class="h5 mb-3">Contacts</h2>
-                <div class="alert alert-light border mb-0">
-                    Créez d’abord le client. Vous pourrez ensuite ajouter, modifier et supprimer ses interlocuteurs depuis l’onglet <strong>Contacts</strong> de sa fiche.
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h2 class="h5 mb-1">Contacts</h2>
+                        <p class="text-body-secondary small mb-0">Ajoutez les interlocuteurs liés à ce client. Cette étape est facultative.</p>
+                    </div>
+                    <button type="button" id="add-contact" class="btn btn-outline-primary btn-sm">+ Ajouter un contact</button>
                 </div>
+
+                <div id="contacts">
+                    @for (var i = 0; i < Model.Contacts.Count; i++)
+                    {
+                        <div class="contact-fields border rounded p-3 mb-3 bg-body-tertiary">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h3 class="h6 mb-0">Contact @(i + 1)</h3>
+                                <button type="button" class="remove-contact btn btn-sm btn-outline-danger">Supprimer</button>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6"><label class="form-label" asp-for="Contacts[i].Name"></label><input class="form-control" asp-for="Contacts[i].Name" /><span asp-validation-for="Contacts[i].Name"></span></div>
+                                <div class="col-md-6"><label class="form-label" asp-for="Contacts[i].Role"></label><input class="form-control" asp-for="Contacts[i].Role" /><span asp-validation-for="Contacts[i].Role"></span></div>
+                                <div class="col-md-6"><label class="form-label" asp-for="Contacts[i].Email"></label><input class="form-control" asp-for="Contacts[i].Email" /><span asp-validation-for="Contacts[i].Email"></span></div>
+                                <div class="col-md-6"><label class="form-label" asp-for="Contacts[i].Phone"></label><input class="form-control" asp-for="Contacts[i].Phone" /><span asp-validation-for="Contacts[i].Phone"></span></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <p id="no-contacts" class="text-body-secondary small">Aucun contact ajouté pour le moment.</p>
             </section>
 
             <section class="d-none" data-form-panel="billing">
@@ -62,13 +84,58 @@
     (() => {
         const tabs = [...document.querySelectorAll("[data-form-tab]")];
         const panels = [...document.querySelectorAll("[data-form-panel]")];
+        const contacts = document.getElementById("contacts");
+        const emptyState = document.getElementById("no-contacts");
+        const addButton = document.getElementById("add-contact");
 
         const showTab = name => {
             tabs.forEach(tab => tab.classList.toggle("active", tab.dataset.formTab === name));
             panels.forEach(panel => panel.classList.toggle("d-none", panel.dataset.formPanel !== name));
         };
 
+        const refreshContacts = () => {
+            const cards = [...contacts.querySelectorAll(".contact-fields")];
+            cards.forEach((card, index) => {
+                card.querySelector("h3").textContent = `Contact ${index + 1}`;
+                card.querySelectorAll("[data-field]").forEach(input => {
+                    const field = input.dataset.field;
+                    input.name = `Contacts[${index}].${field}`;
+                    input.id = `Contacts_${index}__${field}`;
+                    const label = card.querySelector(`label[data-label="${field}"]`);
+                    if (label) label.htmlFor = input.id;
+                });
+            });
+            emptyState.classList.toggle("d-none", cards.length > 0);
+        };
+
         tabs.forEach(tab => tab.addEventListener("click", () => showTab(tab.dataset.formTab)));
+
+        contacts.addEventListener("click", event => {
+            const button = event.target.closest(".remove-contact");
+            if (!button) return;
+            button.closest(".contact-fields").remove();
+            refreshContacts();
+        });
+
+        addButton.addEventListener("click", () => {
+            const wrapper = document.createElement("div");
+            wrapper.className = "contact-fields border rounded p-3 mb-3 bg-body-tertiary";
+            wrapper.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="h6 mb-0">Contact</h3>
+                    <button type="button" class="remove-contact btn btn-sm btn-outline-danger">Supprimer</button>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label" data-label="Name">Nom</label><input class="form-control" data-field="Name" required maxlength="200" /></div>
+                    <div class="col-md-6"><label class="form-label" data-label="Role">Fonction</label><input class="form-control" data-field="Role" maxlength="100" /></div>
+                    <div class="col-md-6"><label class="form-label" data-label="Email">E-mail</label><input class="form-control" data-field="Email" type="email" maxlength="320" /></div>
+                    <div class="col-md-6"><label class="form-label" data-label="Phone">Téléphone</label><input class="form-control" data-field="Phone" maxlength="50" /></div>
+                </div>`;
+            contacts.appendChild(wrapper);
+            refreshContacts();
+        });
+
+        refreshContacts();
     })();
 </script>
 }
