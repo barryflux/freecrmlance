@@ -11,7 +11,8 @@
 <div class="card shadow-sm border-0">
     <div class="card-body p-4">
         <form asp-action="Create" method="post">
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>\n            <p class="small text-body-secondary mb-3"><span class="text-danger fw-bold">*</span> Champs obligatoires</p>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <p class="small text-body-secondary mb-3"><span class="text-danger fw-bold">*</span> Champs obligatoires</p>
 
             <nav class="customer-tabs mb-4" aria-label="Rubriques du client">
                 <button class="customer-tab active" type="button" data-form-tab="general">Informations générales</button>
@@ -114,7 +115,7 @@
             const button = event.target.closest(".remove-contact");
             if (!button) return;
             button.closest(".contact-fields").remove();
-            const form = document.querySelector("form");\n        form.addEventListener("submit", event => {\n            const invalid = form.querySelector(":invalid");\n            if (!invalid) return;\n            event.preventDefault();\n            const panel = invalid.closest("[data-form-panel]");\n            if (panel) showTab(panel.dataset.formPanel);\n            invalid.focus();\n        });\n\n        refreshContacts();
+            refreshContacts();
         });
 
         addButton.addEventListener("click", () => {
@@ -133,6 +134,16 @@
                 </div>`;
             contacts.appendChild(wrapper);
             refreshContacts();
+        });
+
+        const form = document.querySelector("form");
+        form?.addEventListener("submit", event => {
+            const invalid = form.querySelector(":invalid");
+            if (!invalid) return;
+            event.preventDefault();
+            const panel = invalid.closest("[data-form-panel]");
+            if (panel) showTab(panel.dataset.formPanel);
+            invalid.focus();
         });
 
         refreshContacts();
