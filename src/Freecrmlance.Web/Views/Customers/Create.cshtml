@@ -10,7 +10,7 @@
 
 <div class="card shadow-sm border-0">
     <div class="card-body p-4">
-        <form asp-action="Create" method="post">
+        <form asp-action="Create" method="post" novalidate>
             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
             <p class="small text-body-secondary mb-3"><span class="text-danger fw-bold">*</span> Champs obligatoires</p>
 
@@ -48,7 +48,8 @@
                     <button type="button" id="add-contact" class="btn btn-outline-primary btn-sm">+ Ajouter un contact</button>
                 </div>
 
-                <span asp-validation-for="Contacts" class="text-danger small d-block mb-2"></span>\n                <div id="contacts">
+                <span asp-validation-for="Contacts" class="text-danger small d-block mb-2"></span>
+                <div id="contacts">
                     @for (var i = 0; i < Model.Contacts.Count; i++)
                     {
                         <div class="contact-fields border rounded p-3 mb-3 bg-body-tertiary">
@@ -74,7 +75,7 @@
 
             <div class="d-flex justify-content-end gap-2 mt-4">
                 <a class="btn btn-outline-secondary" asp-action="Index">Annuler</a>
-                <button type="submit" class="btn btn-primary">Créer le client</button>
+                <button type="submit" id="create-customer" class="btn btn-primary">Créer le client</button>
             </div>
         </form>
     </div>
@@ -137,13 +138,33 @@
         });
 
         const form = document.querySelector("form");
-        form?.addEventListener("submit", event => {
-            const invalid = form.querySelector(":invalid");
-            if (!invalid) return;
+        const submitButton = document.getElementById("create-customer");
+
+        const validateAndSubmit = event => {
             event.preventDefault();
-            const panel = invalid.closest("[data-form-panel]");
-            if (panel) showTab(panel.dataset.formPanel);
-            invalid.focus();
+
+            const invalid = form?.querySelector(":invalid");
+            if (invalid) {
+                const panel = invalid.closest("[data-form-panel]");
+                if (panel) showTab(panel.dataset.formPanel);
+                invalid.classList.add("is-invalid");
+                invalid.focus();
+                invalid.reportValidity();
+                return;
+            }
+
+            form?.submit();
+        };
+
+        submitButton?.addEventListener("click", validateAndSubmit);
+
+        form?.querySelectorAll("input, select").forEach(field => {
+            field.addEventListener("input", () => {
+                if (field.checkValidity()) field.classList.remove("is-invalid");
+            });
+            field.addEventListener("change", () => {
+                if (field.checkValidity()) field.classList.remove("is-invalid");
+            });
         });
 
         refreshContacts();
