@@ -5,112 +5,162 @@
 
 <div class="page-header">
     <h1 class="h2 mb-1">Ajouter un client</h1>
-    <p class="text-body-secondary mb-0">Créez la fiche client et ajoutez directement vos interlocuteurs.</p>
+    <p class="text-body-secondary mb-0">Renseignez les informations du client et son contact principal.</p>
 </div>
-<div class="card shadow-sm border-0"><div class="card-body p-4">
-<form asp-action="Create" method="post">
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-    <fieldset class="mb-4">
-        <legend class="h5 mb-3">Informations générales</legend>
-        <div class="mb-3">
-            <label class="form-label" asp-for="Name">Nom</label>
-            <input class="form-control" asp-for="Name" />
-            <span asp-validation-for="Name"></span>
-        </div>
-        <div class="mb-3">
-            <label class="form-label" asp-for="Email">E-mail</label>
-            <input class="form-control" asp-for="Email" />
-            <span asp-validation-for="Email"></span>
-        </div>
-        <div class="mb-3">
-            <label class="form-label" asp-for="Phone">Téléphone</label>
-            <input class="form-control" asp-for="Phone" />
-            <span asp-validation-for="Phone"></span>
-        </div>
-    </fieldset>
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <p class="small text-body-secondary mb-3"><span class="text-danger fw-bold">*</span> Champs obligatoires</p>
 
-    <partial name="_BillingIdentity" model="Model" />
+            <nav class="customer-tabs mb-4" aria-label="Rubriques du client">
+                <button class="customer-tab active" type="button" data-form-tab="general">Informations générales</button>
+                <button class="customer-tab" type="button" data-form-tab="contacts">Contacts</button>
+                <button class="customer-tab" type="button" data-form-tab="billing">Identité de facturation</button>
+            </nav>
 
-    <fieldset>
-        <legend class="h5 mb-3">Contacts</legend>
-        <div id="contacts">
-            @for (var i = 0; i < Model.Contacts.Count; i++)
-            {
-                <div class="contact-fields border rounded p-3 mb-3 bg-body-tertiary">
-                    <h3>Contact @(i + 1)</h3>
-                    @if (i > 0)
-                    {
-                        <button type="button" class="remove-contact btn btn-sm btn-outline-danger mb-3">Supprimer le contact</button>
-                    }
-                    <div>
-                        <label asp-for="Contacts[i].Name"></label>
-                        <input class="form-control" asp-for="Contacts[i].Name" />
-                        <span asp-validation-for="Contacts[i].Name"></span>
-                    </div>
-                    <div>
-                        <label asp-for="Contacts[i].Email"></label>
-                        <input class="form-control" asp-for="Contacts[i].Email" />
-                        <span asp-validation-for="Contacts[i].Email"></span>
-                    </div>
-                    <div>
-                        <label asp-for="Contacts[i].Phone"></label>
-                        <input class="form-control" asp-for="Contacts[i].Phone" />
-                        <span asp-validation-for="Contacts[i].Phone"></span>
-                    </div>
-                    <div>
-                        <label asp-for="Contacts[i].Role"></label>
-                        <input class="form-control" asp-for="Contacts[i].Role" />
-                        <span asp-validation-for="Contacts[i].Role"></span>
-                    </div>
+            <section data-form-panel="general">
+                <h2 class="h5 mb-3">Informations générales</h2>
+                <div class="mb-3">
+                    <label class="form-label" asp-for="Name">Nom <span class="text-danger" aria-hidden="true">*</span></label>
+                    <input class="form-control" asp-for="Name" required />
+                    <span asp-validation-for="Name" class="text-danger small"></span>
                 </div>
-            }
-        </div>
-        <button type="button" id="add-contact" class="btn btn-outline-primary btn-sm">+ Ajouter un contact</button>
-    </fieldset>
+                <div class="mb-3">
+                    <label class="form-label" asp-for="Email">E-mail</label>
+                    <input class="form-control" asp-for="Email" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" asp-for="Phone">Téléphone</label>
+                    <input class="form-control" asp-for="Phone" />
+                    <span asp-validation-for="Phone" class="text-danger small"></span>
+                </div>
+            </section>
 
-    <button type="submit" class="btn btn-primary">Créer le client</button>
-</form>
-<a class="btn btn-link" asp-action="Index">Annuler</a>
-</div></div>
+            <section class="d-none" data-form-panel="contacts">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h2 class="h5 mb-1">Contacts</h2>
+                        <p class="text-body-secondary small mb-0">Ajoutez au moins un interlocuteur lié à ce client.</p>
+                    </div>
+                    <button type="button" id="add-contact" class="btn btn-outline-primary btn-sm">+ Ajouter un contact</button>
+                </div>
 
+                <span asp-validation-for="Contacts" class="text-danger small d-block mb-2"></span>
+                <div id="contacts">
+                    @for (var i = 0; i < Model.Contacts.Count; i++)
+                    {
+                        <div class="contact-fields border rounded p-3 mb-3 bg-body-tertiary">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h3 class="h6 mb-0">Contact @(i + 1)</h3>
+                                <button type="button" class="remove-contact btn btn-sm btn-outline-danger">Supprimer</button>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6"><label class="form-label" asp-for="Contacts[i].Name">Nom <span class="text-danger" aria-hidden="true">*</span></label><input class="form-control" asp-for="Contacts[i].Name" required /><span asp-validation-for="Contacts[i].Name" class="text-danger small"></span></div>
+                                <div class="col-md-6"><label class="form-label" asp-for="Contacts[i].Role"></label><input class="form-control" asp-for="Contacts[i].Role" /><span asp-validation-for="Contacts[i].Role" class="text-danger small"></span></div>
+                                <div class="col-md-6"><label class="form-label" asp-for="Contacts[i].Email"></label><input class="form-control" asp-for="Contacts[i].Email" /><span asp-validation-for="Contacts[i].Email" class="text-danger small"></span></div>
+                                <div class="col-md-6"><label class="form-label" asp-for="Contacts[i].Phone"></label><input class="form-control" asp-for="Contacts[i].Phone" /><span asp-validation-for="Contacts[i].Phone" class="text-danger small"></span></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <p id="no-contacts" class="text-body-secondary small">Aucun contact ajouté pour le moment.</p>
+            </section>
+
+            <section class="d-none" data-form-panel="billing">
+                <partial name="_BillingIdentity" model="Model" />
+            </section>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <a class="btn btn-outline-secondary" asp-action="Index">Annuler</a>
+                <button type="submit" id="create-customer" class="btn btn-primary">Créer le client</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
 <script>
     (() => {
+        const tabs = [...document.querySelectorAll("[data-form-tab]")];
+        const panels = [...document.querySelectorAll("[data-form-panel]")];
         const contacts = document.getElementById("contacts");
+        const emptyState = document.getElementById("no-contacts");
         const addButton = document.getElementById("add-contact");
 
-        const renumberContacts = () => {
-            contacts.querySelectorAll(".contact-fields").forEach((contact, index) => {
-                contact.querySelector("h3").textContent = `Contact ${index + 1}`;
-                contact.querySelectorAll("input").forEach(input => {
-                    const field = input.name.split(".").pop();
+        const showTab = name => {
+            tabs.forEach(tab => tab.classList.toggle("active", tab.dataset.formTab === name));
+            panels.forEach(panel => panel.classList.toggle("d-none", panel.dataset.formPanel !== name));
+        };
+
+        const refreshContacts = () => {
+            const cards = [...contacts.querySelectorAll(".contact-fields")];
+            cards.forEach((card, index) => {
+                card.querySelector("h3").textContent = `Contact ${index + 1}`;
+                card.querySelectorAll("[data-field]").forEach(input => {
+                    const field = input.dataset.field;
                     input.name = `Contacts[${index}].${field}`;
                     input.id = `Contacts_${index}__${field}`;
-                    const label = contact.querySelector(`label[for$="__${field}"]`);
+                    const label = card.querySelector(`label[data-label="${field}"]`);
                     if (label) label.htmlFor = input.id;
                 });
             });
+            emptyState.classList.toggle("d-none", cards.length > 0);
         };
 
+        tabs.forEach(tab => tab.addEventListener("click", () => showTab(tab.dataset.formTab)));
+
         contacts.addEventListener("click", event => {
-            if (!event.target.classList.contains("remove-contact")) return;
-            event.target.closest(".contact-fields").remove();
-            renumberContacts();
+            const button = event.target.closest(".remove-contact");
+            if (!button) return;
+            button.closest(".contact-fields").remove();
+            refreshContacts();
         });
 
         addButton.addEventListener("click", () => {
-            const index = contacts.querySelectorAll(".contact-fields").length;
             const wrapper = document.createElement("div");
             wrapper.className = "contact-fields border rounded p-3 mb-3 bg-body-tertiary";
             wrapper.innerHTML = `
-                <h3>Contact ${index + 1}</h3>
-                <button type="button" class="remove-contact btn btn-sm btn-outline-danger mb-3">Supprimer le contact</button>
-                <div class="mb-3"><label class="form-label" for="Contacts_${index}__Name">Nom</label><input id="Contacts_${index}__Name" name="Contacts[${index}].Name" class="form-control" /></div>
-                <div class="mb-3"><label class="form-label" for="Contacts_${index}__Email">Email</label><input id="Contacts_${index}__Email" name="Contacts[${index}].Email" type="email" class="form-control" /></div>
-                <div class="mb-3"><label class="form-label" for="Contacts_${index}__Phone">Téléphone</label><input id="Contacts_${index}__Phone" name="Contacts[${index}].Phone" class="form-control" /></div>
-                <div class="mb-3"><label class="form-label" for="Contacts_${index}__Role">Fonction</label><input id="Contacts_${index}__Role" name="Contacts[${index}].Role" class="form-control" /></div>
-            `;
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="h6 mb-0">Contact</h3>
+                    <button type="button" class="remove-contact btn btn-sm btn-outline-danger">Supprimer</button>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label" data-label="Name">Nom <span class="text-danger" aria-hidden="true">*</span></label><input class="form-control" data-field="Name" required maxlength="200" /></div>
+                    <div class="col-md-6"><label class="form-label" data-label="Role">Fonction</label><input class="form-control" data-field="Role" maxlength="100" /></div>
+                    <div class="col-md-6"><label class="form-label" data-label="Email">E-mail</label><input class="form-control" data-field="Email" type="email" maxlength="320" /></div>
+                    <div class="col-md-6"><label class="form-label" data-label="Phone">Téléphone</label><input class="form-control" data-field="Phone" maxlength="50" /></div>
+                </div>`;
             contacts.appendChild(wrapper);
+            refreshContacts();
         });
+
+        const form = document.querySelector("form");
+
+        form?.addEventListener("invalid", event => {
+            const field = event.target;
+            const panel = field.closest("[data-form-panel]");
+            if (panel) showTab(panel.dataset.formPanel);
+            field.classList.add("is-invalid");
+        }, true);
+
+        form?.addEventListener("input", event => {
+            const field = event.target;
+            if (field.matches("input, select") && field.checkValidity()) {
+                field.classList.remove("is-invalid");
+            }
+        });
+
+        form?.addEventListener("change", event => {
+            const field = event.target;
+            if (field.matches("input, select") && field.checkValidity()) {
+                field.classList.remove("is-invalid");
+            }
+        });
+
+        refreshContacts();
     })();
 </script>
+}

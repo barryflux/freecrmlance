@@ -4,8 +4,15 @@ namespace Freecrmlance.Web.Models.Customers;
 
 public sealed class CreateContactViewModel
 {
-    [Required, StringLength(200)] public string Name { get; set; } = string.Empty;
-    [EmailAddress, StringLength(320)] public string? Email { get; set; }
-    [StringLength(50)] public string? Phone { get; set; }
-    [StringLength(100)] public string? Role { get; set; }
+    [Required, StringLength(200), Display(Name = "Nom")]
+    public string Name { get; set; } = string.Empty;
+
+    [EmailAddress, StringLength(320), Display(Name = "E-mail")]
+    public string? Email { get; set; }
+
+    [StringLength(50), Display(Name = "Téléphone")]
+    public string? Phone { get; set; }
+
+    [StringLength(100), Display(Name = "Fonction")]
+    public string? Role { get; set; }
 }

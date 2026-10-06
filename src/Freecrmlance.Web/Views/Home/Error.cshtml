@@ -1,0 +1,20 @@
+@{
+    ViewData["Title"] = "Une erreur est survenue";
+}
+
+<div class="form-card">
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4 p-md-5">
+            <h1 class="h3 mb-3">Une erreur est survenue</h1>
+            <p class="text-body-secondary mb-4">Alouva n’a pas pu terminer cette opération. Vous pouvez revenir à l’application et réessayer.</p>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a class="btn btn-primary" asp-controller="Customers" asp-action="Index">Retour aux clients</a>
+            }
+            else
+            {
+                <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Retour à l’accueil</a>
+            }
+        </div>
+    </div>
+</div>

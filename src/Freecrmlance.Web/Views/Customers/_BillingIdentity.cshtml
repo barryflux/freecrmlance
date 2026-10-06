@@ -1,30 +1,42 @@
 @model dynamic
+@{
+    var hasDistinctBillingAddress =
+        !string.IsNullOrWhiteSpace((string?)Model.BillingAddressLine1) ||
+        !string.IsNullOrWhiteSpace((string?)Model.BillingAddressLine2) ||
+        !string.IsNullOrWhiteSpace((string?)Model.BillingPostalCode) ||
+        !string.IsNullOrWhiteSpace((string?)Model.BillingCity) ||
+        !string.IsNullOrWhiteSpace((string?)Model.BillingCountryCode);
+}
 <fieldset class="mb-4">
     <legend class="h5 mb-1">Identité de facturation</legend>
     <p class="text-body-secondary small mb-3">Informations légales utilisées pour les devis et les factures.</p>
     <div class="row g-3">
         <div class="col-md-4">
-            <label class="form-label" for="Type">Type de client</label>
+            <label class="form-label" for="Type">Type de client <span class="text-danger" aria-hidden="true">*</span></label>
             <select class="form-select" id="Type" name="Type" required>
                 <option value="">Choisir…</option>
                 @if (Model.Type?.ToString() == "Individual") { <option value="Individual" selected>Particulier</option> } else { <option value="Individual">Particulier</option> }
                 @if (Model.Type?.ToString() == "Business") { <option value="Business" selected>Entreprise</option> } else { <option value="Business">Entreprise</option> }
             </select>
         </div>
-        <div class="col-md-4"><label class="form-label" for="Siren">SIREN</label><input class="form-control" id="Siren" name="Siren" value="@Model.Siren" maxlength="9" inputmode="numeric" /><div class="form-text">Obligatoire pour une entreprise.</div></div>
+        <div class="col-md-4"><label class="form-label" for="Siren">SIREN <span class="text-danger d-none" id="siren-required" aria-hidden="true">*</span></label><input class="form-control" id="Siren" name="Siren" value="@Model.Siren" maxlength="9" inputmode="numeric" /><div class="form-text">Obligatoire pour une entreprise.</div></div>
         <div class="col-md-4"><label class="form-label" for="Siret">SIRET</label><input class="form-control" id="Siret" name="Siret" value="@Model.Siret" maxlength="14" inputmode="numeric" /></div>
         <div class="col-md-6"><label class="form-label" for="VatNumber">N° TVA intracommunautaire</label><input class="form-control" id="VatNumber" name="VatNumber" value="@Model.VatNumber" maxlength="30" /></div>
     </div>
     <h3 class="h6 mt-4">Adresse postale</h3>
     <div class="row g-3">
-        <div class="col-12"><label class="form-label" for="AddressLine1">Adresse</label><input class="form-control" id="AddressLine1" name="AddressLine1" value="@Model.AddressLine1" required maxlength="200" /></div>
+        <div class="col-12"><label class="form-label" for="AddressLine1">Adresse <span class="text-danger" aria-hidden="true">*</span></label><input class="form-control" id="AddressLine1" name="AddressLine1" value="@Model.AddressLine1" required maxlength="200" /></div>
         <div class="col-12"><label class="form-label" for="AddressLine2">Complément d’adresse</label><input class="form-control" id="AddressLine2" name="AddressLine2" value="@Model.AddressLine2" maxlength="200" /></div>
-        <div class="col-md-3"><label class="form-label" for="PostalCode">Code postal</label><input class="form-control" id="PostalCode" name="PostalCode" value="@Model.PostalCode" required maxlength="20" /></div>
-        <div class="col-md-6"><label class="form-label" for="City">Ville</label><input class="form-control" id="City" name="City" value="@Model.City" required maxlength="100" /></div>
-        <div class="col-md-3"><label class="form-label" for="CountryCode">Pays</label><input class="form-control" id="CountryCode" name="CountryCode" value="@Model.CountryCode" required maxlength="2" placeholder="FR" /></div>
+        <div class="col-md-3"><label class="form-label" for="PostalCode">Code postal <span class="text-danger" aria-hidden="true">*</span></label><input class="form-control" id="PostalCode" name="PostalCode" value="@Model.PostalCode" required maxlength="20" /></div>
+        <div class="col-md-6"><label class="form-label" for="City">Ville <span class="text-danger" aria-hidden="true">*</span></label><input class="form-control" id="City" name="City" value="@Model.City" required maxlength="100" /></div>
+        <div class="col-md-3"><label class="form-label" for="CountryCode">Pays <span class="text-danger" aria-hidden="true">*</span></label><input class="form-control" id="CountryCode" name="CountryCode" value="@Model.CountryCode" required maxlength="2" placeholder="FR" /></div>
     </div>
-    <h3 class="h6 mt-4">Adresse de facturation distincte <span class="text-body-secondary fw-normal">(facultatif)</span></h3>
-    <div class="row g-3">
+
+    <div class="form-check mt-4">
+        <input class="form-check-input" type="checkbox" id="useDistinctBillingAddress" checked="@hasDistinctBillingAddress" />
+        <label class="form-check-label fw-semibold" for="useDistinctBillingAddress">Utiliser une adresse de facturation différente</label>
+    </div>
+    <div id="distinctBillingAddress" class="row g-3 mt-1">
         <div class="col-12"><label class="form-label" for="BillingAddressLine1">Adresse</label><input class="form-control" id="BillingAddressLine1" name="BillingAddressLine1" value="@Model.BillingAddressLine1" maxlength="200" /></div>
         <div class="col-12"><label class="form-label" for="BillingAddressLine2">Complément d’adresse</label><input class="form-control" id="BillingAddressLine2" name="BillingAddressLine2" value="@Model.BillingAddressLine2" maxlength="200" /></div>
         <div class="col-md-3"><label class="form-label" for="BillingPostalCode">Code postal</label><input class="form-control" id="BillingPostalCode" name="BillingPostalCode" value="@Model.BillingPostalCode" maxlength="20" /></div>
@@ -32,3 +44,19 @@
         <div class="col-md-3"><label class="form-label" for="BillingCountryCode">Pays</label><input class="form-control" id="BillingCountryCode" name="BillingCountryCode" value="@Model.BillingCountryCode" maxlength="2" placeholder="FR" /></div>
     </div>
 </fieldset>
+<script>
+    (() => {
+        const toggle = document.getElementById("useDistinctBillingAddress");\n        const type = document.getElementById("Type");\n        const siren = document.getElementById("Siren");\n        const sirenRequired = document.getElementById("siren-required");
+        const container = document.getElementById("distinctBillingAddress");
+        if (!toggle || !container) return;
+
+        const inputs = [...container.querySelectorAll("input")];
+        const refresh = () => {
+            container.classList.toggle("d-none", !toggle.checked);
+            inputs.forEach(input => input.disabled = !toggle.checked);
+        };
+
+        toggle.addEventListener("change", refresh);
+        refresh();
+    })();
+</script>

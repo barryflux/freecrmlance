@@ -13,7 +13,9 @@ public sealed class CreateCustomerViewModel
     [StringLength(50)]
     public string? Phone { get; set; }
 
+    [MinLength(1, ErrorMessage = "Ajoutez au moins un contact.")]
     public List<CreateContactViewModel> Contacts { get; set; } = [new()];
+
     [Required]
     public Freecrmlance.Domain.Crm.CustomerType? Type { get; set; }
 
@@ -28,14 +30,31 @@ public sealed class CreateCustomerViewModel
 
     [Required, StringLength(200)]
     public string AddressLine1 { get; set; } = string.Empty;
-    [StringLength(200)] public string? AddressLine2 { get; set; }
-    [Required, StringLength(20)] public string PostalCode { get; set; } = string.Empty;
-    [Required, StringLength(100)] public string City { get; set; } = string.Empty;
-    [Required, StringLength(2, MinimumLength = 2)] public string CountryCode { get; set; } = "FR";
 
-    [StringLength(200)] public string? BillingAddressLine1 { get; set; }
-    [StringLength(200)] public string? BillingAddressLine2 { get; set; }
-    [StringLength(20)] public string? BillingPostalCode { get; set; }
-    [StringLength(100)] public string? BillingCity { get; set; }
-    [StringLength(2, MinimumLength = 2)] public string? BillingCountryCode { get; set; }
+    [StringLength(200)]
+    public string? AddressLine2 { get; set; }
+
+    [Required, StringLength(20)]
+    public string PostalCode { get; set; } = string.Empty;
+
+    [Required, StringLength(100)]
+    public string City { get; set; } = string.Empty;
+
+    [Required, StringLength(2, MinimumLength = 2)]
+    public string CountryCode { get; set; } = "FR";
+
+    [StringLength(200)]
+    public string? BillingAddressLine1 { get; set; }
+
+    [StringLength(200)]
+    public string? BillingAddressLine2 { get; set; }
+
+    [StringLength(20)]
+    public string? BillingPostalCode { get; set; }
+
+    [StringLength(100)]
+    public string? BillingCity { get; set; }
+
+    [StringLength(2, MinimumLength = 2)]
+    public string? BillingCountryCode { get; set; }
 }

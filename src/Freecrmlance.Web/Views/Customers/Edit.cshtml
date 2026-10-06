@@ -4,17 +4,49 @@
     <div class="page-header">
         <a class="text-decoration-none small" asp-action="Details" asp-route-id="@ViewContext.RouteData.Values["id"]">← Client</a>
         <h1 class="h2 mt-2 mb-1">Modifier le client</h1>
-        <p class="text-body-secondary mb-0">Mettez à jour les coordonnées et les informations de facturation.</p>
+        <p class="text-body-secondary mb-0">Mettez à jour les informations du client.</p>
     </div>
     <div class="card shadow-sm border-0"><div class="card-body p-4">
         <form method="post">
             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-            <h2 class="h5 mb-3">Informations générales</h2>
-            <div class="mb-3"><label asp-for="Name" class="form-label">Nom</label><input asp-for="Name" class="form-control" /><span asp-validation-for="Name"></span></div>
-            <div class="mb-3"><label asp-for="Email" class="form-label">E-mail</label><input asp-for="Email" class="form-control" /><span asp-validation-for="Email"></span></div>
-            <div class="mb-4"><label asp-for="Phone" class="form-label">Téléphone</label><input asp-for="Phone" class="form-control" /><span asp-validation-for="Phone"></span></div>
-            <partial name="_BillingIdentity" model="Model" />
-            <div class="d-flex justify-content-end gap-2"><a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@ViewContext.RouteData.Values["id"]">Annuler</a><button class="btn btn-primary" type="submit">Enregistrer</button></div>
+
+            <nav class="customer-tabs mb-4" aria-label="Rubriques du client">
+                <button class="customer-tab active" type="button" data-form-tab="general">Informations générales</button>
+                <a class="customer-tab" asp-action="Details" asp-route-id="@ViewContext.RouteData.Values["id"]" asp-fragment="contacts">Contacts</a>
+                <button class="customer-tab" type="button" data-form-tab="billing">Identité de facturation</button>
+            </nav>
+
+            <section data-form-panel="general">
+                <h2 class="h5 mb-3">Informations générales</h2>
+                <div class="mb-3"><label asp-for="Name" class="form-label">Nom</label><input asp-for="Name" class="form-control" /><span asp-validation-for="Name"></span></div>
+                <div class="mb-3"><label asp-for="Email" class="form-label">E-mail</label><input asp-for="Email" class="form-control" /><span asp-validation-for="Email"></span></div>
+                <div class="mb-4"><label asp-for="Phone" class="form-label">Téléphone</label><input asp-for="Phone" class="form-control" /><span asp-validation-for="Phone"></span></div>
+            </section>
+
+            <section class="d-none" data-form-panel="billing">
+                <partial name="_BillingIdentity" model="Model" />
+            </section>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@ViewContext.RouteData.Values["id"]">Annuler</a>
+                <button class="btn btn-primary" type="submit">Enregistrer</button>
+            </div>
         </form>
     </div></div>
 </div>
+
+@section Scripts {
+<script>
+    (() => {
+        const tabs = [...document.querySelectorAll("[data-form-tab]")];
+        const panels = [...document.querySelectorAll("[data-form-panel]")];
+
+        const showTab = name => {
+            tabs.forEach(tab => tab.classList.toggle("active", tab.dataset.formTab === name));
+            panels.forEach(panel => panel.classList.toggle("d-none", panel.dataset.formPanel !== name));
+        };
+
+        tabs.forEach(tab => tab.addEventListener("click", () => showTab(tab.dataset.formTab)));
+    })();
+</script>
+}
