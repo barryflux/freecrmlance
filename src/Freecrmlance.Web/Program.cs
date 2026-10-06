@@ -1,6 +1,7 @@
 using Freecrmlance.Application.Platform;
 using Freecrmlance.Infrastructure;
 using Freecrmlance.Web.Services;
+using Microsoft.AspNetCore.DataProtection;
 using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,15 @@ var builder = WebApplication.CreateBuilder(args);
 var frenchCulture = CultureInfo.GetCultureInfo("fr-FR");
 CultureInfo.DefaultThreadCurrentCulture = frenchCulture;
 CultureInfo.DefaultThreadCurrentUICulture = frenchCulture;
+
+var dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"];
+if (!string.IsNullOrWhiteSpace(dataProtectionKeysPath))
+{
+    builder.Services
+        .AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath))
+        .SetApplicationName("Alouva");
+}
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddDistributedMemoryCache();
