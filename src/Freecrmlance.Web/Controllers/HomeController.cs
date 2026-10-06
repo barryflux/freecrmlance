@@ -13,4 +13,11 @@ public sealed class HomeController : Controller
 
         return View();
     }
+
+    [AllowAnonymous]
+    public IActionResult Error()
+    {
+        Response.StatusCode = StatusCodes.Status500InternalServerError;
+        return View();
+    }
 }
