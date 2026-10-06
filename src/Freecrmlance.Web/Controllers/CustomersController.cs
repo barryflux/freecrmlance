@@ -196,13 +196,18 @@ public sealed class CustomersController(ICustomerService customerService, IConta
 
         try
         {
-            var customerId = await customerService.CreateAsync(
-                new CreateCustomerCommand(model.Name, model.Email, model.Phone, [], model.Type, model.Siren, model.Siret, model.VatNumber,
+            var contacts = model.Contacts
+                .Select(contact => new CreateContactCommand(contact.Name, contact.Email, contact.Phone, contact.Role))
+                .ToArray();
+
+            await customerService.CreateAsync(
+                new CreateCustomerCommand(model.Name, model.Email, model.Phone, contacts, model.Type, model.Siren, model.Siret, model.VatNumber,
                     model.AddressLine1, model.AddressLine2, model.PostalCode, model.City, model.CountryCode,
                     model.BillingAddressLine1, model.BillingAddressLine2, model.BillingPostalCode, model.BillingCity, model.BillingCountryCode),
                 cancellationToken);
 
-            return RedirectToAction(nameof(Details), new { id = customerId });
+            TempData["SuccessMessage"] = "Client créé avec succès.";
+            return RedirectToAction(nameof(Index));
         }
         catch (ArgumentException)
         {
