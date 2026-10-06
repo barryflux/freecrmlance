@@ -170,10 +170,19 @@ public sealed class CustomersController(ICustomerService customerService, IConta
     public async Task<IActionResult> Edit(Guid id, EditCustomerViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return View(model);
-        var updated = await customerService.UpdateAsync(id, new UpdateCustomerCommand(model.Name, model.Email, model.Phone, model.Type, model.Siren, model.Siret, model.VatNumber,
-                model.AddressLine1, model.AddressLine2, model.PostalCode, model.City, model.CountryCode,
-                model.BillingAddressLine1, model.BillingAddressLine2, model.BillingPostalCode, model.BillingCity, model.BillingCountryCode), cancellationToken);
-        return updated ? RedirectToAction(nameof(Details), new { id }) : NotFound();
+
+        try
+        {
+            var updated = await customerService.UpdateAsync(id, new UpdateCustomerCommand(model.Name, model.Email, model.Phone, model.Type, model.Siren, model.Siret, model.VatNumber,
+                    model.AddressLine1, model.AddressLine2, model.PostalCode, model.City, model.CountryCode,
+                    model.BillingAddressLine1, model.BillingAddressLine2, model.BillingPostalCode, model.BillingCity, model.BillingCountryCode), cancellationToken);
+            return updated ? RedirectToAction(nameof(Details), new { id }) : NotFound();
+        }
+        catch (ArgumentException)
+        {
+            ModelState.AddModelError(string.Empty, "Les informations de facturation sont incomplètes ou invalides. Vérifiez les champs renseignés.");
+            return View(model);
+        }
     }
 
     [HttpGet]
@@ -184,16 +193,21 @@ public sealed class CustomersController(ICustomerService customerService, IConta
     public async Task<IActionResult> Create(CreateCustomerViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return View(model);
-        var contacts = model.Contacts
-            .Select(contact => new CreateContactCommand(contact.Name, contact.Email, contact.Phone, contact.Role))
-            .ToArray();
 
-        var customerId = await customerService.CreateAsync(
-            new CreateCustomerCommand(model.Name, model.Email, model.Phone, contacts, model.Type, model.Siren, model.Siret, model.VatNumber,
-                model.AddressLine1, model.AddressLine2, model.PostalCode, model.City, model.CountryCode,
-                model.BillingAddressLine1, model.BillingAddressLine2, model.BillingPostalCode, model.BillingCity, model.BillingCountryCode),
-            cancellationToken);
+        try
+        {
+            var customerId = await customerService.CreateAsync(
+                new CreateCustomerCommand(model.Name, model.Email, model.Phone, [], model.Type, model.Siren, model.Siret, model.VatNumber,
+                    model.AddressLine1, model.AddressLine2, model.PostalCode, model.City, model.CountryCode,
+                    model.BillingAddressLine1, model.BillingAddressLine2, model.BillingPostalCode, model.BillingCity, model.BillingCountryCode),
+                cancellationToken);
 
-        return RedirectToAction(nameof(Details), new { id = customerId });
+            return RedirectToAction(nameof(Details), new { id = customerId });
+        }
+        catch (ArgumentException)
+        {
+            ModelState.AddModelError(string.Empty, "Les informations de facturation sont incomplètes ou invalides. Vérifiez les champs renseignés.");
+            return View(model);
+        }
     }
 }
