@@ -5,7 +5,7 @@
 
 <div class="page-header">
     <h1 class="h2 mb-1">Ajouter un client</h1>
-    <p class="text-body-secondary mb-0">Créez la fiche client et ajoutez directement vos interlocuteurs.</p>
+    <p class="text-body-secondary mb-0">Créez la fiche client. Vous pourrez ensuite ajouter ses interlocuteurs depuis l’onglet Contacts.</p>
 </div>
 <div class="card shadow-sm border-0"><div class="card-body p-4">
 <form asp-action="Create" method="post">
@@ -32,85 +32,7 @@
 
     <partial name="_BillingIdentity" model="Model" />
 
-    <fieldset>
-        <legend class="h5 mb-3">Contacts</legend>
-        <div id="contacts">
-            @for (var i = 0; i < Model.Contacts.Count; i++)
-            {
-                <div class="contact-fields border rounded p-3 mb-3 bg-body-tertiary">
-                    <h3>Contact @(i + 1)</h3>
-                    @if (i > 0)
-                    {
-                        <button type="button" class="remove-contact btn btn-sm btn-outline-danger mb-3">Supprimer le contact</button>
-                    }
-                    <div>
-                        <label asp-for="Contacts[i].Name"></label>
-                        <input class="form-control" asp-for="Contacts[i].Name" />
-                        <span asp-validation-for="Contacts[i].Name"></span>
-                    </div>
-                    <div>
-                        <label asp-for="Contacts[i].Email"></label>
-                        <input class="form-control" asp-for="Contacts[i].Email" />
-                        <span asp-validation-for="Contacts[i].Email"></span>
-                    </div>
-                    <div>
-                        <label asp-for="Contacts[i].Phone"></label>
-                        <input class="form-control" asp-for="Contacts[i].Phone" />
-                        <span asp-validation-for="Contacts[i].Phone"></span>
-                    </div>
-                    <div>
-                        <label asp-for="Contacts[i].Role"></label>
-                        <input class="form-control" asp-for="Contacts[i].Role" />
-                        <span asp-validation-for="Contacts[i].Role"></span>
-                    </div>
-                </div>
-            }
-        </div>
-        <button type="button" id="add-contact" class="btn btn-outline-primary btn-sm">+ Ajouter un contact</button>
-    </fieldset>
-
     <button type="submit" class="btn btn-primary">Créer le client</button>
+    <a class="btn btn-link" asp-action="Index">Annuler</a>
 </form>
-<a class="btn btn-link" asp-action="Index">Annuler</a>
 </div></div>
-
-<script>
-    (() => {
-        const contacts = document.getElementById("contacts");
-        const addButton = document.getElementById("add-contact");
-
-        const renumberContacts = () => {
-            contacts.querySelectorAll(".contact-fields").forEach((contact, index) => {
-                contact.querySelector("h3").textContent = `Contact ${index + 1}`;
-                contact.querySelectorAll("input").forEach(input => {
-                    const field = input.name.split(".").pop();
-                    input.name = `Contacts[${index}].${field}`;
-                    input.id = `Contacts_${index}__${field}`;
-                    const label = contact.querySelector(`label[for$="__${field}"]`);
-                    if (label) label.htmlFor = input.id;
-                });
-            });
-        };
-
-        contacts.addEventListener("click", event => {
-            if (!event.target.classList.contains("remove-contact")) return;
-            event.target.closest(".contact-fields").remove();
-            renumberContacts();
-        });
-
-        addButton.addEventListener("click", () => {
-            const index = contacts.querySelectorAll(".contact-fields").length;
-            const wrapper = document.createElement("div");
-            wrapper.className = "contact-fields border rounded p-3 mb-3 bg-body-tertiary";
-            wrapper.innerHTML = `
-                <h3>Contact ${index + 1}</h3>
-                <button type="button" class="remove-contact btn btn-sm btn-outline-danger mb-3">Supprimer le contact</button>
-                <div class="mb-3"><label class="form-label" for="Contacts_${index}__Name">Nom</label><input id="Contacts_${index}__Name" name="Contacts[${index}].Name" class="form-control" /></div>
-                <div class="mb-3"><label class="form-label" for="Contacts_${index}__Email">Email</label><input id="Contacts_${index}__Email" name="Contacts[${index}].Email" type="email" class="form-control" /></div>
-                <div class="mb-3"><label class="form-label" for="Contacts_${index}__Phone">Téléphone</label><input id="Contacts_${index}__Phone" name="Contacts[${index}].Phone" class="form-control" /></div>
-                <div class="mb-3"><label class="form-label" for="Contacts_${index}__Role">Fonction</label><input id="Contacts_${index}__Role" name="Contacts[${index}].Role" class="form-control" /></div>
-            `;
-            contacts.appendChild(wrapper);
-        });
-    })();
-</script>
