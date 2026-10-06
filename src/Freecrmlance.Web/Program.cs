@@ -2,6 +2,8 @@ using Freecrmlance.Application.Platform;
 using Freecrmlance.Infrastructure;
 using Freecrmlance.Web.Services;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
+using System.Net;
 using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +21,13 @@ if (!string.IsNullOrWhiteSpace(dataProtectionKeysPath))
         .SetApplicationName("Alouva");
 }
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownProxies.Add(IPAddress.Loopback);
+    options.KnownProxies.Add(IPAddress.IPv6Loopback);
+});
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -33,6 +42,8 @@ builder.Services.AddScoped<BetaUserProvisioner>();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
+
+app.UseForwardedHeaders();
 
 if (args.Contains("--create-beta-user", StringComparer.OrdinalIgnoreCase))
 {
