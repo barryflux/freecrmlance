@@ -5,34 +5,70 @@
 
 <div class="page-header">
     <h1 class="h2 mb-1">Ajouter un client</h1>
-    <p class="text-body-secondary mb-0">Créez la fiche client. Vous pourrez ensuite ajouter ses interlocuteurs depuis l’onglet Contacts.</p>
+    <p class="text-body-secondary mb-0">Créez la fiche client puis complétez ses informations.</p>
 </div>
-<div class="card shadow-sm border-0"><div class="card-body p-4">
-<form asp-action="Create" method="post">
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-    <fieldset class="mb-4">
-        <legend class="h5 mb-3">Informations générales</legend>
-        <div class="mb-3">
-            <label class="form-label" asp-for="Name">Nom</label>
-            <input class="form-control" asp-for="Name" />
-            <span asp-validation-for="Name"></span>
-        </div>
-        <div class="mb-3">
-            <label class="form-label" asp-for="Email">E-mail</label>
-            <input class="form-control" asp-for="Email" />
-            <span asp-validation-for="Email"></span>
-        </div>
-        <div class="mb-3">
-            <label class="form-label" asp-for="Phone">Téléphone</label>
-            <input class="form-control" asp-for="Phone" />
-            <span asp-validation-for="Phone"></span>
-        </div>
-    </fieldset>
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-    <partial name="_BillingIdentity" model="Model" />
+            <nav class="customer-tabs mb-4" aria-label="Rubriques du client">
+                <button class="customer-tab active" type="button" data-form-tab="general">Informations générales</button>
+                <button class="customer-tab" type="button" data-form-tab="contacts">Contacts</button>
+                <button class="customer-tab" type="button" data-form-tab="billing">Identité de facturation</button>
+            </nav>
 
-    <button type="submit" class="btn btn-primary">Créer le client</button>
-    <a class="btn btn-link" asp-action="Index">Annuler</a>
-</form>
-</div></div>
+            <section data-form-panel="general">
+                <h2 class="h5 mb-3">Informations générales</h2>
+                <div class="mb-3">
+                    <label class="form-label" asp-for="Name">Nom</label>
+                    <input class="form-control" asp-for="Name" />
+                    <span asp-validation-for="Name"></span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" asp-for="Email">E-mail</label>
+                    <input class="form-control" asp-for="Email" />
+                    <span asp-validation-for="Email"></span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" asp-for="Phone">Téléphone</label>
+                    <input class="form-control" asp-for="Phone" />
+                    <span asp-validation-for="Phone"></span>
+                </div>
+            </section>
+
+            <section class="d-none" data-form-panel="contacts">
+                <h2 class="h5 mb-3">Contacts</h2>
+                <div class="alert alert-light border mb-0">
+                    Créez d’abord le client. Vous pourrez ensuite ajouter, modifier et supprimer ses interlocuteurs depuis l’onglet <strong>Contacts</strong> de sa fiche.
+                </div>
+            </section>
+
+            <section class="d-none" data-form-panel="billing">
+                <partial name="_BillingIdentity" model="Model" />
+            </section>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <a class="btn btn-outline-secondary" asp-action="Index">Annuler</a>
+                <button type="submit" class="btn btn-primary">Créer le client</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    (() => {
+        const tabs = [...document.querySelectorAll("[data-form-tab]")];
+        const panels = [...document.querySelectorAll("[data-form-panel]")];
+
+        const showTab = name => {
+            tabs.forEach(tab => tab.classList.toggle("active", tab.dataset.formTab === name));
+            panels.forEach(panel => panel.classList.toggle("d-none", panel.dataset.formPanel !== name));
+        };
+
+        tabs.forEach(tab => tab.addEventListener("click", () => showTab(tab.dataset.formTab)));
+    })();
+</script>
+}
