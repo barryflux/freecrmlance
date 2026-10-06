@@ -11,7 +11,7 @@
 <div class="card shadow-sm border-0">
     <div class="card-body p-4">
         <form asp-action="Create" method="post">
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>\n            <p class="small text-body-secondary mb-3"><span class="text-danger fw-bold">*</span> Champs obligatoires</p>
 
             <nav class="customer-tabs mb-4" aria-label="Rubriques du client">
                 <button class="customer-tab active" type="button" data-form-tab="general">Informations générales</button>
@@ -22,19 +22,19 @@
             <section data-form-panel="general">
                 <h2 class="h5 mb-3">Informations générales</h2>
                 <div class="mb-3">
-                    <label class="form-label" asp-for="Name">Nom</label>
-                    <input class="form-control" asp-for="Name" />
-                    <span asp-validation-for="Name"></span>
+                    <label class="form-label" asp-for="Name">Nom <span class="text-danger" aria-hidden="true">*</span></label>
+                    <input class="form-control" asp-for="Name" required />
+                    <span asp-validation-for="Name" class="text-danger small"></span>
                 </div>
                 <div class="mb-3">
                     <label class="form-label" asp-for="Email">E-mail</label>
                     <input class="form-control" asp-for="Email" />
-                    <span asp-validation-for="Email"></span>
+                    <span asp-validation-for="Email" class="text-danger small"></span>
                 </div>
                 <div class="mb-3">
                     <label class="form-label" asp-for="Phone">Téléphone</label>
                     <input class="form-control" asp-for="Phone" />
-                    <span asp-validation-for="Phone"></span>
+                    <span asp-validation-for="Phone" class="text-danger small"></span>
                 </div>
             </section>
 
@@ -56,10 +56,10 @@
                                 <button type="button" class="remove-contact btn btn-sm btn-outline-danger">Supprimer</button>
                             </div>
                             <div class="row g-3">
-                                <div class="col-md-6"><label class="form-label" asp-for="Contacts[i].Name"></label><input class="form-control" asp-for="Contacts[i].Name" /><span asp-validation-for="Contacts[i].Name"></span></div>
-                                <div class="col-md-6"><label class="form-label" asp-for="Contacts[i].Role"></label><input class="form-control" asp-for="Contacts[i].Role" /><span asp-validation-for="Contacts[i].Role"></span></div>
-                                <div class="col-md-6"><label class="form-label" asp-for="Contacts[i].Email"></label><input class="form-control" asp-for="Contacts[i].Email" /><span asp-validation-for="Contacts[i].Email"></span></div>
-                                <div class="col-md-6"><label class="form-label" asp-for="Contacts[i].Phone"></label><input class="form-control" asp-for="Contacts[i].Phone" /><span asp-validation-for="Contacts[i].Phone"></span></div>
+                                <div class="col-md-6"><label class="form-label" asp-for="Contacts[i].Name">Nom <span class="text-danger" aria-hidden="true">*</span></label><input class="form-control" asp-for="Contacts[i].Name" /><span asp-validation-for="Contacts[i].Name" class="text-danger small"></span></div>
+                                <div class="col-md-6"><label class="form-label" asp-for="Contacts[i].Role"></label><input class="form-control" asp-for="Contacts[i].Role" /><span asp-validation-for="Contacts[i].Role" class="text-danger small"></span></div>
+                                <div class="col-md-6"><label class="form-label" asp-for="Contacts[i].Email"></label><input class="form-control" asp-for="Contacts[i].Email" /><span asp-validation-for="Contacts[i].Email" class="text-danger small"></span></div>
+                                <div class="col-md-6"><label class="form-label" asp-for="Contacts[i].Phone"></label><input class="form-control" asp-for="Contacts[i].Phone" /><span asp-validation-for="Contacts[i].Phone" class="text-danger small"></span></div>
                             </div>
                         </div>
                     }
@@ -114,7 +114,7 @@
             const button = event.target.closest(".remove-contact");
             if (!button) return;
             button.closest(".contact-fields").remove();
-            refreshContacts();
+            const form = document.querySelector("form");\n        form.addEventListener("submit", event => {\n            const invalid = form.querySelector(":invalid");\n            if (!invalid) return;\n            event.preventDefault();\n            const panel = invalid.closest("[data-form-panel]");\n            if (panel) showTab(panel.dataset.formPanel);\n            invalid.focus();\n        });\n\n        refreshContacts();
         });
 
         addButton.addEventListener("click", () => {
@@ -126,7 +126,7 @@
                     <button type="button" class="remove-contact btn btn-sm btn-outline-danger">Supprimer</button>
                 </div>
                 <div class="row g-3">
-                    <div class="col-md-6"><label class="form-label" data-label="Name">Nom</label><input class="form-control" data-field="Name" required maxlength="200" /></div>
+                    <div class="col-md-6"><label class="form-label" data-label="Name">Nom <span class="text-danger" aria-hidden="true">*</span></label><input class="form-control" data-field="Name" required maxlength="200" /></div>
                     <div class="col-md-6"><label class="form-label" data-label="Role">Fonction</label><input class="form-control" data-field="Role" maxlength="100" /></div>
                     <div class="col-md-6"><label class="form-label" data-label="Email">E-mail</label><input class="form-control" data-field="Email" type="email" maxlength="320" /></div>
                     <div class="col-md-6"><label class="form-label" data-label="Phone">Téléphone</label><input class="form-control" data-field="Phone" maxlength="50" /></div>
