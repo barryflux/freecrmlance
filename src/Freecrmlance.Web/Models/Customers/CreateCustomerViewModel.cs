@@ -13,7 +13,7 @@ public sealed class CreateCustomerViewModel
     [StringLength(50)]
     public string? Phone { get; set; }
 
-    public List<CreateContactViewModel> Contacts { get; set; } = [new()];
+    public List<CreateContactViewModel> Contacts { get; set; } = [];
     [Required]
     public Freecrmlance.Domain.Crm.CustomerType? Type { get; set; }
 
