@@ -36,6 +36,8 @@ with tarfile.open(archive, "r:gz") as tar:
     for member in members:
         path = pathlib.PurePosixPath(member.name)
         parts = tuple(p for p in path.parts if p != ".")
+        if not parts and member.isdir():
+            continue
         if (path.is_absolute() or not parts or ".." in parts
                 or not (member.isfile() or member.isdir())
                 or parts in seen):
@@ -46,6 +48,8 @@ with tarfile.open(archive, "r:gz") as tar:
             raise SystemExit("Archive exceeds size limit")
     for member in members:
         parts = tuple(p for p in pathlib.PurePosixPath(member.name).parts if p != ".")
+        if not parts and member.isdir():
+            continue
         target = os.path.join(destination, *parts)
         if member.isdir():
             os.makedirs(target, mode=0o700, exist_ok=True)
