@@ -32,8 +32,8 @@ test -s "$STAGE/Freecrmlance.Web.runtimeconfig.json"
 test -d "$STAGE/wwwroot"
 # Preserve any preexisting config file not shipped in the artifact.
 test -f "$STAGE/appsettings.json"
-systemctl stop alouva
 rsync -a --delete "$APP/" "$BACKUP/"
+systemctl stop alouva
 restore() {
   echo "Deployment failed; restoring previous version" >&2
   rsync -a --delete "$BACKUP/" "$APP/"
