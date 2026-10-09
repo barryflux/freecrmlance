@@ -1,9 +1,6 @@
 name: Deploy Alouva
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types: [completed]
-    branches: [main]
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:
@@ -11,7 +8,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository }}
+    if: ${{ false }} # Deployment intentionally disabled pending SSH and rollback validation
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: production
