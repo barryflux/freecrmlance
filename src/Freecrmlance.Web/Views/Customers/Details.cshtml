@@ -2,7 +2,7 @@
 @{ ViewData["Title"] = Model.Customer.Name; }
 
 <div class="page-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-start gap-3">
-    <div><a class="text-decoration-none small" asp-action="Index">← Clients</a><h1 class="h2 mt-2 mb-0">@Model.Customer.Name</h1></div>
+    <div><a class="text-decoration-none small" asp-action="Index">← Clients</a><h1 class="h2 mt-2 mb-0">@Model.Customer.Name</h1><span class="badge @(Model.Customer.Status == Freecrmlance.Domain.Crm.CustomerStatus.Client ? "text-bg-success" : "text-bg-info") mt-2">@(Model.Customer.Status == Freecrmlance.Domain.Crm.CustomerStatus.Client ? "Client" : "Prospect")</span></div>
     <a class="btn btn-outline-secondary" asp-action="Edit" asp-route-id="@Model.Customer.Id">Modifier le client</a>
 </div>
 
