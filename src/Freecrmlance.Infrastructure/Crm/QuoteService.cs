@@ -100,6 +100,11 @@ public sealed class QuoteService(
         if (quote is null || quote.Status != requiredStatus) return false;
 
         transition(quote);
+        if (requiredStatus == QuoteStatus.Sent && quote.Status == QuoteStatus.Accepted)
+        {
+            var customer = await dbContext.Customers.SingleAsync(item => item.Id == customerId && item.WorkspaceId == workspaceId, cancellationToken);
+            customer.SetStatus(CustomerStatus.Client);
+        }
         await dbContext.SaveChangesAsync(cancellationToken);
         return true;
     }
