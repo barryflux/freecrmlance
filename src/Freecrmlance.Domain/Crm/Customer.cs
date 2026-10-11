@@ -22,6 +22,25 @@ public sealed class Customer
         if (!Enum.IsDefined(status)) throw new ArgumentOutOfRangeException(nameof(status));
         Status = status;
     }
+    public DateTime? LastContactAt { get; private set; }
+    public DateTime? NextFollowUpAt { get; private set; }
+    public string? FollowUpNote { get; private set; }
+
+    public void ScheduleFollowUp(DateTime? nextFollowUpAt, string? note)
+    {
+        if (Status != CustomerStatus.Prospect) throw new InvalidOperationException("Follow-ups are reserved for prospects.");
+        if (note?.Trim().Length > 2000) throw new ArgumentException("Follow-up note is too long.", nameof(note));
+        NextFollowUpAt = nextFollowUpAt?.Date;
+        FollowUpNote = Normalize(note);
+    }
+
+    public void MarkContacted(DateTime contactedAtUtc, DateTime? nextFollowUpAt, string? note)
+    {
+        if (Status != CustomerStatus.Prospect) throw new InvalidOperationException("Follow-ups are reserved for prospects.");
+        ScheduleFollowUp(nextFollowUpAt, note);
+        LastContactAt = contactedAtUtc;
+    }
+
     public string? Email { get; private set; }
     public string? Phone { get; private set; }
     public CustomerType? Type { get; private set; }
