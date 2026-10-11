@@ -18,7 +18,7 @@ public sealed class CustomerService(
             .OrderBy(customer => customer.Name)
             .Select(customer => new CustomerDto(customer.Id, customer.Name, customer.Email, customer.Phone, customer.Type, customer.Siren, customer.Siret, customer.VatNumber,
                 customer.AddressLine1, customer.AddressLine2, customer.PostalCode, customer.City, customer.CountryCode,
-                customer.BillingAddressLine1, customer.BillingAddressLine2, customer.BillingPostalCode, customer.BillingCity, customer.BillingCountryCode, customer.Status))
+                customer.BillingAddressLine1, customer.BillingAddressLine2, customer.BillingPostalCode, customer.BillingCity, customer.BillingCountryCode, customer.Status, customer.LastContactAt, customer.NextFollowUpAt, customer.FollowUpNote))
             .ToListAsync(cancellationToken);
     }
 
@@ -29,8 +29,42 @@ public sealed class CustomerService(
             .Where(customer => customer.Id == id && customer.WorkspaceId == workspaceId)
             .Select(customer => new CustomerDto(customer.Id, customer.Name, customer.Email, customer.Phone, customer.Type, customer.Siren, customer.Siret, customer.VatNumber,
                 customer.AddressLine1, customer.AddressLine2, customer.PostalCode, customer.City, customer.CountryCode,
-                customer.BillingAddressLine1, customer.BillingAddressLine2, customer.BillingPostalCode, customer.BillingCity, customer.BillingCountryCode, customer.Status))
+                customer.BillingAddressLine1, customer.BillingAddressLine2, customer.BillingPostalCode, customer.BillingCity, customer.BillingCountryCode, customer.Status, customer.LastContactAt, customer.NextFollowUpAt, customer.FollowUpNote))
             .SingleOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<CustomerDto>> ListDueFollowUpsAsync(DateTime today, CancellationToken cancellationToken = default)
+    {
+        var workspaceId = await workspaceContext.RequireCurrentWorkspaceIdAsync(cancellationToken);
+        return await dbContext.Customers.AsNoTracking()
+            .Where(c => c.WorkspaceId == workspaceId && c.Status == CustomerStatus.Prospect && c.NextFollowUpAt != null && c.NextFollowUpAt <= DateTime.SpecifyKind(today.Date, DateTimeKind.Utc))
+            .OrderBy(c => c.NextFollowUpAt)
+            .ThenBy(c => c.Name)
+            .Select(c => new CustomerDto(c.Id, c.Name, c.Email, c.Phone, c.Type, c.Siren, c.Siret, c.VatNumber,
+                c.AddressLine1, c.AddressLine2, c.PostalCode, c.City, c.CountryCode,
+                c.BillingAddressLine1, c.BillingAddressLine2, c.BillingPostalCode, c.BillingCity, c.BillingCountryCode,
+                c.Status, c.LastContactAt, c.NextFollowUpAt, c.FollowUpNote))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> ScheduleFollowUpAsync(Guid id, DateTime? date, string? note, CancellationToken cancellationToken = default)
+    {
+        var workspaceId = await workspaceContext.RequireCurrentWorkspaceIdAsync(cancellationToken);
+        var customer = await dbContext.Customers.SingleOrDefaultAsync(c => c.Id == id && c.WorkspaceId == workspaceId, cancellationToken);
+        if (customer is null || customer.Status != CustomerStatus.Prospect) return false;
+        customer.ScheduleFollowUp(date, note);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> MarkContactedAsync(Guid id, DateTime? nextDate, string? note, CancellationToken cancellationToken = default)
+    {
+        var workspaceId = await workspaceContext.RequireCurrentWorkspaceIdAsync(cancellationToken);
+        var customer = await dbContext.Customers.SingleOrDefaultAsync(c => c.Id == id && c.WorkspaceId == workspaceId, cancellationToken);
+        if (customer is null || customer.Status != CustomerStatus.Prospect) return false;
+        customer.MarkContacted(DateTime.UtcNow, nextDate, note);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
     }
 
     public async Task<Guid> CreateAsync(CreateCustomerCommand command, CancellationToken cancellationToken = default)

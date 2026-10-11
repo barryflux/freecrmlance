@@ -6,4 +6,4 @@ public sealed record CustomerDto(
     Guid Id, string Name, string? Email, string? Phone,
     CustomerType? Type = null, string? Siren = null, string? Siret = null, string? VatNumber = null,
     string? AddressLine1 = null, string? AddressLine2 = null, string? PostalCode = null, string? City = null, string? CountryCode = null,
-    string? BillingAddressLine1 = null, string? BillingAddressLine2 = null, string? BillingPostalCode = null, string? BillingCity = null, string? BillingCountryCode = null, CustomerStatus Status = CustomerStatus.Prospect);
+    string? BillingAddressLine1 = null, string? BillingAddressLine2 = null, string? BillingPostalCode = null, string? BillingCity = null, string? BillingCountryCode = null, CustomerStatus Status = CustomerStatus.Prospect, DateTime? LastContactAt = null, DateTime? NextFollowUpAt = null, string? FollowUpNote = null);

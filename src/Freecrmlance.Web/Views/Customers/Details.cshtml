@@ -6,13 +6,49 @@
     <a class="btn btn-outline-secondary" asp-action="Edit" asp-route-id="@Model.Customer.Id">Modifier le client</a>
 </div>
 
+<style>
+    .customer-tabs .customer-tab-followup-active {
+        color: #16a34a;
+        font-weight: 800;
+    }
+    .customer-tabs .customer-tab-followup-active:hover,
+    .customer-tabs .customer-tab-followup-active.active {
+        color: #15803d;
+    }
+</style>
 <nav class="customer-tabs" aria-label="Rubriques du client">
     <a class="customer-tab active" href="#fiche" data-customer-tab="fiche">Fiche</a>
+    @if (Model.Customer.Status == Freecrmlance.Domain.Crm.CustomerStatus.Prospect)
+    {
+        <a class="customer-tab @(Model.Customer.NextFollowUpAt.HasValue ? "customer-tab-followup-active" : "")" href="#followups" data-customer-tab="followups">Relance commerciale</a>
+    }
     <a class="customer-tab" href="#contacts" data-customer-tab="contacts">Contacts <span>@Model.Contacts.Count</span></a>
     <a class="customer-tab" href="#documents" data-customer-tab="documents">Documents <span>@Model.Documents.Count</span></a>
     <a class="customer-tab" href="#quotes" data-customer-tab="quotes">Devis <span>@Model.Quotes.Count</span></a>
     <a class="customer-tab" href="#invoices" data-customer-tab="invoices">Factures <span>@Model.Invoices.Count</span></a>
 </nav>
+
+@if (Model.Customer.Status == Freecrmlance.Domain.Crm.CustomerStatus.Prospect)
+{
+    <section class="customer-tab-panel d-none" data-customer-panel="followups">
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+            <h2 class="h5">Relance commerciale</h2>
+            <p class="text-body-secondary small">Dernier contact : @(Model.Customer.LastContactAt?.ToString("dd/MM/yyyy") ?? "Jamais")</p>
+            <form asp-action="ScheduleFollowUp" asp-route-id="@Model.Customer.Id" method="post" class="row g-2 align-items-end mb-3">
+                <div class="col-md-4"><label class="form-label" for="nextFollowUpAt">Prochaine relance</label><input class="form-control" id="nextFollowUpAt" type="date" name="nextFollowUpAt" value="@Model.Customer.NextFollowUpAt?.ToString("yyyy-MM-dd")" /></div>
+                <div class="col-md-5"><label class="form-label" for="followUpNote">Note</label><textarea class="form-control" id="followUpNote" name="followUpNote" maxlength="2000" rows="2">@Model.Customer.FollowUpNote</textarea></div>
+                <div class="col-md-3"><button class="btn btn-primary w-100" type="submit">Enregistrer</button></div>
+            </form>
+            <form asp-action="CompleteFollowUp" asp-route-id="@Model.Customer.Id" method="post" class="row g-2 align-items-end">
+                <div class="col-md-4"><label class="form-label" for="completedNextDate">Reprogrammer au</label><input class="form-control" id="completedNextDate" type="date" name="nextFollowUpAt" /></div>
+                <div class="col-md-5"><label class="form-label" for="completedNote">Note après échange</label><textarea class="form-control" id="completedNote" name="followUpNote" maxlength="2000" rows="2">@Model.Customer.FollowUpNote</textarea></div>
+                <div class="col-md-3"><button class="btn btn-outline-success w-100" type="submit">Contact effectué</button></div>
+            </form>
+        </div>
+    </div>
+    </section>
+}
 
 <section class="customer-tab-panel" data-customer-panel="fiche">
     <div class="customer-profile-grid">
