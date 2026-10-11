@@ -29,7 +29,9 @@ public sealed class QuotesController(
         var id = await quoteService.CreateAsync(
             new CreateQuoteCommand(customerId, model.Number, MapLines(model)),
             cancellationToken);
-        return id is null ? NotFound() : RedirectToAction(nameof(Details), new { customerId, quoteId = id });
+        if (id is null) return NotFound();
+        TempData["SuccessMessage"] = "Devis créé avec succès.";
+        return RedirectToAction(nameof(Details), new { customerId, quoteId = id });
     }
 
     [HttpGet("Customers/{customerId:guid}/Quotes/{quoteId:guid}")]
@@ -59,15 +61,18 @@ public sealed class QuotesController(
             new { token = share.Token },
             Request.Scheme);
 
+        TempData["SuccessMessage"] = "Lien de partage du devis créé.";
         return RedirectToAction(nameof(Details), new { customerId, quoteId });
     }
 
     [HttpPost("Customers/{customerId:guid}/Quotes/{quoteId:guid}/Shares/{shareId:guid}/Revoke")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> RevokeShare(Guid customerId, Guid quoteId, Guid shareId, CancellationToken cancellationToken)
-        => await quoteShareService.RevokeAsync(customerId, quoteId, shareId, cancellationToken)
-            ? RedirectToAction(nameof(Details), new { customerId, quoteId })
-            : NotFound();
+    {
+        if (!await quoteShareService.RevokeAsync(customerId, quoteId, shareId, cancellationToken)) return NotFound();
+        TempData["SuccessMessage"] = "Partage du devis révoqué.";
+        return RedirectToAction(nameof(Details), new { customerId, quoteId });
+    }
 
     [HttpGet("Customers/{customerId:guid}/Quotes/{quoteId:guid}/Edit")]
     public async Task<IActionResult> Edit(Guid customerId, Guid quoteId, CancellationToken cancellationToken)
@@ -95,29 +100,37 @@ public sealed class QuotesController(
         if (!ModelState.IsValid) return View(model);
         var updated = await quoteService.UpdateDraftAsync(
             customerId, quoteId, new UpdateQuoteCommand(model.Number, MapLines(model)), cancellationToken);
-        return updated ? RedirectToAction(nameof(Details), new { customerId, quoteId }) : NotFound();
+        if (!updated) return NotFound();
+        TempData["SuccessMessage"] = "Devis modifié avec succès.";
+        return RedirectToAction(nameof(Details), new { customerId, quoteId });
     }
 
     [HttpPost("Customers/{customerId:guid}/Quotes/{quoteId:guid}/Send")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Send(Guid customerId, Guid quoteId, CancellationToken cancellationToken)
-        => await quoteService.MarkSentAsync(customerId, quoteId, cancellationToken)
-            ? RedirectToAction(nameof(Details), new { customerId, quoteId })
-            : NotFound();
+    {
+        if (!await quoteService.MarkSentAsync(customerId, quoteId, cancellationToken)) return NotFound();
+        TempData["SuccessMessage"] = "Devis marqué comme envoyé.";
+        return RedirectToAction(nameof(Details), new { customerId, quoteId });
+    }
 
     [HttpPost("Customers/{customerId:guid}/Quotes/{quoteId:guid}/Accept")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Accept(Guid customerId, Guid quoteId, CancellationToken cancellationToken)
-        => await quoteService.AcceptAsync(customerId, quoteId, cancellationToken)
-            ? RedirectToAction(nameof(Details), new { customerId, quoteId })
-            : NotFound();
+    {
+        if (!await quoteService.AcceptAsync(customerId, quoteId, cancellationToken)) return NotFound();
+        TempData["SuccessMessage"] = "Devis accepté.";
+        return RedirectToAction(nameof(Details), new { customerId, quoteId });
+    }
 
     [HttpPost("Customers/{customerId:guid}/Quotes/{quoteId:guid}/Reject")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Reject(Guid customerId, Guid quoteId, CancellationToken cancellationToken)
-        => await quoteService.RejectAsync(customerId, quoteId, cancellationToken)
-            ? RedirectToAction(nameof(Details), new { customerId, quoteId })
-            : NotFound();
+    {
+        if (!await quoteService.RejectAsync(customerId, quoteId, cancellationToken)) return NotFound();
+        TempData["SuccessMessage"] = "Devis refusé.";
+        return RedirectToAction(nameof(Details), new { customerId, quoteId });
+    }
 
     [HttpGet("Customers/{customerId:guid}/Quotes/{quoteId:guid}/Pdf")]
     public async Task<IActionResult> Pdf(Guid customerId, Guid quoteId, CancellationToken cancellationToken)

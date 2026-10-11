@@ -32,7 +32,7 @@ public sealed class WorkspaceSettingsController(IWorkspaceSettingsService worksp
             model.VatNumber, model.AddressLine1, model.AddressLine2, model.PostalCode, model.City, model.CountryCode,
             model.ContactEmail, model.ContactPhone), cancellationToken);
         if (!updated) return NotFound();
-        TempData["Success"] = "Legal identity updated.";
+        TempData["SuccessMessage"] = "Informations légales enregistrées avec succès.";
         return RedirectToAction(nameof(LegalIdentity));
     }
 }

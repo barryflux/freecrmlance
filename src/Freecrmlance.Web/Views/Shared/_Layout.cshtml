@@ -115,7 +115,41 @@ else
         <main class="container py-5">@RenderBody()</main>
     }
 }
+@{
+    var successToast = TempData["SuccessMessage"] as string;
+    var errorToast = TempData["ErrorMessage"] as string;
+}
+@if (!string.IsNullOrWhiteSpace(successToast) || !string.IsNullOrWhiteSpace(errorToast))
+{
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100" aria-live="polite" aria-atomic="true">
+        @if (!string.IsNullOrWhiteSpace(successToast))
+        {
+            <div class="toast border-success" role="status" data-bs-delay="4000">
+                <div class="toast-header">
+                    <span class="text-success fw-semibold me-auto">✓ Opération réussie</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Fermer"></button>
+                </div>
+                <div class="toast-body">@successToast</div>
+            </div>
+        }
+        @if (!string.IsNullOrWhiteSpace(errorToast))
+        {
+            <div class="toast border-danger" role="alert" data-bs-autohide="false">
+                <div class="toast-header">
+                    <span class="text-danger fw-semibold me-auto">Échec de l'opération</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Fermer"></button>
+                </div>
+                <div class="toast-body">@errorToast</div>
+            </div>
+        }
+    </div>
+}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.querySelectorAll('.toast-container .toast').forEach(element => {
+        bootstrap.Toast.getOrCreateInstance(element).show();
+    });
+</script>
 @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

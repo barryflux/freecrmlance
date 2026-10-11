@@ -11,7 +11,7 @@ public sealed class AuditTemplatesController(IAuditTemplateService service):Cont
  [HttpPost,ValidateAntiForgeryToken] public async Task<IActionResult> Create(AuditTemplateFormViewModel model,CancellationToken ct)
  {
   ValidateChoices(model); if(!ModelState.IsValid)return View(model);
-  var id=await service.CreateAsync(ToCommand(model),ct);return RedirectToAction(nameof(Edit),new{id});
+  var id=await service.CreateAsync(ToCommand(model),ct);TempData["SuccessMessage"]="Modèle d’audit créé.";return RedirectToAction(nameof(Edit),new{id});
  }
  [HttpGet] public async Task<IActionResult> Edit(Guid id,CancellationToken ct)
  {
@@ -21,12 +21,12 @@ public sealed class AuditTemplatesController(IAuditTemplateService service):Cont
  [HttpPost,ValidateAntiForgeryToken] public async Task<IActionResult> Edit(Guid id,AuditTemplateFormViewModel model,CancellationToken ct)
  {
   ValidateChoices(model);if(!ModelState.IsValid)return View(model);
-  return await service.UpdateAsync(id,ToCommand(model),ct)?RedirectToAction(nameof(Index)):NotFound();
+  if(!await service.UpdateAsync(id,ToCommand(model),ct))return NotFound();TempData["SuccessMessage"]="Modèle d’audit modifié.";return RedirectToAction(nameof(Index));
  }
  [HttpPost,ValidateAntiForgeryToken] public async Task<IActionResult> Duplicate(Guid id,CancellationToken ct)
- {var copy=await service.DuplicateAsync(id,ct);return copy is null?NotFound():RedirectToAction(nameof(Edit),new{id=copy});}
+ {var copy=await service.DuplicateAsync(id,ct);if(copy is null)return NotFound();TempData["SuccessMessage"]="Modèle d’audit dupliqué.";return RedirectToAction(nameof(Edit),new{id=copy});}
  [HttpPost,ValidateAntiForgeryToken] public async Task<IActionResult> Archive(Guid id,bool archived,CancellationToken ct)
- {return await service.SetArchivedAsync(id,archived,ct)?RedirectToAction(nameof(Index),new{archived}):NotFound();}
+ {if(!await service.SetArchivedAsync(id,archived,ct))return NotFound();TempData["SuccessMessage"]=archived?"Modèle d’audit archivé.":"Modèle d’audit restauré.";return RedirectToAction(nameof(Index),new{archived});}
  private void ValidateChoices(AuditTemplateFormViewModel m)
  {
   for(var s=0;s<m.Sections.Count;s++)for(var i=0;i<m.Sections[s].Items.Count;i++){var x=m.Sections[s].Items[i];if((x.ResponseType is Freecrmlance.Domain.Audits.AuditResponseType.SingleChoice or Freecrmlance.Domain.Audits.AuditResponseType.MultipleChoice) && string.IsNullOrWhiteSpace(x.Options))ModelState.AddModelError($"Sections[{s}].Items[{i}].Options","Renseignez au moins une option.");}
