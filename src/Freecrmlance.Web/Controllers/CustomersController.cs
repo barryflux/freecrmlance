@@ -176,7 +176,9 @@ public sealed class CustomersController(ICustomerService customerService, IConta
             var updated = await customerService.UpdateAsync(id, new UpdateCustomerCommand(model.Name, model.Email, model.Phone, model.Type, model.Siren, model.Siret, model.VatNumber,
                     model.AddressLine1, model.AddressLine2, model.PostalCode, model.City, model.CountryCode,
                     model.BillingAddressLine1, model.BillingAddressLine2, model.BillingPostalCode, model.BillingCity, model.BillingCountryCode), cancellationToken);
-            return updated ? RedirectToAction(nameof(Details), new { id }) : NotFound();
+            if (!updated) return NotFound();
+            TempData["SuccessMessage"] = "Client modifié avec succès.";
+            return RedirectToAction(nameof(Details), new { id });
         }
         catch (ArgumentException)
         {
