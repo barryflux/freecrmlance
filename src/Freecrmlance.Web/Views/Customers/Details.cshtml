@@ -6,8 +6,21 @@
     <a class="btn btn-outline-secondary" asp-action="Edit" asp-route-id="@Model.Customer.Id">Modifier le client</a>
 </div>
 
+<nav class="customer-tabs" aria-label="Rubriques du client">
+    <a class="customer-tab active" href="#fiche" data-customer-tab="fiche">Fiche</a>
+    @if (Model.Customer.Status == Freecrmlance.Domain.Crm.CustomerStatus.Prospect)
+    {
+        <a class="customer-tab" href="#followups" data-customer-tab="followups">Relance commerciale</a>
+    }
+    <a class="customer-tab" href="#contacts" data-customer-tab="contacts">Contacts <span>@Model.Contacts.Count</span></a>
+    <a class="customer-tab" href="#documents" data-customer-tab="documents">Documents <span>@Model.Documents.Count</span></a>
+    <a class="customer-tab" href="#quotes" data-customer-tab="quotes">Devis <span>@Model.Quotes.Count</span></a>
+    <a class="customer-tab" href="#invoices" data-customer-tab="invoices">Factures <span>@Model.Invoices.Count</span></a>
+</nav>
+
 @if (Model.Customer.Status == Freecrmlance.Domain.Crm.CustomerStatus.Prospect)
 {
+    <section class="customer-tab-panel d-none" data-customer-panel="followups">
     <div class="card border-0 shadow-sm mb-3">
         <div class="card-body">
             <h2 class="h5">Relance commerciale</h2>
@@ -24,14 +37,8 @@
             </form>
         </div>
     </div>
+    </section>
 }
-<nav class="customer-tabs" aria-label="Rubriques du client">
-    <a class="customer-tab active" href="#fiche" data-customer-tab="fiche">Fiche</a>
-    <a class="customer-tab" href="#contacts" data-customer-tab="contacts">Contacts <span>@Model.Contacts.Count</span></a>
-    <a class="customer-tab" href="#documents" data-customer-tab="documents">Documents <span>@Model.Documents.Count</span></a>
-    <a class="customer-tab" href="#quotes" data-customer-tab="quotes">Devis <span>@Model.Quotes.Count</span></a>
-    <a class="customer-tab" href="#invoices" data-customer-tab="invoices">Factures <span>@Model.Invoices.Count</span></a>
-</nav>
 
 <section class="customer-tab-panel" data-customer-panel="fiche">
     <div class="customer-profile-grid">
