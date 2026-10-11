@@ -18,7 +18,7 @@ public sealed class CustomerService(
             .OrderBy(customer => customer.Name)
             .Select(customer => new CustomerDto(customer.Id, customer.Name, customer.Email, customer.Phone, customer.Type, customer.Siren, customer.Siret, customer.VatNumber,
                 customer.AddressLine1, customer.AddressLine2, customer.PostalCode, customer.City, customer.CountryCode,
-                customer.BillingAddressLine1, customer.BillingAddressLine2, customer.BillingPostalCode, customer.BillingCity, customer.BillingCountryCode))
+                customer.BillingAddressLine1, customer.BillingAddressLine2, customer.BillingPostalCode, customer.BillingCity, customer.BillingCountryCode, customer.Status))
             .ToListAsync(cancellationToken);
     }
 
@@ -29,7 +29,7 @@ public sealed class CustomerService(
             .Where(customer => customer.Id == id && customer.WorkspaceId == workspaceId)
             .Select(customer => new CustomerDto(customer.Id, customer.Name, customer.Email, customer.Phone, customer.Type, customer.Siren, customer.Siret, customer.VatNumber,
                 customer.AddressLine1, customer.AddressLine2, customer.PostalCode, customer.City, customer.CountryCode,
-                customer.BillingAddressLine1, customer.BillingAddressLine2, customer.BillingPostalCode, customer.BillingCity, customer.BillingCountryCode))
+                customer.BillingAddressLine1, customer.BillingAddressLine2, customer.BillingPostalCode, customer.BillingCity, customer.BillingCountryCode, customer.Status))
             .SingleOrDefaultAsync(cancellationToken);
     }
 
@@ -37,6 +37,7 @@ public sealed class CustomerService(
     {
         var workspaceId = await workspaceContext.RequireCurrentWorkspaceIdAsync(cancellationToken);
         var customer = new Customer(workspaceId, command.Name, command.Email, command.Phone);
+        customer.SetStatus(command.Status);
         if (command.Type is not null)
             customer.SetBillingIdentity(command.Type.Value, command.AddressLine1!, command.PostalCode!, command.City!, command.CountryCode!,
                 command.Siren, command.Siret, command.VatNumber, command.AddressLine2,
@@ -68,6 +69,7 @@ public sealed class CustomerService(
             return false;
 
         customer.Update(command.Name, command.Email, command.Phone);
+        customer.SetStatus(command.Status);
         if (command.Type is not null)
             customer.SetBillingIdentity(command.Type.Value, command.AddressLine1!, command.PostalCode!, command.City!, command.CountryCode!,
                 command.Siren, command.Siret, command.VatNumber, command.AddressLine2,
