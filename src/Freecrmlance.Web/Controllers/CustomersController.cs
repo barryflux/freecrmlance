@@ -47,7 +47,9 @@ public sealed class CustomersController(ICustomerService customerService, IConta
             content,
             cancellationToken);
 
-        return documentId is null ? NotFound() : RedirectToAction(nameof(Details), new { id });
+        if (documentId is null) return NotFound();
+        TempData["SuccessMessage"] = "Document ajouté avec succès.";
+        return RedirectToAction(nameof(Details), new { id });
     }
 
     [HttpGet("Customers/{customerId:guid}/Documents/{documentId:guid}")]
@@ -66,6 +68,7 @@ public sealed class CustomersController(ICustomerService customerService, IConta
         var share = await documentShareService.CreateAsync(customerId, documentId, cancellationToken);
         if (share is null) return NotFound();
 
+        TempData["SuccessMessage"] = "Lien de partage du document créé.";
         TempData["DocumentShareUrl"] = Url.Action(
             "Download",
             "SharedDocuments",
@@ -80,7 +83,9 @@ public sealed class CustomersController(ICustomerService customerService, IConta
     public async Task<IActionResult> RevokeDocumentShare(Guid customerId, Guid documentId, Guid shareId, CancellationToken cancellationToken)
     {
         var revoked = await documentShareService.RevokeAsync(customerId, documentId, shareId, cancellationToken);
-        return revoked ? RedirectToAction(nameof(Details), new { id = customerId }) : NotFound();
+        if (!revoked) return NotFound();
+        TempData["SuccessMessage"] = "Partage du document révoqué.";
+        return RedirectToAction(nameof(Details), new { id = customerId });
     }
 
     [HttpPost("Customers/{customerId:guid}/Documents/{documentId:guid}/Delete")]
@@ -88,7 +93,9 @@ public sealed class CustomersController(ICustomerService customerService, IConta
     public async Task<IActionResult> DeleteDocument(Guid customerId, Guid documentId, CancellationToken cancellationToken)
     {
         var deleted = await documentService.DeleteAsync(customerId, documentId, cancellationToken);
-        return deleted ? RedirectToAction(nameof(Details), new { id = customerId }) : NotFound();
+        if (!deleted) return NotFound();
+        TempData["SuccessMessage"] = "Suppression effectuée avec succès.";
+        return RedirectToAction(nameof(Details), new { id = customerId });
     }
 
     [HttpGet("Customers/{id:guid}/Contacts/Create")]
@@ -101,7 +108,9 @@ public sealed class CustomersController(ICustomerService customerService, IConta
     {
         if (!ModelState.IsValid) return View(model);
         var contactId = await contactService.CreateAsync(id, new CreateContactCommand(model.Name, model.Email, model.Phone, model.Role), cancellationToken);
-        return contactId is null ? NotFound() : Redirect($"{Url.Action(nameof(Details), new { id })}#contacts");
+        if (contactId is null) return NotFound();
+        TempData["SuccessMessage"] = "Contact créé avec succès.";
+        return Redirect($"{Url.Action(nameof(Details), new { id })}#contacts");
     }
 
     [HttpGet("Customers/{customerId:guid}/Contacts/{contactId:guid}/Edit")]
@@ -131,7 +140,9 @@ public sealed class CustomersController(ICustomerService customerService, IConta
             new UpdateContactCommand(model.Name, model.Email, model.Phone, model.Role),
             cancellationToken);
 
-        return updated ? RedirectToAction(nameof(Details), new { id = customerId }) : NotFound();
+        if (!updated) return NotFound();
+        TempData["SuccessMessage"] = "Contact modifié avec succès.";
+        return RedirectToAction(nameof(Details), new { id = customerId });
     }
 
     [HttpGet("Customers/{customerId:guid}/Contacts/{contactId:guid}/Delete")]
@@ -146,7 +157,9 @@ public sealed class CustomersController(ICustomerService customerService, IConta
     public async Task<IActionResult> DeleteContactConfirmed(Guid customerId, Guid contactId, CancellationToken cancellationToken)
     {
         var deleted = await contactService.DeleteAsync(customerId, contactId, cancellationToken);
-        return deleted ? RedirectToAction(nameof(Details), new { id = customerId }) : NotFound();
+        if (!deleted) return NotFound();
+        TempData["SuccessMessage"] = "Contact supprimé avec succès.";
+        return RedirectToAction(nameof(Details), new { id = customerId });
     }
 
     [HttpGet("Customers/{id:guid}/Edit")]
