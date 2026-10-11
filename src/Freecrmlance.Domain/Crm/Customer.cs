@@ -15,6 +15,13 @@ public sealed class Customer
     public Guid Id { get; private set; }
     public Guid WorkspaceId { get; private set; }
     public string Name { get; private set; } = string.Empty;
+    public CustomerStatus Status { get; private set; } = CustomerStatus.Prospect;
+
+    public void SetStatus(CustomerStatus status)
+    {
+        if (!Enum.IsDefined(status)) throw new ArgumentOutOfRangeException(nameof(status));
+        Status = status;
+    }
     public string? Email { get; private set; }
     public string? Phone { get; private set; }
     public CustomerType? Type { get; private set; }

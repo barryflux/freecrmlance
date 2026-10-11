@@ -1,5 +1,6 @@
 using Freecrmlance.Application.Billing;
 using Freecrmlance.Application.Crm;
+using Freecrmlance.Domain.Crm;
 using Freecrmlance.Web.Models.Customers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +11,13 @@ namespace Freecrmlance.Web.Controllers;
 public sealed class CustomersController(ICustomerService customerService, IContactService contactService, IDocumentService documentService, IDocumentShareService documentShareService, IQuoteService quoteService, IInvoiceService invoiceService) : Controller
 {
     [HttpGet]
-    public async Task<IActionResult> Index(CancellationToken cancellationToken) => View(await customerService.ListAsync(cancellationToken));
+    public async Task<IActionResult> Index(CustomerStatus? status, CancellationToken cancellationToken)
+    {
+        if (status.HasValue && !Enum.IsDefined(status.Value)) return BadRequest();
+        var customers = await customerService.ListAsync(cancellationToken);
+        ViewBag.StatusFilter = status;
+        return View(status.HasValue ? customers.Where(customer => customer.Status == status.Value).ToList() : customers);
+    }
 
     [HttpGet("Customers/{id:guid}")]
     public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
@@ -169,7 +176,7 @@ public sealed class CustomersController(ICustomerService customerService, IConta
         if (customer is null) return NotFound();
         return View(new EditCustomerViewModel
         {
-            Name = customer.Name, Email = customer.Email, Phone = customer.Phone, Type = customer.Type,
+            Name = customer.Name, Email = customer.Email, Phone = customer.Phone, Type = customer.Type, Status = customer.Status,
             Siren = customer.Siren, Siret = customer.Siret, VatNumber = customer.VatNumber,
             AddressLine1 = customer.AddressLine1 ?? string.Empty, AddressLine2 = customer.AddressLine2,
             PostalCode = customer.PostalCode ?? string.Empty, City = customer.City ?? string.Empty, CountryCode = customer.CountryCode ?? "FR",
@@ -188,9 +195,9 @@ public sealed class CustomersController(ICustomerService customerService, IConta
         {
             var updated = await customerService.UpdateAsync(id, new UpdateCustomerCommand(model.Name, model.Email, model.Phone, model.Type, model.Siren, model.Siret, model.VatNumber,
                     model.AddressLine1, model.AddressLine2, model.PostalCode, model.City, model.CountryCode,
-                    model.BillingAddressLine1, model.BillingAddressLine2, model.BillingPostalCode, model.BillingCity, model.BillingCountryCode), cancellationToken);
+                    model.BillingAddressLine1, model.BillingAddressLine2, model.BillingPostalCode, model.BillingCity, model.BillingCountryCode, model.Status), cancellationToken);
             if (!updated) return NotFound();
-            TempData["SuccessMessage"] = "Client modifié avec succès.";
+            TempData["SuccessMessage"] = "Fiche modifiée avec succès.";
             return RedirectToAction(nameof(Details), new { id });
         }
         catch (ArgumentException)
@@ -218,10 +225,10 @@ public sealed class CustomersController(ICustomerService customerService, IConta
             await customerService.CreateAsync(
                 new CreateCustomerCommand(model.Name, model.Email, model.Phone, contacts, model.Type, model.Siren, model.Siret, model.VatNumber,
                     model.AddressLine1, model.AddressLine2, model.PostalCode, model.City, model.CountryCode,
-                    model.BillingAddressLine1, model.BillingAddressLine2, model.BillingPostalCode, model.BillingCity, model.BillingCountryCode),
+                    model.BillingAddressLine1, model.BillingAddressLine2, model.BillingPostalCode, model.BillingCity, model.BillingCountryCode, model.Status),
                 cancellationToken);
 
-            TempData["SuccessMessage"] = "Client créé avec succès.";
+            TempData["SuccessMessage"] = "Fiche créée avec succès.";
             return RedirectToAction(nameof(Index));
         }
         catch (ArgumentException)

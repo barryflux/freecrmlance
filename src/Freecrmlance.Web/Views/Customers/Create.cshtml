@@ -21,6 +21,7 @@
             </nav>
 
             <section data-form-panel="general">
+                <div class="mb-3"><label class="form-label" asp-for="Status">Statut commercial</label><select asp-for="Status" class="form-select"><option value="Prospect">Prospect</option><option value="Client">Client</option></select><span asp-validation-for="Status" class="text-danger small"></span></div>
                 <h2 class="h5 mb-3">Informations générales</h2>
                 <div class="mb-3">
                     <label class="form-label" asp-for="Name">Nom <span class="text-danger" aria-hidden="true">*</span></label>
