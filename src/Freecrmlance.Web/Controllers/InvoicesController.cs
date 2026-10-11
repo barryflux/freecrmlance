@@ -25,7 +25,9 @@ public sealed class InvoicesController(IInvoiceService invoiceService, ICustomer
             new CreateInvoiceCommand(customerId, model.DraftReference,
                 model.Lines.Select(line => new CreateInvoiceLineCommand(line.Description, line.Quantity, line.UnitPrice, line.VatRate)).ToArray()),
             cancellationToken);
-        return id is null ? NotFound() : RedirectToAction(nameof(Details), new { customerId, invoiceId = id });
+        if (id is null) return NotFound();
+        TempData["SuccessMessage"] = "Facture créée avec succès.";
+        return RedirectToAction(nameof(Details), new { customerId, invoiceId = id });
     }
 
     [HttpGet("Customers/{customerId:guid}/Invoices/{invoiceId:guid}")]
@@ -76,6 +78,7 @@ public sealed class InvoicesController(IInvoiceService invoiceService, ICustomer
             model.ServiceDate, model.DueDate, model.PurchaseOrderReference, model.VatExemptionMention, model.PaymentTerms,
             model.EarlyPaymentDiscountTerms, model.LatePaymentPenaltyTerms, model.RecoveryCostIndemnity), cancellationToken);
 
+        if (result == UpdateInvoiceResult.Success) TempData["SuccessMessage"] = "Facture modifiée avec succès.";
         return result switch
         {
             UpdateInvoiceResult.Success => RedirectToAction(nameof(Details), new { customerId, invoiceId }),
@@ -90,6 +93,7 @@ public sealed class InvoicesController(IInvoiceService invoiceService, ICustomer
     public async Task<IActionResult> Issue(Guid customerId, Guid invoiceId, CancellationToken cancellationToken)
     {
         var result = await invoiceService.IssueAsync(customerId, invoiceId, cancellationToken);
+        if (result == IssueInvoiceResult.Success) TempData["SuccessMessage"] = "Facture émise avec succès.";
         return result switch
         {
             IssueInvoiceResult.Success => RedirectToAction(nameof(Details), new { customerId, invoiceId }),
@@ -129,7 +133,11 @@ public sealed class InvoicesController(IInvoiceService invoiceService, ICustomer
         }
 
         var id = await invoiceService.CreateFromAcceptedQuoteAsync(new(customerId, quoteId, model.DraftReference), cancellationToken);
-        if (id is not null) return RedirectToAction(nameof(Details), new { customerId, invoiceId = id });
+        if (id is not null)
+        {
+            TempData["SuccessMessage"] = "Facture créée à partir du devis.";
+            return RedirectToAction(nameof(Details), new { customerId, invoiceId = id });
+        }
 
         var invoices = await invoiceService.ListAsync(customerId, cancellationToken);
         var existing = invoices?.SingleOrDefault(invoice => invoice.SourceQuoteId == quoteId);
