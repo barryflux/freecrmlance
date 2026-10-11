@@ -225,7 +225,7 @@ public sealed class CustomersController(ICustomerService customerService, IConta
             await customerService.CreateAsync(
                 new CreateCustomerCommand(model.Name, model.Email, model.Phone, contacts, model.Type, model.Siren, model.Siret, model.VatNumber,
                     model.AddressLine1, model.AddressLine2, model.PostalCode, model.City, model.CountryCode,
-                    model.BillingAddressLine1, model.BillingAddressLine2, model.BillingPostalCode, model.BillingCity, model.BillingCountryCode),
+                    model.BillingAddressLine1, model.BillingAddressLine2, model.BillingPostalCode, model.BillingCity, model.BillingCountryCode, model.Status),
                 cancellationToken);
 
             TempData["SuccessMessage"] = "Fiche créée avec succès.";
