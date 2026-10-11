@@ -12,7 +12,7 @@ namespace Freecrmlance.Web.Controllers;
   if(selectedValues is {Length:>0})value=JsonSerializer.Serialize(selectedValues);
   var userId=User.FindFirstValue(ClaimTypes.NameIdentifier);if(string.IsNullOrWhiteSpace(userId))return Challenge();
   var error=await audits.SaveResponseAsync(new SaveAuditResponseCommand(auditId,auditItemId,value,observation,recommendation,userId),ct);
-  if(error is not null)TempData["AuditError"]=error;else TempData["AuditSuccess"]="Critère enregistré.";
+  if(error is not null)TempData["ErrorMessage"]=error;else TempData["AuditSuccess"]="Critère enregistré.";
   return WorkspaceRedirect(auditId,"work");
  }
  [HttpPost,ValidateAntiForgeryToken,RequestSizeLimit(10 * 1024 * 1024)]public async Task<IActionResult> UploadEvidence(Guid auditId,Guid auditItemId,IFormFile file,CancellationToken ct)
