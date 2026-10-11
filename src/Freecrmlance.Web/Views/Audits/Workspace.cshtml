@@ -7,8 +7,6 @@
  <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@Model.Audit.Id">Voir le détail</a>
 </div>
 @{var activeTab=(Context.Request.Query["tab"].FirstOrDefault()??"work").ToLowerInvariant();if(activeTab is not ("work" or "reports" or "history"))activeTab="work";}
-@if(TempData["AuditError"] is string auditError){<div class="alert alert-danger">@auditError</div>}
-@if(TempData["AuditSuccess"] is string auditSuccess){<div class="alert alert-success">@auditSuccess</div>}
 <ul class="nav nav-tabs mb-4" role="tablist">
  <li class="nav-item"><a class="nav-link @(activeTab=="work"?"active":null)" asp-action="Workspace" asp-route-id="@Model.Audit.Id" asp-route-tab="work">Réalisation <span class="badge text-bg-light ms-1">@Model.Audit.ProgressPercent%</span></a></li>
  <li class="nav-item"><a class="nav-link @(activeTab=="reports"?"active":null)" asp-action="Workspace" asp-route-id="@Model.Audit.Id" asp-route-tab="reports">Versions &amp; rapports @if(Model.Versions.Count>0){<span class="badge text-bg-light ms-1">@Model.Versions.Count</span>}</a></li>
