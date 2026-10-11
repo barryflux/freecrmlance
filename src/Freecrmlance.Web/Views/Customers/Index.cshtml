@@ -1,24 +1,25 @@
 @model IReadOnlyList<Freecrmlance.Application.Crm.CustomerDto>
-@{ ViewData["Title"] = "Clients"; }
+@{ ViewData["Title"] = "Prospects et clients"; }
 
 <div class="page-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
     <div>
-        <h1 class="h2 mb-1">Clients</h1>
-        <p class="text-body-secondary mb-0"><span id="customerCount">@Model.Count</span> client@(Model.Count > 1 ? "s" : "")</p>
+        <h1 class="h2 mb-1">Prospects et clients</h1>
+        <p class="text-body-secondary mb-0"><span id="customerCount">@Model.Count</span> fiche@(Model.Count > 1 ? "s" : "")</p>
     </div>
-    <div class="d-flex gap-2"><a class="btn btn-outline-secondary" asp-controller="CustomerImports" asp-action="Index">Importer des clients</a><a class="btn btn-primary" asp-action="Create">Ajouter un client</a></div>
+    <div class="d-flex gap-2"><a class="btn btn-outline-secondary" asp-controller="CustomerImports" asp-action="Index">Importer des clients</a><a class="btn btn-primary" asp-action="Create">Ajouter une fiche</a></div>
 </div>
 
 @if (Model.Count == 0)
 {
     <div class="empty-state">
-        <h2 class="h5">Aucun client</h2>
-        <p class="text-body-secondary">Ajoutez votre premier client pour centraliser ses contacts, documents, devis et factures.</p>
+        <h2 class="h5">Aucune fiche</h2>
+        <p class="text-body-secondary">Ajoutez votre première fiche pour centraliser ses contacts, documents, devis et factures.</p>
         <a class="btn btn-primary" asp-action="Create">Ajouter un client</a>
     </div>
 }
 else
 {
+    <nav class="d-flex gap-2 mb-3" aria-label="Filtrer les fiches"><a class="btn btn-sm @(ViewBag.StatusFilter == null ? "btn-primary" : "btn-outline-secondary")" asp-action="Index">Tous</a><a class="btn btn-sm @(ViewBag.StatusFilter == Freecrmlance.Domain.Crm.CustomerStatus.Prospect ? "btn-primary" : "btn-outline-secondary")" asp-action="Index" asp-route-status="Prospect">Prospects</a><a class="btn btn-sm @(ViewBag.StatusFilter == Freecrmlance.Domain.Crm.CustomerStatus.Client ? "btn-primary" : "btn-outline-secondary")" asp-action="Index" asp-route-status="Client">Clients</a></nav>
     <div class="customer-list-toolbar">
         <label class="visually-hidden" for="customerSearch">Rechercher un client</label>
         <div class="input-group">
@@ -32,7 +33,7 @@ else
         {
             <article class="customer-mobile-item" data-customer-item>
                 <a class="customer-mobile-main" asp-action="Details" asp-route-id="@customer.Id">
-                    <strong>@customer.Name</strong>
+                    <strong>@customer.Name</strong><span class="badge @(customer.Status == Freecrmlance.Domain.Crm.CustomerStatus.Client ? "text-bg-success" : "text-bg-info")">@(customer.Status == Freecrmlance.Domain.Crm.CustomerStatus.Client ? "Client" : "Prospect")</span>
                     <span>@(customer.Email ?? customer.Phone ?? "Coordonnées non renseignées")</span>
                 </a>
                 <div class="customer-mobile-actions">
@@ -51,6 +52,7 @@ else
                         <th scope="col"><button class="btn btn-sm p-0 fw-semibold sort-button" type="button" data-sort="name">Nom ↕</button></th>
                         <th scope="col"><button class="btn btn-sm p-0 fw-semibold sort-button" type="button" data-sort="email">Email ↕</button></th>
                         <th scope="col"><button class="btn btn-sm p-0 fw-semibold sort-button" type="button" data-sort="phone">Téléphone ↕</button></th>
+                        <th scope="col">Statut</th>
                         <th scope="col" class="text-end">Actions</th>
                     </tr>
                 </thead>
@@ -61,6 +63,7 @@ else
                         <td data-value="name"><a class="fw-semibold text-decoration-none" asp-action="Details" asp-route-id="@customer.Id">@customer.Name</a></td>
                         <td data-value="email">@(customer.Email ?? "—")</td>
                         <td data-value="phone">@(customer.Phone ?? "—")</td>
+                        <td><span class="badge @(customer.Status == Freecrmlance.Domain.Crm.CustomerStatus.Client ? "text-bg-success" : "text-bg-info")">@(customer.Status == Freecrmlance.Domain.Crm.CustomerStatus.Client ? "Client" : "Prospect")</span></td>
                         <td class="text-end text-nowrap">
                             <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@customer.Id">Modifier</a>
                         </td>
