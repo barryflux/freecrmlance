@@ -19,6 +19,30 @@ public sealed class CustomersController(ICustomerService customerService, IConta
         return View(status.HasValue ? customers.Where(customer => customer.Status == status.Value).ToList() : customers);
     }
 
+    [HttpGet("Customers/FollowUps")]
+    public async Task<IActionResult> FollowUps(CancellationToken cancellationToken)
+        => View(await customerService.ListDueFollowUpsAsync(DateTime.UtcNow, cancellationToken));
+
+    [HttpPost("Customers/{id:guid}/FollowUp")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ScheduleFollowUp(Guid id, DateTime? nextFollowUpAt, string? followUpNote, CancellationToken cancellationToken)
+    {
+        if (followUpNote?.Length > 2000) return BadRequest("Note trop longue.");
+        if (!await customerService.ScheduleFollowUpAsync(id, nextFollowUpAt, followUpNote, cancellationToken)) return NotFound();
+        TempData["SuccessMessage"] = "Relance enregistrée.";
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpPost("Customers/{id:guid}/FollowUp/Complete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CompleteFollowUp(Guid id, DateTime? nextFollowUpAt, string? followUpNote, CancellationToken cancellationToken)
+    {
+        if (followUpNote?.Length > 2000) return BadRequest("Note trop longue.");
+        if (!await customerService.MarkContactedAsync(id, nextFollowUpAt, followUpNote, cancellationToken)) return NotFound();
+        TempData["SuccessMessage"] = "Contact effectué et relance mise à jour.";
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
     [HttpGet("Customers/{id:guid}")]
     public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
     {
