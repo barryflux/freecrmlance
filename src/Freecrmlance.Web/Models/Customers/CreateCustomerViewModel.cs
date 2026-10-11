@@ -4,6 +4,9 @@ namespace Freecrmlance.Web.Models.Customers;
 
 public sealed class CreateCustomerViewModel
 {
+    [EnumDataType(typeof(Freecrmlance.Domain.Crm.CustomerStatus))]
+    public Freecrmlance.Domain.Crm.CustomerStatus Status { get; set; } = Freecrmlance.Domain.Crm.CustomerStatus.Prospect;
+
     [Required, StringLength(200)]
     public string Name { get; set; } = string.Empty;
 
