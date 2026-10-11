@@ -1,0 +1,33 @@
+@model IReadOnlyList<Freecrmlance.Application.Crm.CustomerDto>
+@{
+    ViewData["Title"] = "Relances commerciales";
+    var today = DateTime.UtcNow.Date;
+}
+<div class="page-header">
+    <a asp-action="Index" class="text-decoration-none small">← Prospects et clients</a>
+    <h1 class="h2 mt-2">Relances commerciales</h1>
+    <p class="text-body-secondary">Prospects à contacter aujourd'hui ou en retard.</p>
+</div>
+@if (Model.Count == 0)
+{
+    <div class="empty-state"><h2 class="h5">Aucune relance à effectuer</h2><p class="text-body-secondary">Les relances planifiées apparaîtront ici à leur échéance.</p></div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead><tr><th>Prospect</th><th>Échéance</th><th>Note</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var prospect in Model)
+            {
+                <tr>
+                    <td><a asp-action="Details" asp-route-id="@prospect.Id">@prospect.Name</a></td>
+                    <td><span class="badge @(prospect.NextFollowUpAt!.Value.Date < today ? "text-bg-danger" : "text-bg-warning")">@(prospect.NextFollowUpAt.Value.Date < today ? "En retard" : "Aujourd'hui")</span> @prospect.NextFollowUpAt.Value.ToString("dd/MM/yyyy")</td>
+                    <td>@(prospect.FollowUpNote ?? "—")</td>
+                    <td><a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@prospect.Id">Ouvrir</a></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
