@@ -6,6 +6,16 @@
     <a class="btn btn-outline-secondary" asp-action="Edit" asp-route-id="@Model.Customer.Id">Modifier le client</a>
 </div>
 
+<style>
+    .customer-tabs .customer-tab-followup-active {
+        color: #16a34a;
+        font-weight: 800;
+    }
+    .customer-tabs .customer-tab-followup-active:hover,
+    .customer-tabs .customer-tab-followup-active.active {
+        color: #15803d;
+    }
+</style>
 <nav class="customer-tabs" aria-label="Rubriques du client">
     <a class="customer-tab active" href="#fiche" data-customer-tab="fiche">Fiche</a>
     @if (Model.Customer.Status == Freecrmlance.Domain.Crm.CustomerStatus.Prospect)
