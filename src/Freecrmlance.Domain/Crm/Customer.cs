@@ -30,7 +30,7 @@ public sealed class Customer
     {
         if (Status != CustomerStatus.Prospect) throw new InvalidOperationException("Follow-ups are reserved for prospects.");
         if (note?.Trim().Length > 2000) throw new ArgumentException("Follow-up note is too long.", nameof(note));
-        NextFollowUpAt = nextFollowUpAt?.Date;
+        NextFollowUpAt = nextFollowUpAt.HasValue ? DateTime.SpecifyKind(nextFollowUpAt.Value.Date, DateTimeKind.Utc) : null;
         FollowUpNote = Normalize(note);
     }
 
