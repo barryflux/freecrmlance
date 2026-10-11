@@ -37,7 +37,7 @@ public sealed class CustomerService(
     {
         var workspaceId = await workspaceContext.RequireCurrentWorkspaceIdAsync(cancellationToken);
         return await dbContext.Customers.AsNoTracking()
-            .Where(c => c.WorkspaceId == workspaceId && c.Status == CustomerStatus.Prospect && c.NextFollowUpAt != null && c.NextFollowUpAt <= today.Date)
+            .Where(c => c.WorkspaceId == workspaceId && c.Status == CustomerStatus.Prospect && c.NextFollowUpAt != null && c.NextFollowUpAt <= DateTime.SpecifyKind(today.Date, DateTimeKind.Utc))
             .OrderBy(c => c.NextFollowUpAt)
             .ThenBy(c => c.Name)
             .Select(c => new CustomerDto(c.Id, c.Name, c.Email, c.Phone, c.Type, c.Siren, c.Siret, c.VatNumber,
