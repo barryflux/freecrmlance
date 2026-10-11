@@ -405,6 +405,11 @@ namespace Freecrmlance.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.Property<string>("Siren")
                         .HasMaxLength(9)
                         .HasColumnType("character varying(9)");
