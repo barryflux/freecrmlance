@@ -30,7 +30,7 @@ public sealed class AddCustomerActions : Migration
             constraints: table =>
             {
                 table.PrimaryKey("PK_CustomerActions", x => x.Id);
-                table.ForeignKey("FK_CustomerActions_Customers_CustomerId", x => x.CustomerId, "crm", "Customers", "Id", onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(name: "FK_CustomerActions_Customers_CustomerId", column: x => x.CustomerId, principalSchema: "crm", principalTable: "Customers", principalColumn: "Id", onDelete: ReferentialAction.Cascade);
             });
         migrationBuilder.CreateIndex(name: "IX_CustomerActions_CustomerId", schema: "crm", table: "CustomerActions", column: "CustomerId");
         migrationBuilder.CreateIndex(name: "IX_CustomerActions_WorkspaceId_CustomerId_Status", schema: "crm", table: "CustomerActions", columns: new[] { "WorkspaceId", "CustomerId", "Status" });
