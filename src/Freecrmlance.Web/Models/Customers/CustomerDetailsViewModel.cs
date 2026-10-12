@@ -9,4 +9,5 @@ public sealed record CustomerDetailsViewModel(
     IReadOnlyList<DocumentDto> Documents,
     IReadOnlyList<DocumentShareSummaryDto> DocumentShares,
     IReadOnlyList<QuoteDto> Quotes,
-    IReadOnlyList<InvoiceDto> Invoices);
+    IReadOnlyList<InvoiceDto> Invoices,
+    IReadOnlyList<CustomerActionDto> Actions);

@@ -1,5 +1,7 @@
 @model IReadOnlyList<Freecrmlance.Application.Crm.CustomerDto>
-@{ ViewData["Title"] = "Prospects et clients"; }
+@{ ViewData["Title"] = "Prospects et clients";
+   var actionCounts = ViewBag.ActionCounts as Dictionary<Guid, Freecrmlance.Application.Crm.CustomerActionCountsDto> ?? new();
+}
 
 <div class="page-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
     <div>
@@ -36,6 +38,8 @@ else
                     <strong>@customer.Name</strong><span class="badge @(customer.Status == Freecrmlance.Domain.Crm.CustomerStatus.Client ? "text-bg-success" : "text-bg-info")">@(customer.Status == Freecrmlance.Domain.Crm.CustomerStatus.Client ? "Client" : "Prospect")</span>
                     <span>@(customer.Email ?? customer.Phone ?? "Coordonnées non renseignées")</span>
                 </a>
+                @{ actionCounts.TryGetValue(customer.Id, out var mobileCounts); }
+                <div class="d-flex gap-2 px-3 pb-2"><a class="badge text-bg-warning text-decoration-none" asp-action="Details" asp-route-id="@customer.Id" asp-fragment="actions-todo">@(mobileCounts?.Todo ?? 0) à faire</a><a class="badge text-bg-info text-decoration-none" asp-action="Details" asp-route-id="@customer.Id" asp-fragment="actions-inprogress">@(mobileCounts?.InProgress ?? 0) en cours</a></div>
                 <div class="customer-mobile-actions">
                     <a asp-action="Details" asp-route-id="@customer.Id">Ouvrir</a>
                     <a asp-action="Edit" asp-route-id="@customer.Id">Modifier</a>
@@ -53,6 +57,7 @@ else
                         <th scope="col"><button class="btn btn-sm p-0 fw-semibold sort-button" type="button" data-sort="email">Email ↕</button></th>
                         <th scope="col"><button class="btn btn-sm p-0 fw-semibold sort-button" type="button" data-sort="phone">Téléphone ↕</button></th>
                         <th scope="col">Statut</th>
+                        <th scope="col">Suivi des actions</th>
                         <th scope="col" class="text-end">Actions</th>
                     </tr>
                 </thead>
@@ -64,6 +69,8 @@ else
                         <td data-value="email">@(customer.Email ?? "—")</td>
                         <td data-value="phone">@(customer.Phone ?? "—")</td>
                         <td><span class="badge @(customer.Status == Freecrmlance.Domain.Crm.CustomerStatus.Client ? "text-bg-success" : "text-bg-info")">@(customer.Status == Freecrmlance.Domain.Crm.CustomerStatus.Client ? "Client" : "Prospect")</span></td>
+                        @{ actionCounts.TryGetValue(customer.Id, out var counts); }
+                        <td><a class="badge text-bg-warning text-decoration-none" asp-action="Details" asp-route-id="@customer.Id" asp-fragment="actions-todo">@(counts?.Todo ?? 0) à faire</a> <a class="badge text-bg-info text-decoration-none" asp-action="Details" asp-route-id="@customer.Id" asp-fragment="actions-inprogress">@(counts?.InProgress ?? 0) en cours</a></td>
                         <td class="text-end text-nowrap">
                             <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@customer.Id">Modifier</a>
                         </td>

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Freecrmlance.Web.Controllers;
 
 [Authorize]
-public sealed class CustomersController(ICustomerService customerService, IContactService contactService, IDocumentService documentService, IDocumentShareService documentShareService, IQuoteService quoteService, IInvoiceService invoiceService) : Controller
+public sealed class CustomersController(ICustomerService customerService, IContactService contactService, IDocumentService documentService, IDocumentShareService documentShareService, IQuoteService quoteService, IInvoiceService invoiceService, ICustomerActionService customerActionService) : Controller
 {
     [HttpGet]
     public async Task<IActionResult> Index(CustomerStatus? status, CancellationToken cancellationToken)
@@ -16,7 +16,48 @@ public sealed class CustomersController(ICustomerService customerService, IConta
         if (status.HasValue && !Enum.IsDefined(status.Value)) return BadRequest();
         var customers = await customerService.ListAsync(cancellationToken);
         ViewBag.StatusFilter = status;
+        ViewBag.ActionCounts = (await customerActionService.GetCountsAsync(customers.Select(c => c.Id).ToArray(), cancellationToken)).ToDictionary(c => c.CustomerId);
         return View(status.HasValue ? customers.Where(customer => customer.Status == status.Value).ToList() : customers);
+    }
+
+    [HttpPost("Customers/{id:guid}/Actions")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateAction(Guid id, CustomerActionFormViewModel model, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(model.Title)) ModelState.AddModelError(nameof(model.Title), "Le titre est obligatoire.");
+        if (!ModelState.IsValid)
+        {
+            TempData["ErrorMessage"] = string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+            return Redirect($"{Url.Action(nameof(Details), new { id })}#actions");
+        }
+        var actionId = await customerActionService.CreateAsync(id, new SaveCustomerActionCommand(model.Title, model.Description, model.DueDate, model.Status), cancellationToken);
+        if (actionId is null) return NotFound();
+        TempData["SuccessMessage"] = "Action ajoutée.";
+        return Redirect($"{Url.Action(nameof(Details), new { id })}#actions");
+    }
+
+    [HttpPost("Customers/{id:guid}/Actions/{actionId:guid}/Edit")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditAction(Guid id, Guid actionId, CustomerActionFormViewModel model, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(model.Title)) ModelState.AddModelError(nameof(model.Title), "Le titre est obligatoire.");
+        if (!ModelState.IsValid)
+        {
+            TempData["ErrorMessage"] = string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+            return Redirect($"{Url.Action(nameof(Details), new { id })}#actions");
+        }
+        if (!await customerActionService.UpdateAsync(id, actionId, new SaveCustomerActionCommand(model.Title, model.Description, model.DueDate, model.Status), cancellationToken)) return NotFound();
+        TempData["SuccessMessage"] = "Action modifiée.";
+        return Redirect($"{Url.Action(nameof(Details), new { id })}#actions");
+    }
+
+    [HttpPost("Customers/{id:guid}/Actions/{actionId:guid}/Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteAction(Guid id, Guid actionId, CancellationToken cancellationToken)
+    {
+        if (!await customerActionService.DeleteAsync(id, actionId, cancellationToken)) return NotFound();
+        TempData["SuccessMessage"] = "Action supprimée.";
+        return Redirect($"{Url.Action(nameof(Details), new { id })}#actions");
     }
 
     [HttpGet("Customers/FollowUps")]
@@ -57,7 +98,9 @@ public sealed class CustomersController(ICustomerService customerService, IConta
         var quotes = await quoteService.ListAsync(id, cancellationToken);
         if (quotes is null) return NotFound();
         var invoices = await invoiceService.ListAsync(id, cancellationToken);
-        return invoices is null ? NotFound() : View(new CustomerDetailsViewModel(customer, contacts, documents, documentShares, quotes, invoices));
+        if (invoices is null) return NotFound();
+        var actions = await customerActionService.ListAsync(id, cancellationToken);
+        return actions is null ? NotFound() : View(new CustomerDetailsViewModel(customer, contacts, documents, documentShares, quotes, invoices, actions));
     }
 
 
