@@ -94,16 +94,9 @@
     <div class="customer-section-header">
         <div><h2 class="h4 mb-1">Actions</h2><p class="text-body-secondary small mb-0">Suivez le travail à effectuer pour cette fiche.</p></div>
     </div>
-    <div class="card border-0 shadow-sm mb-4"><div class="card-body">
-        <h3 class="h5">Ajouter une action</h3>
-        <form asp-action="CreateAction" asp-route-id="@Model.Customer.Id" method="post" class="row g-3">
-            <div class="col-md-6"><label class="form-label" for="newActionTitle">Titre *</label><input id="newActionTitle" name="Title" class="form-control" maxlength="200" required /></div>
-            <div class="col-md-6"><label class="form-label" for="newActionDue">Échéance</label><input id="newActionDue" name="DueDate" type="date" class="form-control" /></div>
-            <div class="col-md-8"><label class="form-label" for="newActionDescription">Description</label><textarea id="newActionDescription" name="Description" class="form-control" maxlength="2000" rows="2"></textarea></div>
-            <div class="col-md-4"><label class="form-label" for="newActionStatus">Statut</label><select id="newActionStatus" name="Status" class="form-select"><option value="Todo">À faire</option><option value="InProgress">En cours</option><option value="Done">Terminée</option></select></div>
-            <div class="col-12"><button class="btn btn-primary" type="submit">Ajouter l'action</button></div>
-        </form>
-    </div></div>
+    <div class="d-flex justify-content-end mb-3">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCustomerActionModal">+ Ajouter une action</button>
+    </div>
     <nav class="d-flex gap-2 flex-wrap mb-3" aria-label="Filtrer les actions">
         <a class="btn btn-sm btn-outline-secondary" href="#actions" data-action-filter="all">Toutes</a>
         <a class="btn btn-sm btn-outline-secondary" href="#actions-todo" data-action-filter="todo">À faire</a>
@@ -456,6 +449,31 @@ else
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
                     <button type="submit" class="btn btn-danger">Supprimer contact</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="createCustomerActionModal" tabindex="-1" aria-labelledby="createCustomerActionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <form asp-action="CreateAction" asp-route-id="@Model.Customer.Id" method="post">
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="createCustomerActionModalLabel">Ajouter une action</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-8"><label class="form-label" for="newActionTitle">Titre *</label><input id="newActionTitle" name="Title" class="form-control" maxlength="200" required /></div>
+                        <div class="col-md-4"><label class="form-label" for="newActionDue">Échéance</label><input id="newActionDue" name="DueDate" type="date" class="form-control" /></div>
+                        <div class="col-12"><label class="form-label" for="newActionDescription">Description</label><textarea id="newActionDescription" name="Description" class="form-control" maxlength="2000" rows="3"></textarea></div>
+                        <div class="col-12"><label class="form-label" for="newActionStatus">Statut</label><select id="newActionStatus" name="Status" class="form-select"><option value="Todo">À faire</option><option value="InProgress">En cours</option><option value="Done">Terminée</option></select></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer l'action</button>
                 </div>
             </form>
         </div>
