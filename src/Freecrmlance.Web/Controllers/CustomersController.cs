@@ -28,12 +28,12 @@ public sealed class CustomersController(ICustomerService customerService, IConta
         if (!ModelState.IsValid)
         {
             TempData["ErrorMessage"] = string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-            return RedirectToAction(nameof(Details), new { id }, "actions");
+            return Redirect($"{Url.Action(nameof(Details), new { id })}#actions");
         }
         var actionId = await customerActionService.CreateAsync(id, new SaveCustomerActionCommand(model.Title, model.Description, model.DueDate, model.Status), cancellationToken);
         if (actionId is null) return NotFound();
         TempData["SuccessMessage"] = "Action ajoutée.";
-        return RedirectToAction(nameof(Details), new { id }, "actions");
+        return Redirect($"{Url.Action(nameof(Details), new { id })}#actions");
     }
 
     [HttpPost("Customers/{id:guid}/Actions/{actionId:guid}/Edit")]
@@ -44,11 +44,11 @@ public sealed class CustomersController(ICustomerService customerService, IConta
         if (!ModelState.IsValid)
         {
             TempData["ErrorMessage"] = string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-            return RedirectToAction(nameof(Details), new { id }, "actions");
+            return Redirect($"{Url.Action(nameof(Details), new { id })}#actions");
         }
         if (!await customerActionService.UpdateAsync(id, actionId, new SaveCustomerActionCommand(model.Title, model.Description, model.DueDate, model.Status), cancellationToken)) return NotFound();
         TempData["SuccessMessage"] = "Action modifiée.";
-        return RedirectToAction(nameof(Details), new { id }, "actions");
+        return Redirect($"{Url.Action(nameof(Details), new { id })}#actions");
     }
 
     [HttpPost("Customers/{id:guid}/Actions/{actionId:guid}/Delete")]
@@ -57,7 +57,7 @@ public sealed class CustomersController(ICustomerService customerService, IConta
     {
         if (!await customerActionService.DeleteAsync(id, actionId, cancellationToken)) return NotFound();
         TempData["SuccessMessage"] = "Action supprimée.";
-        return RedirectToAction(nameof(Details), new { id }, "actions");
+        return Redirect($"{Url.Action(nameof(Details), new { id })}#actions");
     }
 
     [HttpGet("Customers/FollowUps")]
