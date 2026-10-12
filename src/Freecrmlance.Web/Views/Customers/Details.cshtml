@@ -22,6 +22,7 @@
     {
         <a class="customer-tab @(Model.Customer.NextFollowUpAt.HasValue ? "customer-tab-followup-active" : "")" href="#followups" data-customer-tab="followups">Relance commerciale</a>
     }
+    <a class="customer-tab" href="#actions" data-customer-tab="actions">Actions <span>@Model.Actions.Count(a => a.Status != Freecrmlance.Domain.Crm.CustomerActionStatus.Done)</span></a>
     <a class="customer-tab" href="#contacts" data-customer-tab="contacts">Contacts <span>@Model.Contacts.Count</span></a>
     <a class="customer-tab" href="#documents" data-customer-tab="documents">Documents <span>@Model.Documents.Count</span></a>
     <a class="customer-tab" href="#quotes" data-customer-tab="quotes">Devis <span>@Model.Quotes.Count</span></a>
@@ -87,6 +88,61 @@
             </article>
         }
     </div>
+</section>
+
+<section class="customer-tab-panel d-none" data-customer-panel="actions">
+    <div class="customer-section-header">
+        <div><h2 class="h4 mb-1">Actions</h2><p class="text-body-secondary small mb-0">Suivez le travail à effectuer pour cette fiche.</p></div>
+    </div>
+    <div class="card border-0 shadow-sm mb-4"><div class="card-body">
+        <h3 class="h5">Ajouter une action</h3>
+        <form asp-action="CreateAction" asp-route-id="@Model.Customer.Id" method="post" class="row g-3">
+            <div class="col-md-6"><label class="form-label" for="newActionTitle">Titre *</label><input id="newActionTitle" name="Title" class="form-control" maxlength="200" required /></div>
+            <div class="col-md-6"><label class="form-label" for="newActionDue">Échéance</label><input id="newActionDue" name="DueDate" type="date" class="form-control" /></div>
+            <div class="col-md-8"><label class="form-label" for="newActionDescription">Description</label><textarea id="newActionDescription" name="Description" class="form-control" maxlength="2000" rows="2"></textarea></div>
+            <div class="col-md-4"><label class="form-label" for="newActionStatus">Statut</label><select id="newActionStatus" name="Status" class="form-select"><option value="Todo">À faire</option><option value="InProgress">En cours</option><option value="Done">Terminée</option></select></div>
+            <div class="col-12"><button class="btn btn-primary" type="submit">Ajouter l'action</button></div>
+        </form>
+    </div></div>
+    @if (Model.Actions.Count == 0)
+    {
+        <div class="empty-state"><h3 class="h5">Aucune action</h3><p>Ajoutez une première action pour organiser votre travail.</p></div>
+    }
+    else
+    {
+        @foreach (var action in Model.Actions)
+        {
+            var isLate = action.Status != Freecrmlance.Domain.Crm.CustomerActionStatus.Done && action.DueDate.HasValue && action.DueDate.Value < DateOnly.FromDateTime(DateTime.Today);
+            <article class="card border-0 shadow-sm mb-3"><div class="card-body">
+                <div class="d-flex flex-wrap justify-content-between gap-2 mb-2">
+                    <h3 class="h6 mb-0">@action.Title</h3>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <span class="badge @(action.Status == Freecrmlance.Domain.Crm.CustomerActionStatus.Todo ? "text-bg-warning" : action.Status == Freecrmlance.Domain.Crm.CustomerActionStatus.InProgress ? "text-bg-info" : "text-bg-success")">@(action.Status == Freecrmlance.Domain.Crm.CustomerActionStatus.Todo ? "À faire" : action.Status == Freecrmlance.Domain.Crm.CustomerActionStatus.InProgress ? "En cours" : "Terminée")</span>
+                        @if (isLate) { <span class="badge text-bg-danger">En retard</span> }
+                    </div>
+                </div>
+                @if (action.Description is not null) { <p class="text-body-secondary mb-2">@action.Description</p> }
+                <p class="small text-body-secondary">Échéance : @(action.DueDate?.ToString("dd/MM/yyyy") ?? "Aucune")</p>
+                <details>
+                    <summary class="btn btn-sm btn-outline-secondary">Modifier</summary>
+                    <form asp-action="EditAction" asp-route-id="@Model.Customer.Id" asp-route-actionId="@action.Id" method="post" class="row g-2 mt-2">
+                        <div class="col-md-6"><label class="form-label" for="title-@action.Id">Titre *</label><input id="title-@action.Id" name="Title" value="@action.Title" class="form-control" maxlength="200" required /></div>
+                        <div class="col-md-6"><label class="form-label" for="date-@action.Id">Échéance</label><input id="date-@action.Id" name="DueDate" type="date" value="@action.DueDate?.ToString("yyyy-MM-dd")" class="form-control" /></div>
+                        <div class="col-md-8"><label class="form-label" for="desc-@action.Id">Description</label><textarea id="desc-@action.Id" name="Description" class="form-control" maxlength="2000" rows="2">@action.Description</textarea></div>
+                        <div class="col-md-4"><label class="form-label" for="status-@action.Id">Statut</label><select id="status-@action.Id" name="Status" class="form-select">
+                            <option value="Todo" selected="@(action.Status == Freecrmlance.Domain.Crm.CustomerActionStatus.Todo)">À faire</option>
+                            <option value="InProgress" selected="@(action.Status == Freecrmlance.Domain.Crm.CustomerActionStatus.InProgress)">En cours</option>
+                            <option value="Done" selected="@(action.Status == Freecrmlance.Domain.Crm.CustomerActionStatus.Done)">Terminée</option>
+                        </select></div>
+                        <div class="col-12"><button class="btn btn-primary btn-sm" type="submit">Enregistrer</button></div>
+                    </form>
+                    <form asp-action="DeleteAction" asp-route-id="@Model.Customer.Id" asp-route-actionId="@action.Id" method="post" class="mt-3" onsubmit="return confirm('Supprimer définitivement cette action ?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Supprimer</button>
+                    </form>
+                </details>
+            </div></article>
+        }
+    }
 </section>
 
 <section class="customer-tab-panel d-none" data-customer-panel="contacts">
