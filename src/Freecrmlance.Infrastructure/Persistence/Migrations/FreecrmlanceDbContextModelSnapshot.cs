@@ -346,6 +346,23 @@ namespace Freecrmlance.Infrastructure.Persistence.Migrations
                     b.ToTable("Contacts", "crm");
                 });
 
+            modelBuilder.Entity("Freecrmlance.Domain.Crm.CustomerAction", b =>
+                {
+                    b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
+                    b.Property<Guid>("WorkspaceId").HasColumnType("uuid");
+                    b.Property<Guid>("CustomerId").HasColumnType("uuid");
+                    b.Property<string>("Title").IsRequired().HasMaxLength(200).HasColumnType("character varying(200)");
+                    b.Property<string>("Description").HasMaxLength(2000).HasColumnType("character varying(2000)");
+                    b.Property<string>("Status").IsRequired().HasMaxLength(20).HasColumnType("character varying(20)");
+                    b.Property<DateOnly?>("DueDate").HasColumnType("date");
+                    b.Property<DateTime>("CreatedAtUtc").HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("CompletedAtUtc").HasColumnType("timestamp with time zone");
+                    b.HasKey("Id");
+                    b.HasIndex("CustomerId");
+                    b.HasIndex("WorkspaceId", "CustomerId", "Status");
+                    b.ToTable("CustomerActions", "crm");
+                });
+
             modelBuilder.Entity("Freecrmlance.Domain.Crm.Customer", b =>
                 {
                     b.Property<Guid>("Id")
@@ -924,6 +941,15 @@ namespace Freecrmlance.Infrastructure.Persistence.Migrations
                     b.HasOne("Freecrmlance.Domain.Billing.Invoice", null)
                         .WithMany("Lines")
                         .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Freecrmlance.Domain.Crm.CustomerAction", b =>
+                {
+                    b.HasOne("Freecrmlance.Domain.Crm.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
