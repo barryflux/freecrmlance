@@ -20,6 +20,46 @@ public sealed class CustomersController(ICustomerService customerService, IConta
         return View(status.HasValue ? customers.Where(customer => customer.Status == status.Value).ToList() : customers);
     }
 
+    [HttpPost("Customers/{id:guid}/Actions")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateAction(Guid id, CustomerActionFormViewModel model, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(model.Title)) ModelState.AddModelError(nameof(model.Title), "Le titre est obligatoire.");
+        if (!ModelState.IsValid)
+        {
+            TempData["ErrorMessage"] = string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+            return RedirectToAction(nameof(Details), new { id }, "actions");
+        }
+        var actionId = await customerActionService.CreateAsync(id, new SaveCustomerActionCommand(model.Title, model.Description, model.DueDate, model.Status), cancellationToken);
+        if (actionId is null) return NotFound();
+        TempData["SuccessMessage"] = "Action ajoutée.";
+        return RedirectToAction(nameof(Details), new { id }, "actions");
+    }
+
+    [HttpPost("Customers/{id:guid}/Actions/{actionId:guid}/Edit")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditAction(Guid id, Guid actionId, CustomerActionFormViewModel model, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(model.Title)) ModelState.AddModelError(nameof(model.Title), "Le titre est obligatoire.");
+        if (!ModelState.IsValid)
+        {
+            TempData["ErrorMessage"] = string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+            return RedirectToAction(nameof(Details), new { id }, "actions");
+        }
+        if (!await customerActionService.UpdateAsync(id, actionId, new SaveCustomerActionCommand(model.Title, model.Description, model.DueDate, model.Status), cancellationToken)) return NotFound();
+        TempData["SuccessMessage"] = "Action modifiée.";
+        return RedirectToAction(nameof(Details), new { id }, "actions");
+    }
+
+    [HttpPost("Customers/{id:guid}/Actions/{actionId:guid}/Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteAction(Guid id, Guid actionId, CancellationToken cancellationToken)
+    {
+        if (!await customerActionService.DeleteAsync(id, actionId, cancellationToken)) return NotFound();
+        TempData["SuccessMessage"] = "Action supprimée.";
+        return RedirectToAction(nameof(Details), new { id }, "actions");
+    }
+
     [HttpGet("Customers/FollowUps")]
     public async Task<IActionResult> FollowUps(CancellationToken cancellationToken)
         => View(await customerService.ListDueFollowUpsAsync(DateTime.UtcNow, cancellationToken));
