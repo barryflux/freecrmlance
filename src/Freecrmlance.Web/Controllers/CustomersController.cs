@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Freecrmlance.Web.Controllers;
 
 [Authorize]
-public sealed class CustomersController(ICustomerService customerService, IContactService contactService, IDocumentService documentService, IDocumentShareService documentShareService, IQuoteService quoteService, IInvoiceService invoiceService) : Controller
+public sealed class CustomersController(ICustomerService customerService, IContactService contactService, IDocumentService documentService, IDocumentShareService documentShareService, IQuoteService quoteService, IInvoiceService invoiceService, ICustomerActionService customerActionService) : Controller
 {
     [HttpGet]
     public async Task<IActionResult> Index(CustomerStatus? status, CancellationToken cancellationToken)
@@ -16,6 +16,7 @@ public sealed class CustomersController(ICustomerService customerService, IConta
         if (status.HasValue && !Enum.IsDefined(status.Value)) return BadRequest();
         var customers = await customerService.ListAsync(cancellationToken);
         ViewBag.StatusFilter = status;
+        ViewBag.ActionCounts = (await customerActionService.GetCountsAsync(customers.Select(c => c.Id).ToArray(), cancellationToken)).ToDictionary(c => c.CustomerId);
         return View(status.HasValue ? customers.Where(customer => customer.Status == status.Value).ToList() : customers);
     }
 
@@ -57,7 +58,9 @@ public sealed class CustomersController(ICustomerService customerService, IConta
         var quotes = await quoteService.ListAsync(id, cancellationToken);
         if (quotes is null) return NotFound();
         var invoices = await invoiceService.ListAsync(id, cancellationToken);
-        return invoices is null ? NotFound() : View(new CustomerDetailsViewModel(customer, contacts, documents, documentShares, quotes, invoices));
+        if (invoices is null) return NotFound();
+        var actions = await customerActionService.ListAsync(id, cancellationToken);
+        return actions is null ? NotFound() : View(new CustomerDetailsViewModel(customer, contacts, documents, documentShares, quotes, invoices, actions));
     }
 
 
