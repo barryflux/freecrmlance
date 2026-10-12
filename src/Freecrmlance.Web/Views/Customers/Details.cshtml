@@ -104,6 +104,13 @@
             <div class="col-12"><button class="btn btn-primary" type="submit">Ajouter l'action</button></div>
         </form>
     </div></div>
+    <nav class="d-flex gap-2 flex-wrap mb-3" aria-label="Filtrer les actions">
+        <a class="btn btn-sm btn-outline-secondary" href="#actions" data-action-filter="all">Toutes</a>
+        <a class="btn btn-sm btn-outline-secondary" href="#actions-todo" data-action-filter="todo">À faire</a>
+        <a class="btn btn-sm btn-outline-secondary" href="#actions-inprogress" data-action-filter="inprogress">En cours</a>
+        <a class="btn btn-sm btn-outline-secondary" href="#actions-done" data-action-filter="done">Terminées</a>
+    </nav>
+    <p class="text-body-secondary small d-none" id="emptyFilteredActions">Aucune action pour ce statut.</p>
     @if (Model.Actions.Count == 0)
     {
         <div class="empty-state"><h3 class="h5">Aucune action</h3><p>Ajoutez une première action pour organiser votre travail.</p></div>
@@ -113,7 +120,7 @@
         @foreach (var action in Model.Actions)
         {
             var isLate = action.Status != Freecrmlance.Domain.Crm.CustomerActionStatus.Done && action.DueDate.HasValue && action.DueDate.Value < DateOnly.FromDateTime(DateTime.Today);
-            <article class="card border-0 shadow-sm mb-3"><div class="card-body">
+            <article class="card border-0 shadow-sm mb-3" data-action-status="@action.Status"><div class="card-body">
                 <div class="d-flex flex-wrap justify-content-between gap-2 mb-2">
                     <h3 class="h6 mb-0">@action.Title</h3>
                     <div class="d-flex gap-2 flex-wrap">
@@ -474,7 +481,31 @@ else
             panels.forEach(panel => panel.classList.toggle("d-none", panel.dataset.customerPanel !== selected));
         };
 
-        const showHashTab = () => showTab(window.location.hash.replace("#", ""));
+        const actionFilters = [...document.querySelectorAll("[data-action-filter]")];
+        const actionCards = [...document.querySelectorAll("[data-action-status]")];
+        const filterActions = name => {
+            const filter = name === "actions-todo" ? "Todo" : name === "actions-inprogress" ? "InProgress" : name === "actions-done" ? "Done" : null;
+            let visible = 0;
+            actionCards.forEach(card => {
+                const match = filter === null || card.dataset.actionStatus === filter;
+                card.classList.toggle("d-none", !match);
+                if (match) visible++;
+            });
+            const empty = document.getElementById("emptyFilteredActions");
+            if (empty) empty.classList.toggle("d-none", visible !== 0 || actionCards.length === 0);
+            actionFilters.forEach(link => {
+                const active = link.getAttribute("href") === "#" + (name.startsWith("actions") ? name : "actions");
+                link.classList.toggle("btn-primary", active);
+                link.classList.toggle("btn-outline-secondary", !active);
+                if (active) link.setAttribute("aria-current", "page");
+                else link.removeAttribute("aria-current");
+            });
+        };
+        const showHashTab = () => {
+            const hash = window.location.hash.replace("#", "");
+            showTab(hash.startsWith("actions-") ? "actions" : hash);
+            filterActions(hash);
+        };
         tabs.forEach(tab => tab.addEventListener("click", () => showTab(tab.dataset.customerTab)));
         window.addEventListener("hashchange", showHashTab);
         showHashTab();
