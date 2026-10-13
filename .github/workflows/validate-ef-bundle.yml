@@ -1,0 +1,41 @@
+name: Validate EF Migration Bundle
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/deploy.yml'
+      - '.github/workflows/validate-ef-bundle.yml'
+      - 'src/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate-bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Build migration bundle
+        run: |
+          dotnet tool install --tool-path "$RUNNER_TEMP/ef-tools" dotnet-ef --version 9.0.9
+          dotnet publish src/Freecrmlance.Web/Freecrmlance.Web.csproj -c Release -o "$RUNNER_TEMP/publish"
+          "$RUNNER_TEMP/ef-tools/dotnet-ef" migrations bundle \
+            --project src/Freecrmlance.Infrastructure/Freecrmlance.Infrastructure.csproj \
+            --startup-project src/Freecrmlance.Web/Freecrmlance.Web.csproj \
+            --configuration Release \
+            --self-contained \
+            --runtime linux-x64 \
+            --output "$RUNNER_TEMP/publish/efbundle"
+          test -s "$RUNNER_TEMP/publish/efbundle"
+          chmod +x "$RUNNER_TEMP/publish/efbundle"
+          file "$RUNNER_TEMP/publish/efbundle"
+          echo "Migration bundle build succeeded"
+      - name: Upload EF migration bundle for VPS staging test
+        uses: actions/upload-artifact@v4
+        with:
+          name: efbundle-linux-x64
+          path: ${{ runner.temp }}/publish/efbundle
+          if-no-files-found: error
+          retention-days: 3
