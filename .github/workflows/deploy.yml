@@ -25,9 +25,18 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
-      - name: Publish
+      - name: Publish and build migration bundle
         run: |
+          dotnet tool install --tool-path "$RUNNER_TEMP/ef-tools" dotnet-ef --version 9.0.9
           dotnet publish src/Freecrmlance.Web/Freecrmlance.Web.csproj -c Release -o "$RUNNER_TEMP/publish"
+          "$RUNNER_TEMP/ef-tools/dotnet-ef" migrations bundle \
+            --project src/Freecrmlance.Infrastructure/Freecrmlance.Infrastructure.csproj \
+            --startup-project src/Freecrmlance.Web/Freecrmlance.Web.csproj \
+            --configuration Release \
+            --self-contained \
+            --runtime linux-x64 \
+            --output "$RUNNER_TEMP/publish/efbundle"
+          chmod 755 "$RUNNER_TEMP/publish/efbundle"
           tar -C "$RUNNER_TEMP/publish" -czf "$RUNNER_TEMP/release.tar.gz" .
       - name: Configure SSH
         env:
